@@ -496,8 +496,11 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
+      console.log('Firebase Module Loaded');
+
       // Make saveToFirestore available globally
       window.saveToFirestore = async function(data) {
+        console.log('--- ATTEMPTING SAVE ---', data);
         try {
           await addDoc(collection(db, 'game_results'), {
             ...data,
