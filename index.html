@@ -506,32 +506,51 @@
       console.log('Targeting database: mt-game in project: ppltx-project-dev');
 
       // Make saveToFirestore available globally using Firestore REST API
-      window.saveToFirestore = async function(data) {
+      window.saveToFirestore = async function (data) {
         const url = `https://firestore.googleapis.com/v1/projects/ppltx-project-dev/databases/mt-game/documents/game_results?key=${firebaseConfig.apiKey}`;
-        
-        // Format data for Firestore REST API
+
+        // Format data for Firestore REST API with proper Firestore types
         const formattedData = {
-          fields: {}
+          fields: {},
         };
-        
-        // Simple conversion for strings and numbers
+
         for (const key in data) {
-          if (typeof data[key] === 'number') {
-            formattedData.fields[key] = { doubleValue: data[key] };
+          if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
+          const value = data[key];
+
+          if (value === null || value === undefined) {
+            continue;
+          } else if (typeof value === "number") {
+            formattedData.fields[key] = Number.isInteger(value)
+              ? { integerValue: value }
+              : { doubleValue: value };
+          } else if (typeof value === "boolean") {
+            formattedData.fields[key] = { booleanValue: value };
+          } else if (value instanceof Date) {
+            formattedData.fields[key] = { timestampValue: value.toISOString() };
           } else {
-            formattedData.fields[key] = { stringValue: String(data[key]) };
+            // Default to string for all other primitive / JSON-serializable values
+            formattedData.fields[key] = { stringValue: String(value) };
           }
         }
 
+        // Add explicit server-side timestamp field
+        formattedData.fields.serverTimestamp = {
+          timestampValue: new Date().toISOString(),
+        };
+
         try {
           const response = await fetch(url, {
-            method: 'POST',
-            body: JSON.stringify(formattedData)
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formattedData),
           });
           const result = await response.json();
-          console.log('✅ Data saved via REST API:', result.name);
+          console.log("✅ Data saved via REST API:", result.name || result);
         } catch (error) {
-          console.error('❌ REST API Save failed:', error);
+          console.error("❌ REST API Save failed:", error);
         }
       };
     </script>
@@ -642,6 +661,49 @@
     <script>
       (function () {
         "use strict";
+
+        // Research-grade user/session identifiers
+        function generateId(prefix) {
+          if (window.crypto && window.crypto.randomUUID) {
+            return prefix + "_" + window.crypto.randomUUID();
+          }
+          return (
+            prefix +
+            "_" +
+            Date.now().toString(36) +
+            "_" +
+            Math.random().toString(36).slice(2, 10)
+          );
+        }
+
+        const SESSION_ID = generateId("session");
+
+        const USER_ID = (function () {
+          const key = "match3UserId";
+          try {
+            const existing = localStorage.getItem(key);
+            if (existing) return existing;
+            const id = generateId("user");
+            localStorage.setItem(key, id);
+            return id;
+          } catch (e) {
+            return generateId("user");
+          }
+        })();
+
+        const EXPERIMENT_CONDITION = (function () {
+          const key = "match3Condition";
+          const variants = ["A", "B"];
+          try {
+            const existing = localStorage.getItem(key);
+            if (variants.includes(existing)) return existing;
+            const variant = Math.random() < 0.5 ? "A" : "B";
+            localStorage.setItem(key, variant);
+            return variant;
+          } catch (e) {
+            return "A";
+          }
+        })();
 
         const BOARD_SIZE = 8;
         const TILE_TYPES = 6;
@@ -1006,9 +1068,11 @@
 
           const scoreDelta = score - scoreBefore;
 
+          const eventTimestamp = new Date().toISOString();
+
           const record = {
             moveIndex: meta.moveIndex,
-            timestamp: new Date().toISOString(),
+            timestamp: eventTimestamp,
             reactionTimeMs: meta.reactionTimeMs,
             fromRow: meta.fromRow,
             fromCol: meta.fromCol,
@@ -1027,9 +1091,29 @@
           updateLogPreview();
           updateStatsUI();
 
-          // Save to Firestore when a match is created
-          if (createdMatch && typeof window.saveToFirestore === 'function') {
-            window.saveToFirestore(record);
+          // Research-grade event payload for remote logging
+          const moveType =
+            meta.wasValidSwap && createdMatch ? "swap" : "invalid";
+
+          const eventPayload = {
+            userId: USER_ID,
+            sessionId: SESSION_ID,
+            condition: EXPERIMENT_CONDITION,
+            timestamp: eventTimestamp,
+            moveIndex: meta.moveIndex,
+            reactionTimeMs: meta.reactionTimeMs,
+            moveType,
+            fromRow: meta.fromRow,
+            fromCol: meta.fromCol,
+            toRow: meta.toRow,
+            toCol: meta.toCol,
+            matchFound: createdMatch,
+            score: score,
+            boardState: JSON.stringify(board),
+          };
+
+          if (typeof window.saveToFirestore === "function") {
+            window.saveToFirestore(eventPayload);
           }
 
           if (!createdMatch) {
