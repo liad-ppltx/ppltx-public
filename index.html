@@ -477,11 +477,10 @@
         color: var(--danger);
       }
     </style>
-    <!-- Firebase SDK -->
-    <script type="module">
-      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
-      import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
-
+    <!-- Firebase SDK - Compatibility Version -->
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+    <script>
       // Your web app's Firebase configuration
       const firebaseConfig = {
         apiKey: "AIzaSyBY3wbmpqTrFVHMUFsG-LPGKX2vmb2xwSs",
@@ -493,22 +492,38 @@
       };
 
       // Initialize Firebase
-      const app = initializeApp(firebaseConfig);
-      const db = getFirestore(app);
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
 
-      console.log('Firebase Module Loaded');
+      console.log('Firebase App Initialized');
 
-      // Make saveToFirestore available globally
+      // Make saveToFirestore available globally with timeout
       window.saveToFirestore = async function(data) {
         console.log('--- ATTEMPTING SAVE ---', data);
+        
+        // Create a timeout promise
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => {
+            reject(new Error('Firestore save operation timed out after 5 seconds'));
+          }, 5000);
+        });
+
         try {
-          await addDoc(collection(db, 'game_results'), {
-            ...data,
-            savedAt: new Date().toISOString()
-          });
+          // Race between the save operation and the timeout
+          await Promise.race([
+            db.collection('game_results').add({
+              ...data,
+              savedAt: new Date().toISOString()
+            }),
+            timeoutPromise
+          ]);
           console.log('Data saved to Firestore:', data);
         } catch (error) {
-          console.error('Error saving to Firestore:', error);
+          if (error.message.includes('timed out')) {
+            console.error('Error saving to Firestore: Operation timed out after 5 seconds', error);
+          } else {
+            console.error('Error saving to Firestore:', error);
+          }
         }
       };
     </script>
