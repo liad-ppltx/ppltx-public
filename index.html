@@ -502,7 +502,12 @@
       // Initialize Firebase globally (after SDK scripts are loaded)
       firebase.initializeApp(firebaseConfig);
       const db = firebase.app().firestore();
-      db.settings({ host: "ppltx-project-dev.firebaseio.com", ssl: true, experimentalForceLongPolling: true });
+      db.settings({
+        host: 'firestore.googleapis.com',
+        ssl: true,
+        experimentalForceLongPolling: true,
+        merge: true
+      });
 
       console.log('Firebase App Initialized');
       console.log('Targeting database: mt-game in project: ppltx-project-dev');
