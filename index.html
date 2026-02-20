@@ -500,13 +500,15 @@
 
       // Initialize Firebase globally (after SDK scripts are loaded)
       firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
+      const db = firebase.app().firestore('mt-game');
+      db.settings({ merge: true, experimentalForceLongPolling: true });
 
       console.log('Firebase App Initialized');
 
       // Make saveToFirestore available globally with timeout
       window.saveToFirestore = async function(data) {
         console.log('--- ATTEMPTING SAVE ---', data);
+        console.log('Using Project ID:', firebase.app().options.projectId);
         
         // Create a timeout promise
         const timeoutPromise = new Promise((_, reject) => {
