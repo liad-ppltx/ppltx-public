@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Match‑3 Research Prototype</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        --tile-size: 64px;
+        --board-size: 8;
+        --gap: 6px;
+        --bg: radial-gradient(circle at top, #1b264f 0%, #0d1323 40%, #030509 100%);
+        --accent: #ffcc00;
+        --accent-soft: rgba(255, 204, 0, 0.15);
+        --panel-bg: rgba(10, 16, 40, 0.92);
+        --panel-border: rgba(255, 255, 255, 0.08);
+        --text-main: #fdfdfd;
+        --text-subtle: #a4b0d0;
+        --danger: #ff4f7b;
+        --success: #5be7a9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background-image: var(--bg);
+        color: var(--text-main);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: auto minmax(260px, 320px);
+        gap: 32px;
+        padding: 24px 32px;
+        border-radius: 20px;
+        background: radial-gradient(circle at top left, #202a53 0, #050814 55%, #000 100%);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow:
+          0 28px 80px rgba(0, 0, 0, 0.75),
+          0 0 0 1px rgba(255, 255, 255, 0.04);
+        max-width: 1100px;
+        width: 100%;
+      }
+
+      @media (max-width: 880px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .left {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .title {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        margin-bottom: 4px;
+      }
+
+      .title-main {
+        font-size: 1.6rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+      }
+
+      .title-sub {
+        font-size: 0.9rem;
+        color: var(--text-subtle);
+      }
+
+      .board-wrapper {
+        position: relative;
+        padding: 12px;
+        border-radius: 18px;
+        background: radial-gradient(circle at top, #161f3f 0, #050814 70%);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+          0 18px 45px rgba(0, 0, 0, 0.7);
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(var(--board-size), var(--tile-size));
+        grid-template-rows: repeat(var(--board-size), var(--tile-size));
+        gap: var(--gap);
+        position: relative;
+      }
+
+      .tile {
+        width: var(--tile-size);
+        height: var(--tile-size);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        cursor: pointer;
+        position: relative;
+        transition:
+          transform 120ms ease-out,
+          box-shadow 120ms ease-out,
+          filter 120ms ease-out,
+          border-radius 120ms ease-out,
+          outline 80ms ease-out;
+        box-shadow:
+          0 6px 10px rgba(0, 0, 0, 0.5),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+      }
+
+      .tile::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: radial-gradient(circle at 20% 0, rgba(255, 255, 255, 0.35), transparent);
+        mix-blend-mode: screen;
+        opacity: 0.9;
+        pointer-events: none;
+      }
+
+      .tile:hover {
+        transform: translateY(-3px);
+        box-shadow:
+          0 10px 18px rgba(0, 0, 0, 0.7),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+        filter: brightness(1.03);
+      }
+
+      .tile.selected {
+        outline: 3px solid var(--accent);
+        outline-offset: 0;
+        box-shadow:
+          0 0 0 2px rgba(0, 0, 0, 0.9),
+          0 0 16px rgba(255, 204, 0, 0.8);
+        transform: translateY(-1px) scale(1.03);
+      }
+
+      .tile.clearing {
+        animation: pop-out 260ms ease-in forwards;
+      }
+
+      .tile-idle {
+        animation: idle-bounce 2200ms infinite ease-in-out;
+      }
+
+      @keyframes pop-out {
+        0% {
+          transform: scale(1) translateY(-1px);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(0.25) translateY(-6px);
+          opacity: 0;
+        }
+      }
+
+      @keyframes idle-bounce {
+        0%,
+        80%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-3px);
+        }
+      }
+
+      /* Tile color themes */
+      .tile-type-0 {
+        background: linear-gradient(135deg, #ff6b6b, #ff3366);
+      }
+      .tile-type-1 {
+        background: linear-gradient(135deg, #4dd0e1, #2979ff);
+      }
+      .tile-type-2 {
+        background: linear-gradient(135deg, #ffd54f, #ffb300);
+      }
+      .tile-type-3 {
+        background: linear-gradient(135deg, #b39ddb, #7e57c2);
+      }
+      .tile-type-4 {
+        background: linear-gradient(135deg, #81c784, #00c853);
+      }
+      .tile-type-5 {
+        background: linear-gradient(135deg, #ff8a65, #ff7043);
+      }
+
+      .top-bar {
+        grid-column: 1 / -1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 10px 18px;
+        border-radius: 999px;
+        background: linear-gradient(
+          90deg,
+          rgba(32, 42, 83, 0.96),
+          rgba(10, 16, 40, 0.96)
+        );
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow:
+          0 10px 28px rgba(0, 0, 0, 0.65),
+          0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .top-bar-section {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+      }
+
+      .top-bar-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--text-subtle);
+      }
+
+      .top-bar-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--accent);
+      }
+
+      .start-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(
+          circle at top,
+          rgba(18, 26, 60, 0.98),
+          rgba(2, 4, 10, 0.98)
+        );
+        z-index: 20;
+      }
+
+      .start-card {
+        max-width: 440px;
+        width: 90%;
+        background: rgba(6, 10, 30, 0.98);
+        border-radius: 20px;
+        padding: 24px 24px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow:
+          0 26px 80px rgba(0, 0, 0, 0.85),
+          0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+
+      .start-title {
+        font-size: 1.9rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+      }
+
+      .start-subtitle {
+        font-size: 0.95rem;
+        color: var(--text-subtle);
+        line-height: 1.6;
+        margin-bottom: 20px;
+      }
+
+      .start-button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .right {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .panel {
+        background: var(--panel-bg);
+        border-radius: 16px;
+        padding: 16px 18px;
+        border: 1px solid var(--panel-border);
+        box-shadow:
+          0 12px 35px rgba(0, 0, 0, 0.6),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 14px;
+        align-items: center;
+      }
+
+      .stat-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.13em;
+        color: var(--text-subtle);
+      }
+
+      .stat-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+
+      .stat-highlight {
+        color: var(--accent);
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      button {
+        border-radius: 999px;
+        border: none;
+        padding: 9px 16px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, var(--accent), #ff9f1c);
+        color: #1b1400;
+        box-shadow:
+          0 6px 15px rgba(0, 0, 0, 0.65),
+          0 0 0 1px rgba(0, 0, 0, 0.6);
+        transition:
+          transform 110ms ease-out,
+          box-shadow 110ms ease-out,
+          filter 110ms ease-out;
+        white-space: nowrap;
+      }
+
+      button.secondary {
+        background: linear-gradient(135deg, #394b7c, #18213e);
+        color: #f7f8ff;
+      }
+
+      button:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
+
+      button:not(:disabled):hover {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+        box-shadow:
+          0 10px 26px rgba(0, 0, 0, 0.8),
+          0 0 0 1px rgba(0, 0, 0, 0.7);
+      }
+
+      button:not(:disabled):active {
+        transform: translateY(1px) scale(0.99);
+        box-shadow:
+          0 3px 10px rgba(0, 0, 0, 0.7),
+          0 0 0 1px rgba(0, 0, 0, 0.85);
+      }
+
+      .hint {
+        font-size: 0.78rem;
+        color: var(--text-subtle);
+        margin-top: 10px;
+        line-height: 1.45;
+      }
+
+      .hint code {
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.78rem;
+        background: rgba(10, 10, 20, 0.8);
+        padding: 1px 5px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+      }
+
+      .chip {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        padding: 4px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent);
+        color: var(--text-subtle);
+      }
+
+      .chip.accent {
+        border-color: rgba(255, 204, 0, 0.6);
+        color: var(--accent);
+        background: radial-gradient(circle at top, rgba(255, 204, 0, 0.2), transparent);
+      }
+
+      .log-preview {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        background: rgba(6, 10, 30, 0.96);
+        border: 1px dashed rgba(255, 255, 255, 0.08);
+        max-height: 140px;
+        overflow: auto;
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.75rem;
+        line-height: 1.45;
+        color: #d0ddff;
+      }
+
+      .log-preview-empty {
+        color: var(--text-subtle);
+        font-style: italic;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.72rem;
+        padding: 4px 7px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        border: 1px solid rgba(255, 204, 0, 0.45);
+      }
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2);
+      }
+
+      .status-line {
+        margin-top: 8px;
+        font-size: 0.82rem;
+        color: var(--text-subtle);
+      }
+
+      .status-line span {
+        color: var(--success);
+      }
+
+      .status-line.error span {
+        color: var(--danger);
+      }
+    </style>
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
+      import { getFirestore, collection, addDoc } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+
+      // Your web app's Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyBY3wbmpqTrFVHMUFsG-LPGKX2vmb2xwSs",
+        authDomain: "ppltx-project-dev.firebaseapp.com",
+        projectId: "ppltx-project-dev",
+        storageBucket: "ppltx-project-dev.firebasestorage.app",
+        messagingSenderId: "1008682168971",
+        appId: "1:1008682168971:web:bacb1f2acdcb44fc281a8e"
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // Make saveToFirestore available globally
+      window.saveToFirestore = async function(data) {
+        try {
+          await addDoc(collection(db, 'game_results'), {
+            ...data,
+            savedAt: new Date().toISOString()
+          });
+          console.log('Data saved to Firestore:', data);
+        } catch (error) {
+          console.error('Error saving to Firestore:', error);
+        }
+      };
+    </script>
+  </head>
+  <body>
+    <div id="startScreen" class="start-screen">
+      <div class="start-card">
+        <div class="start-title">Match‑3 Research Study</div>
+        <div class="start-subtitle">
+          By playing, you agree to participate in an anonymous data collection
+          for research purposes.
+        </div>
+        <button id="startGameBtn" type="button" class="start-button">
+          Start Game
+        </button>
+      </div>
+    </div>
+
+    <div class="app">
+      <div class="top-bar">
+        <div class="top-bar-section">
+          <span class="top-bar-label">Time left</span>
+          <span class="top-bar-value"><span id="timerValue">60</span>s</span>
+        </div>
+        <div class="top-bar-section">
+          <span class="top-bar-label">Score</span>
+          <span class="top-bar-value" id="topScoreValue">0</span>
+        </div>
+      </div>
+      <div class="left">
+        <div class="title">
+          <div class="title-main">Match‑3 Lab Board</div>
+          <div class="title-sub">
+            Swap adjacent tiles to make lines of <strong>three or more</strong>. All
+            interactions are logged for research.
+          </div>
+        </div>
+
+        <div class="board-wrapper">
+          <div id="board" class="board" aria-label="Match-3 game board"></div>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="badge">
+              <span class="badge-dot"></span>
+              Research capture
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div>
+              <div class="stat-label">Score</div>
+              <div class="stat-value stat-highlight" id="scoreValue">0</div>
+            </div>
+            <div>
+              <div class="stat-label">Moves</div>
+              <div class="stat-value" id="movesValue">0</div>
+            </div>
+            <div>
+              <div class="stat-label">Best Chain</div>
+              <div class="stat-value" id="bestChainValue">0</div>
+            </div>
+            <div>
+              <div class="stat-label">Events Logged</div>
+              <div class="stat-value" id="logCountValue">0</div>
+            </div>
+          </div>
+
+          <div class="controls">
+            <button id="newGameBtn" type="button">New Board</button>
+            <button id="downloadCsvBtn" type="button" class="secondary">
+              Download CSV
+            </button>
+          </div>
+
+          <div class="hint">
+            - Click a tile, then click an <strong>adjacent</strong> tile to swap.<br />
+            - Only swaps that create a match are kept; others revert.<br />
+            - Each move (and its cascades) is stored in a
+            <code>moveLog</code> array and can be exported.
+          </div>
+
+          <div class="chip-row">
+            <div class="chip accent">Reaction time</div>
+            <div class="chip">Board coords</div>
+            <div class="chip">Match metadata</div>
+            <div class="chip">Cascade depth</div>
+          </div>
+
+          <div class="status-line" id="statusLine">
+            Status: <span>Ready. Click any tile to begin.</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="stat-label" style="margin-bottom: 4px;">Recent events (preview)</div>
+          <div id="logPreview" class="log-preview log-preview-empty">
+            No moves yet. Once you start playing, a compact JSON preview of the last
+            few logged moves will appear here.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        const BOARD_SIZE = 8;
+        const TILE_TYPES = 6;
+        const SCORE_PER_TILE = 10;
+
+        const boardEl = document.getElementById("board");
+        const scoreEl = document.getElementById("scoreValue");
+        const topScoreEl = document.getElementById("topScoreValue");
+        const timerEl = document.getElementById("timerValue");
+        const movesEl = document.getElementById("movesValue");
+        const bestChainEl = document.getElementById("bestChainValue");
+        const logCountEl = document.getElementById("logCountValue");
+        const newGameBtn = document.getElementById("newGameBtn");
+        const downloadCsvBtn = document.getElementById("downloadCsvBtn");
+        const startScreenEl = document.getElementById("startScreen");
+        const startGameBtn = document.getElementById("startGameBtn");
+        const logPreviewEl = document.getElementById("logPreview");
+        const statusLineEl = document.getElementById("statusLine");
+
+        let board = [];
+        let score = 0;
+        let moves = 0;
+        let bestChain = 0;
+
+        let selected = null; // { row, col, timeSelected }
+        let acceptingInput = true;
+        let gameActive = false;
+        let timeRemaining = 60;
+        let timerInterval = null;
+
+        // Research tracking: array of move-level events
+        // Each entry:
+        // {
+        //   moveIndex,
+        //   timestamp,
+        //   reactionTimeMs,
+        //   fromRow, fromCol, toRow, toCol,
+        //   wasValidSwap,
+        //   createdMatch,
+        //   tilesClearedTotal,
+        //   cascades,
+        //   scoreDelta,
+        //   scoreAfter,
+        //   matchDetails: [{ orientation, length, tiles: "r0c0;r0c1;..." }]
+        // }
+        const moveLog = [];
+        window.match3MoveLog = moveLog; // Expose for debugging / inspection
+
+        function updateTimerUI() {
+          if (timerEl) {
+            timerEl.textContent = String(timeRemaining);
+          }
+        }
+
+        function startTimer() {
+          if (timerInterval) {
+            clearInterval(timerInterval);
+          }
+          timeRemaining = 60;
+          updateTimerUI();
+          timerInterval = setInterval(() => {
+            timeRemaining -= 1;
+            if (timeRemaining < 0) {
+              timeRemaining = 0;
+            }
+            updateTimerUI();
+            if (timeRemaining <= 0) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+              endGame("timer_expired");
+            }
+          }, 1000);
+        }
+
+        function stopTimer() {
+          if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+          }
+        }
+
+        function randInt(max) {
+          return Math.floor(Math.random() * max);
+        }
+
+        function createEmptyBoard() {
+          board = [];
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            const row = [];
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              row.push(0);
+            }
+            board.push(row);
+          }
+        }
+
+        // Ensure no initial board has matches
+        function generateBoardWithoutMatches() {
+          createEmptyBoard();
+
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              let tile;
+              do {
+                tile = randInt(TILE_TYPES);
+              } while (createsImmediateMatch(board, r, c, tile));
+              board[r][c] = tile;
+            }
+          }
+        }
+
+        function createsImmediateMatch(b, r, c, tile) {
+          // Check left
+          if (c >= 2 && b[r][c - 1] === tile && b[r][c - 2] === tile) return true;
+          // Check up
+          if (r >= 2 && b[r - 1][c] === tile && b[r - 2][c] === tile) return true;
+          return false;
+        }
+
+        function renderBoard() {
+          boardEl.innerHTML = "";
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            for (let c = 0; c < BOARD_SIZE; c++) {
+              const val = board[r][c];
+              const tile = document.createElement("button");
+              tile.className = "tile tile-type-" + val + " tile-idle";
+              tile.type = "button";
+              tile.dataset.row = String(r);
+              tile.dataset.col = String(c);
+              tile.setAttribute("aria-label", "Tile " + r + "," + c);
+              tile.addEventListener("click", () =>
+                handleTileClick(r, c, tile)
+              );
+              boardEl.appendChild(tile);
+            }
+          }
+        }
+
+        function updateStatsUI() {
+          scoreEl.textContent = String(score);
+          if (topScoreEl) {
+            topScoreEl.textContent = String(score);
+          }
+          movesEl.textContent = String(moves);
+          bestChainEl.textContent = String(bestChain);
+          logCountEl.textContent = String(moveLog.length);
+        }
+
+        function setStatus(message, isError = false) {
+          statusLineEl.classList.toggle("error", !!isError);
+          const span = statusLineEl.querySelector("span");
+          if (span) {
+            span.textContent = message;
+          }
+        }
+
+        function refreshSelectedHighlight() {
+          const tiles = boardEl.querySelectorAll(".tile");
+          tiles.forEach((tile) => tile.classList.remove("selected"));
+          if (!selected) return;
+          const idx = selected.row * BOARD_SIZE + selected.col;
+          const tileEl = tiles[idx];
+          if (tileEl) {
+            tileEl.classList.add("selected");
+          }
+        }
+
+        function areAdjacent(r1, c1, r2, c2) {
+          const dr = Math.abs(r1 - r2);
+          const dc = Math.abs(c1 - c2);
+          return (dr === 1 && dc === 0) || (dr === 0 && dc === 1);
+        }
+
+        function swapTiles(r1, c1, r2, c2) {
+          const temp = board[r1][c1];
+          board[r1][c1] = board[r2][c2];
+          board[r2][c2] = temp;
+        }
+
+        function findMatches() {
+          const matches = [];
+          const visited = Array.from({ length: BOARD_SIZE }, () =>
+            Array(BOARD_SIZE).fill(false)
+          );
+
+          // Horizontal
+          for (let r = 0; r < BOARD_SIZE; r++) {
+            let c = 0;
+            while (c < BOARD_SIZE) {
+              const startC = c;
+              const tile = board[r][c];
+              if (tile === null || tile === undefined) {
+                c++;
+                continue;
+              }
+              while (c + 1 < BOARD_SIZE && board[r][c + 1] === tile) {
+                c++;
+              }
+              const length = c - startC + 1;
+              if (length >= 3) {
+                const tiles = [];
+                for (let cc = startC; cc <= c; cc++) {
+                  if (!visited[r][cc]) {
+                    visited[r][cc] = true;
+                    tiles.push({ row: r, col: cc });
+                  }
+                }
+                matches.push({
+                  orientation: "horizontal",
+                  length,
+                  tiles,
+                  value: tile,
+                });
+              }
+              c++;
+            }
+          }
+
+          // Vertical
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            let r = 0;
+            while (r < BOARD_SIZE) {
+              const startR = r;
+              const tile = board[r][c];
+              if (tile === null || tile === undefined) {
+                r++;
+                continue;
+              }
+              while (r + 1 < BOARD_SIZE && board[r + 1][c] === tile) {
+                r++;
+              }
+              const length = r - startR + 1;
+              if (length >= 3) {
+                const tiles = [];
+                for (let rr = startR; rr <= r; rr++) {
+                  if (!visited[rr][c]) {
+                    visited[rr][c] = true;
+                    tiles.push({ row: rr, col: c });
+                  }
+                }
+                matches.push({
+                  orientation: "vertical",
+                  length,
+                  tiles,
+                  value: tile,
+                });
+              }
+              r++;
+            }
+          }
+
+          return matches;
+        }
+
+        function clearMatches(matches) {
+          const toClear = new Set();
+          matches.forEach((group) => {
+            group.tiles.forEach((t) => {
+              toClear.add(t.row + "," + t.col);
+            });
+          });
+
+          const tiles = Array.from(boardEl.querySelectorAll(".tile"));
+          toClear.forEach((key) => {
+            const [r, c] = key.split(",").map(Number);
+            const idx = r * BOARD_SIZE + c;
+            const tileEl = tiles[idx];
+            if (tileEl) {
+              tileEl.classList.add("clearing");
+            }
+            board[r][c] = null;
+          });
+
+          return toClear.size;
+        }
+
+        function collapseBoard() {
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            let writeRow = BOARD_SIZE - 1;
+            for (let r = BOARD_SIZE - 1; r >= 0; r--) {
+              if (board[r][c] !== null) {
+                board[writeRow][c] = board[r][c];
+                if (writeRow !== r) {
+                  board[r][c] = null;
+                }
+                writeRow--;
+              }
+            }
+            for (let r = writeRow; r >= 0; r--) {
+              board[r][c] = randInt(TILE_TYPES);
+            }
+          }
+        }
+
+        function wait(ms) {
+          return new Promise((resolve) => setTimeout(resolve, ms));
+        }
+
+        function updateLogPreview() {
+          if (!moveLog.length) {
+            logPreviewEl.classList.add("log-preview-empty");
+            logPreviewEl.textContent =
+              "No moves yet. Once you start playing, a compact JSON preview of the last few logged moves will appear here.";
+            return;
+          }
+          logPreviewEl.classList.remove("log-preview-empty");
+          const last = moveLog.slice(-5);
+          const simplified = last.map((m) => ({
+            moveIndex: m.moveIndex,
+            rTimeMs: m.reactionTimeMs,
+            from: `r${m.fromRow}c${m.fromCol}`,
+            to: `r${m.toRow}c${m.toCol}`,
+            match: m.createdMatch,
+            tiles: m.tilesClearedTotal,
+            cascades: m.cascades,
+          }));
+          logPreviewEl.textContent = JSON.stringify(simplified, null, 2);
+        }
+
+        async function resolveMatchesAndLogMove(meta) {
+          // meta: {
+          //   moveIndex, reactionTimeMs, fromRow, fromCol, toRow, toCol,
+          //   wasValidSwap
+          // }
+          let cascades = 0;
+          let totalCleared = 0;
+          let createdMatch = false;
+          const allMatchDetails = [];
+          let scoreBefore = score;
+
+          while (true) {
+            const matches = findMatches();
+            if (!matches.length) break;
+            createdMatch = true;
+            cascades++;
+            allMatchDetails.push(
+              ...matches.map((g) => ({
+                orientation: g.orientation,
+                length: g.length,
+                tiles: g.tiles
+                  .map((t) => "r" + t.row + "c" + t.col)
+                  .join(";"),
+              }))
+            );
+            const cleared = clearMatches(matches);
+            totalCleared += cleared;
+            score += cleared * SCORE_PER_TILE;
+            updateStatsUI();
+
+            // Wait for pop-out animation
+            await wait(220);
+            collapseBoard();
+            renderBoard();
+            refreshSelectedHighlight();
+            await wait(80);
+          }
+
+          if (cascades > bestChain) {
+            bestChain = cascades;
+            updateStatsUI();
+          }
+
+          const scoreDelta = score - scoreBefore;
+
+          const record = {
+            moveIndex: meta.moveIndex,
+            timestamp: new Date().toISOString(),
+            reactionTimeMs: meta.reactionTimeMs,
+            fromRow: meta.fromRow,
+            fromCol: meta.fromCol,
+            toRow: meta.toRow,
+            toCol: meta.toCol,
+            wasValidSwap: meta.wasValidSwap,
+            createdMatch,
+            tilesClearedTotal: totalCleared,
+            cascades,
+            scoreDelta,
+            scoreAfter: score,
+            matchDetails: allMatchDetails,
+          };
+
+          moveLog.push(record);
+          updateLogPreview();
+          updateStatsUI();
+
+          // Save to Firestore when a match is created
+          if (createdMatch && typeof window.saveToFirestore === 'function') {
+            window.saveToFirestore(record);
+          }
+
+          if (!createdMatch) {
+            setStatus("No match – swap reverted.", true);
+          } else {
+            setStatus(
+              "Move " +
+                record.moveIndex +
+                " resolved with " +
+                totalCleared +
+                " tiles cleared over " +
+                cascades +
+                " cascade" +
+                (cascades === 1 ? "" : "s") +
+                "."
+            );
+          }
+        }
+
+        function saveGameEnd(reason) {
+          if (!moveLog.length || typeof window.saveToFirestore !== "function") {
+            return;
+          }
+          const gameEndData = {
+            eventType: "game_end",
+            endReason: reason,
+            finalScore: score,
+            totalMoves: moves,
+            bestChain: bestChain,
+            totalEventsLogged: moveLog.length,
+            gameSummary: {
+              totalMatches: moveLog.filter((m) => m.createdMatch).length,
+              totalTilesCleared: moveLog.reduce(
+                (sum, m) => sum + m.tilesClearedTotal,
+                0
+              ),
+              totalCascades: moveLog.reduce(
+                (sum, m) => sum + m.cascades,
+                0
+              ),
+              averageReactionTime:
+                moveLog.length > 0
+                  ? Math.round(
+                      moveLog.reduce(
+                        (sum, m) => sum + m.reactionTimeMs,
+                        0
+                      ) / moveLog.length
+                    )
+                  : 0,
+            },
+            allMoves: moveLog,
+          };
+          window.saveToFirestore(gameEndData);
+        }
+
+        function endGame(reason) {
+          if (!gameActive) return;
+          stopTimer();
+          saveGameEnd(reason || "ended");
+          gameActive = false;
+          acceptingInput = false;
+          setStatus(
+            "Time is up. Click New Board to start another game.",
+            true
+          );
+        }
+
+        async function handleTileClick(r, c, tileEl) {
+          if (!acceptingInput) return;
+
+          const now = performance.now();
+
+          // First selection
+          if (!selected) {
+            selected = { row: r, col: c, timeSelected: now };
+            refreshSelectedHighlight();
+            setStatus(
+              "Tile selected at row " +
+                r +
+                ", col " +
+                c +
+                ". Choose an adjacent tile to swap."
+            );
+            return;
+          }
+
+          // Clicking the same tile cancels selection
+          if (selected.row === r && selected.col === c) {
+            selected = null;
+            refreshSelectedHighlight();
+            setStatus("Selection cleared. Choose a tile to start again.");
+            return;
+          }
+
+          // Second selection: must be adjacent
+          if (!areAdjacent(selected.row, selected.col, r, c)) {
+            // Re-focus selection on new tile
+            selected = { row: r, col: c, timeSelected: now };
+            refreshSelectedHighlight();
+            setStatus(
+              "Tiles must be adjacent. New selection at row " +
+                r +
+                ", col " +
+                c +
+                "."
+            );
+            return;
+          }
+
+          // Valid swap attempt
+          acceptingInput = false;
+          const fromRow = selected.row;
+          const fromCol = selected.col;
+          const toRow = r;
+          const toCol = c;
+          const reactionTimeMs = Math.round(now - selected.timeSelected);
+
+          const moveIndex = moves + 1;
+
+          setStatus("Resolving move " + moveIndex + "…");
+
+          // Perform tentative swap
+          swapTiles(fromRow, fromCol, toRow, toCol);
+          renderBoard();
+          refreshSelectedHighlight();
+
+          // Check if swap created a match
+          const matches = findMatches();
+          if (!matches.length) {
+            // No match, revert swap (still log as invalid move)
+            await wait(150);
+            swapTiles(fromRow, fromCol, toRow, toCol);
+            renderBoard();
+            refreshSelectedHighlight();
+
+            const meta = {
+              moveIndex,
+              reactionTimeMs,
+              fromRow,
+              fromCol,
+              toRow,
+              toCol,
+              wasValidSwap: false,
+            };
+            await resolveMatchesAndLogMove(meta); // will log with createdMatch=false
+
+            // Do not increment score or moves
+            // (we still count as a move attempt in the log, but not in user-visible "Moves")
+          } else {
+            // Valid move that created at least one match; resolve full cascade and log
+            moves++;
+            updateStatsUI();
+            const meta = {
+              moveIndex,
+              reactionTimeMs,
+              fromRow,
+              fromCol,
+              toRow,
+              toCol,
+              wasValidSwap: true,
+            };
+            await resolveMatchesAndLogMove(meta);
+          }
+
+          selected = null;
+          refreshSelectedHighlight();
+          acceptingInput = true;
+        }
+
+        function toCsvValue(v) {
+          if (v === null || v === undefined) return "";
+          const str = String(v);
+          if (/[",\n]/.test(str)) {
+            return '"' + str.replace(/"/g, '""') + '"';
+          }
+          return str;
+        }
+
+        function downloadCsv() {
+          if (!moveLog.length) {
+            setStatus("No move data to download yet – play a bit first!", true);
+            return;
+          }
+
+          const headers = [
+            "moveIndex",
+            "timestamp",
+            "reactionTimeMs",
+            "fromRow",
+            "fromCol",
+            "toRow",
+            "toCol",
+            "wasValidSwap",
+            "createdMatch",
+            "tilesClearedTotal",
+            "cascades",
+            "scoreDelta",
+            "scoreAfter",
+            "matchDetailsJson",
+          ];
+
+          const rows = moveLog.map((m) => {
+            const row = [
+              m.moveIndex,
+              m.timestamp,
+              m.reactionTimeMs,
+              m.fromRow,
+              m.fromCol,
+              m.toRow,
+              m.toCol,
+              m.wasValidSwap,
+              m.createdMatch,
+              m.tilesClearedTotal,
+              m.cascades,
+              m.scoreDelta,
+              m.scoreAfter,
+              JSON.stringify(m.matchDetails),
+            ];
+            return row.map(toCsvValue).join(",");
+          });
+
+          const csvContent = [headers.join(","), ...rows].join("\n");
+          const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          const now = new Date();
+          const ts =
+            now.getFullYear().toString() +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            String(now.getDate()).padStart(2, "0") +
+            "_" +
+            String(now.getHours()).padStart(2, "0") +
+            String(now.getMinutes()).padStart(2, "0") +
+            String(now.getSeconds()).padStart(2, "0");
+          a.href = url;
+          a.download = "match3_moves_" + ts + ".csv";
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          setStatus("CSV downloaded with " + moveLog.length + " rows.");
+        }
+
+        function newGame() {
+          if (gameActive) {
+            saveGameEnd("new_board");
+          }
+          stopTimer();
+          score = 0;
+          moves = 0;
+          bestChain = 0;
+          selected = null;
+          acceptingInput = true;
+          gameActive = true;
+          moveLog.length = 0; // Clear move log for new game
+          generateBoardWithoutMatches();
+          renderBoard();
+          updateStatsUI();
+          updateLogPreview();
+          setStatus("New board generated. Match as many tiles as you can!");
+          startTimer();
+        }
+
+        newGameBtn.addEventListener("click", newGame);
+        downloadCsvBtn.addEventListener("click", downloadCsv);
+
+        if (startGameBtn && startScreenEl) {
+          startGameBtn.addEventListener("click", function () {
+            startScreenEl.classList.add("hidden");
+            newGame();
+          });
+        } else {
+          // Fallback: start immediately if start screen is missing
+          newGame();
+        }
+      })();
+    </script>
+  </body>
+</html>
+
