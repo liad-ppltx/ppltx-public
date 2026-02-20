@@ -478,11 +478,16 @@
       }
     </style>
     <!-- Firebase SDK - Compatibility Version -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
-      console.log('Firebase object exists:', !!firebase);
-      
+      if (typeof firebase !== 'undefined') {
+        console.log('✅ Firebase SDK Loaded Successfully');
+      } else {
+        console.error('❌ Firebase SDK Failed to Load');
+      }
+    </script>
+    <script>
       // Your web app's Firebase configuration
       const firebaseConfig = {
         apiKey: "AIzaSyBY3wbmpqTrFVHMUFsG-LPGKX2vmb2xwSs",
@@ -493,7 +498,7 @@
         appId: "1:1008682168971:web:bacb1f2acdcb44fc281a8e"
       };
 
-      // Initialize Firebase globally
+      // Initialize Firebase globally (after SDK scripts are loaded)
       firebase.initializeApp(firebaseConfig);
       const db = firebase.firestore();
 
