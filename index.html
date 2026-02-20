@@ -501,42 +501,37 @@
 
       // Initialize Firebase globally (after SDK scripts are loaded)
       firebase.initializeApp(firebaseConfig);
-      const db = firebase.app().firestore('mt-game');
 
       console.log('Firebase App Initialized');
       console.log('Targeting database: mt-game in project: ppltx-project-dev');
 
-      // Make saveToFirestore available globally with timeout
+      // Make saveToFirestore available globally using Firestore REST API
       window.saveToFirestore = async function(data) {
-        console.log('--- ATTEMPTING SAVE ---', data);
-        console.log('Using Project ID:', firebase.app().options.projectId);
+        const url = `https://firestore.googleapis.com/v1/projects/ppltx-project-dev/databases/mt-game/documents/game_results?key=${firebaseConfig.apiKey}`;
         
-        // Create a timeout promise
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => {
-            reject(new Error('Firestore save operation timed out after 5 seconds'));
-          }, 5000);
-        });
+        // Format data for Firestore REST API
+        const formattedData = {
+          fields: {}
+        };
+        
+        // Simple conversion for strings and numbers
+        for (const key in data) {
+          if (typeof data[key] === 'number') {
+            formattedData.fields[key] = { doubleValue: data[key] };
+          } else {
+            formattedData.fields[key] = { stringValue: String(data[key]) };
+          }
+        }
 
         try {
-          const collectionRef = db.collection('game_results');
-          console.log('Collection reference created');
-          
-          // Race between the save operation and the timeout
-          await Promise.race([
-            collectionRef.add({
-              ...data,
-              savedAt: new Date().toISOString()
-            }),
-            timeoutPromise
-          ]);
-          console.log('Data saved to Firestore:', data);
+          const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(formattedData)
+          });
+          const result = await response.json();
+          console.log('✅ Data saved via REST API:', result.name);
         } catch (error) {
-          if (error.message && error.message.includes('timed out')) {
-            console.error('Error saving to Firestore: Operation timed out after 5 seconds', error);
-          } else {
-            console.error('Error saving to Firestore:', error);
-          }
+          console.error('❌ REST API Save failed:', error);
         }
       };
     </script>
