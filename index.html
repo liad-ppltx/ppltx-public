@@ -2,22 +2,37 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Coin‑Style Slot Research Prototype</title>
+    <title>Floating Island Slot Lab</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <style>
       :root {
-        --tile-size: 64px;
-        --board-size: 8;
-        --gap: 6px;
-        --bg: radial-gradient(circle at top, #3a1160 0%, #15062a 45%, #05010c 100%);
-        --accent: #ffd166;
-        --accent-soft: rgba(255, 209, 102, 0.16);
-        --panel-bg: rgba(12, 6, 28, 0.92);
-        --panel-border: rgba(255, 255, 255, 0.08);
+        --bg-ocean-top: #050819;
+        --bg-ocean-mid: #020b32;
+        --bg-ocean-bottom: #000714;
+        --sky-glow: rgba(122, 182, 255, 0.4);
+
+        --stone-dark: #1b1f2a;
+        --stone-mid: #2b323f;
+        --stone-light: #3a4457;
+        --iron: #818897;
+
+        --wood-light: #f2c27b;
+        --wood-mid: #b47633;
+        --wood-dark: #6a3a16;
+
+        --gold-light: #ffe6a3;
+        --gold-mid: #ffd166;
+        --gold-dark: #b8860b;
+
+        --mana-blue: #4fd3ff;
+
         --text-main: #fdfdfd;
-        --text-subtle: #c7b7ff;
-        --danger: #ff3d7f;
-        --success: #67f5c1;
+        --text-subtle: #d1d6ea;
+        --danger: #ff4f7b;
+        --success: #64f5c2;
+
+        --bezier-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
       }
 
       * {
@@ -31,63 +46,138 @@
         place-items: center;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           sans-serif;
-        background-image: var(--bg);
         color: var(--text-main);
+        background:
+          radial-gradient(circle at top, var(--sky-glow), transparent 55%),
+          linear-gradient(
+            180deg,
+            var(--bg-ocean-top),
+            var(--bg-ocean-mid) 45%,
+            var(--bg-ocean-bottom)
+          );
+        overflow: hidden;
       }
 
-      .hidden {
-        display: none !important;
+      body::before {
+        content: "";
+        position: fixed;
+        inset: -40%;
+        background-image:
+          radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.04), transparent 65%),
+          radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.03), transparent 60%),
+          radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.035), transparent 70%);
+        opacity: 0.9;
+        mix-blend-mode: screen;
+        pointer-events: none;
       }
 
-      /* Mobile-first shell */
-      .phone {
-        width: min(420px, 100vw);
-        min-height: 100vh;
-        padding: 16px 14px 86px;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.03) 0,
+            transparent 40%,
+            rgba(255, 255, 255, 0.035) 60%,
+            transparent 100%
+          );
+        opacity: 0.7;
+        mix-blend-mode: soft-light;
+        pointer-events: none;
       }
 
-      @media (min-width: 680px) {
-        .phone {
-          min-height: 820px;
-          border-radius: 26px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: radial-gradient(circle at top left, rgba(255, 209, 102, 0.06), rgba(255, 255, 255, 0.0) 55%),
-            radial-gradient(circle at top, rgba(181, 23, 255, 0.10), rgba(0, 0, 0, 0) 55%);
-          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75);
+      .ocean-waves {
+        position: fixed;
+        inset: 0;
+        background-image:
+          repeating-linear-gradient(
+            -10deg,
+            rgba(255, 255, 255, 0.06) 0 2px,
+            transparent 2px 18px
+          ),
+          repeating-linear-gradient(
+            10deg,
+            rgba(255, 255, 255, 0.03) 0 2px,
+            transparent 2px 24px
+          );
+        opacity: 0.22;
+        mix-blend-mode: soft-light;
+        animation: waves-shift 38s linear infinite;
+        pointer-events: none;
+      }
+
+      @keyframes waves-shift {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+        100% {
+          transform: translate3d(-160px, 40px, 0);
         }
       }
 
+      .phone-frame {
+        position: relative;
+        width: min(420px, 100vw - 32px);
+        min-height: min(820px, 100vh - 32px);
+        max-height: 840px;
+        padding: 14px 12px 90px;
+        border-radius: 32px;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.16), transparent 65%),
+          radial-gradient(circle at bottom, rgba(0, 0, 0, 0.85), transparent 60%),
+          linear-gradient(145deg, #1a102b, #050614);
+        box-shadow:
+          0 40px 110px rgba(0, 0, 0, 0.9),
+          0 0 0 2px rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        backdrop-filter: blur(14px);
+        overflow: hidden;
+      }
+
+      .phone-bezel-notch {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        width: 84px;
+        height: 10px;
+        border-radius: 999px;
+        transform: translateX(-50%);
+        background: radial-gradient(circle at top, #4a4f5c, #161821);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.8);
+      }
+
       .hud {
-        background: rgba(12, 6, 28, 0.82);
+        background: rgba(12, 12, 24, 0.96);
+        border-radius: 20px;
+        padding: 10px 11px 10px;
         border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 18px;
-        padding: 12px 12px 10px;
-        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
-        backdrop-filter: blur(10px);
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.8),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
       }
 
       .hud-top {
         display: flex;
         justify-content: space-between;
-        align-items: baseline;
-        gap: 10px;
-        margin-bottom: 10px;
+        align-items: center;
+        margin-bottom: 8px;
       }
 
       .hud-title {
-        font-weight: 800;
-        letter-spacing: 0.04em;
-        font-size: 0.95rem;
+        font-size: 0.92rem;
         text-transform: uppercase;
+        letter-spacing: 0.16em;
         color: var(--text-subtle);
       }
 
       .hud-level {
         font-weight: 700;
-        color: var(--accent);
+        color: var(--gold-light);
       }
 
       .hud-bars {
@@ -97,23 +187,23 @@
 
       .hud-bar {
         display: grid;
-        grid-template-columns: 54px 1fr auto;
-        gap: 10px;
+        grid-template-columns: 60px 1fr auto;
+        gap: 8px;
         align-items: center;
       }
 
       .hud-bar-label {
         font-size: 0.72rem;
-        letter-spacing: 0.12em;
         text-transform: uppercase;
+        letter-spacing: 0.12em;
         color: var(--text-subtle);
       }
 
       .hud-bar-track {
         height: 10px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.10);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(40, 42, 60, 0.9);
+        border: 1px solid rgba(255, 255, 255, 0.14);
         overflow: hidden;
       }
 
@@ -121,61 +211,199 @@
         height: 100%;
         width: 0%;
         border-radius: 999px;
-        transition: width 220ms ease-out;
+        transition: width 220ms var(--bezier-snap);
       }
 
       .hud-bar-fill.energy {
-        background: linear-gradient(90deg, #67f5c1, #3bf0ff);
+        background: linear-gradient(90deg, #46f4b6, #4de8ff);
       }
 
       .hud-bar-fill.coins {
-        background: linear-gradient(90deg, #ffd166, #b517ff);
+        background: linear-gradient(90deg, var(--gold-mid), #ff7d00);
       }
 
       .hud-bar-value {
         font-variant-numeric: tabular-nums;
         font-weight: 700;
-        color: var(--text-main);
       }
 
-      .village-screen {
+      .world {
         flex: 1;
         display: flex;
         align-items: stretch;
       }
 
-      .village-scene {
-        width: 100%;
-        background: rgba(12, 6, 28, 0.70);
-        border: 1px solid rgba(255, 255, 255, 0.10);
-        border-radius: 22px;
-        padding: 14px;
-        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.6);
+      .world-inner {
         position: relative;
+        width: 100%;
+        border-radius: 26px;
+        background:
+          radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.12), transparent 65%),
+          linear-gradient(180deg, rgba(10, 12, 22, 0.98), rgba(4, 6, 16, 0.98));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow:
+          0 28px 80px rgba(0, 0, 0, 0.9),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        overflow: hidden;
+        padding: 14px 10px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .world-sky {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0.55;
+      }
+
+      .world-sky::before,
+      .world-sky::after {
+        content: "";
+        position: absolute;
+        width: 260%;
+        height: 160%;
+        background-image:
+          radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.12), transparent 60%),
+          radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.08), transparent 60%),
+          radial-gradient(circle at 30% 80%, rgba(255, 255, 255, 0.09), transparent 65%);
+        filter: blur(18px);
+      }
+
+      .world-sky::before {
+        top: -30%;
+        left: -20%;
+        opacity: 0.35;
+        animation: clouds-drift-1 80s linear infinite;
+      }
+
+      .world-sky::after {
+        top: -40%;
+        left: -10%;
+        opacity: 0.25;
+        animation: clouds-drift-2 110s linear infinite;
+      }
+
+      @keyframes clouds-drift-1 {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+        100% {
+          transform: translate3d(-200px, 40px, 0);
+        }
+      }
+
+      @keyframes clouds-drift-2 {
+        0% {
+          transform: translate3d(0, 0, 0);
+        }
+        100% {
+          transform: translate3d(180px, 60px, 0);
+        }
+      }
+
+      .island {
+        position: relative;
+        width: min(320px, 80vw);
+        height: 210px;
+        margin: 18px auto 10px;
+        transform: perspective(900px) rotateX(16deg);
+        transform-origin: center top;
+      }
+
+      .island-top {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        width: 100%;
+        height: 110px;
+        transform: translateX(-50%);
+        border-radius: 60% 60% 40% 40%;
+        background:
+          radial-gradient(circle at 30% 20%, #6df483, transparent 55%),
+          radial-gradient(circle at 70% 30%, #59e0ff, transparent 50%),
+          radial-gradient(circle at 50% 60%, #2a882f, #13601b 70%);
+        box-shadow:
+          inset 0 0 0 2px rgba(255, 255, 255, 0.2),
+          inset 0 18px 30px rgba(255, 255, 255, 0.18),
+          0 14px 20px rgba(0, 0, 0, 0.75);
         overflow: hidden;
       }
 
-      .castle-wrap {
-        position: relative;
-        height: 280px;
-        border-radius: 20px;
+      .island-top::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.15), transparent 55%),
+          radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1), transparent 60%),
+          radial-gradient(circle at 40% 80%, rgba(0, 0, 0, 0.12), transparent 70%);
+        mix-blend-mode: soft-light;
+        opacity: 0.8;
+      }
+
+      .island-side {
+        position: absolute;
+        left: 50%;
+        top: 90px;
+        width: 100%;
+        height: 80px;
+        transform: translateX(-50%);
+        border-radius: 50% / 80%;
         background:
-          radial-gradient(circle at 30% 20%, rgba(255, 209, 102, 0.22), transparent 55%),
-          radial-gradient(circle at 70% 0%, rgba(181, 23, 255, 0.25), transparent 55%),
-          linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.15));
-        border: 1px solid rgba(255, 255, 255, 0.10);
-        display: grid;
-        place-items: center;
-        margin-bottom: 14px;
+          linear-gradient(
+            180deg,
+            rgba(104, 64, 36, 1),
+            rgba(70, 40, 20, 1) 40%,
+            rgba(30, 18, 12, 1)
+          );
+        box-shadow:
+          inset 0 10px 18px rgba(255, 255, 255, 0.06),
+          0 22px 40px rgba(0, 0, 0, 0.95);
+      }
+
+      .island-side::before {
+        content: "";
+        position: absolute;
+        inset: 8px 16px 14px;
+        background-image: radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.1), transparent 60%),
+          radial-gradient(circle at 70% 90%, rgba(0, 0, 0, 0.35), transparent 60%);
+        opacity: 0.6;
+      }
+
+      .island-shadow {
+        position: absolute;
+        left: 50%;
+        bottom: -18px;
+        width: 70%;
+        height: 20px;
+        transform: translateX(-50%);
+        border-radius: 999px;
+        background: radial-gradient(circle at center, rgba(0, 0, 0, 0.8), transparent 70%);
+        filter: blur(2px);
+        opacity: 0.9;
+      }
+
+      .castle-wrap {
+        position: absolute;
+        left: 50%;
+        top: 12px;
+        width: 76%;
+        height: 160px;
+        transform: translateX(-50%) translateZ(0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .castle {
         position: relative;
-        width: min(260px, 70vw);
-        height: 220px;
+        width: 90%;
+        height: 100%;
         transform: translateZ(0);
-        filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.55));
-        transition: transform 240ms ease-out, filter 240ms ease-out;
+        filter: drop-shadow(0 18px 22px rgba(0, 0, 0, 0.75));
+        transition: transform 260ms var(--bezier-snap), filter 260ms var(--bezier-snap);
       }
 
       .castle * {
@@ -185,113 +413,210 @@
 
       .castle__shadow {
         left: 50%;
-        bottom: 10px;
-        width: 78%;
-        height: 16px;
+        bottom: 4px;
+        width: 70%;
+        height: 14px;
         transform: translateX(-50%);
         border-radius: 999px;
-        background: radial-gradient(circle at center, rgba(0,0,0,0.55), transparent 65%);
-        filter: blur(1px);
-        opacity: 0.8;
+        background: radial-gradient(circle at center, rgba(0, 0, 0, 0.7), transparent 65%);
       }
 
       .castle__moat {
         left: 50%;
-        bottom: 2px;
-        width: 84%;
-        height: 30px;
+        bottom: -6px;
+        width: 90%;
+        height: 26px;
         transform: translateX(-50%);
-        border-radius: 18px;
-        background: linear-gradient(180deg, rgba(80, 220, 255, 0.18), rgba(20, 60, 120, 0.06));
-        border: 1px solid rgba(80, 220, 255, 0.18);
+        border-radius: 24px;
+        background: linear-gradient(180deg, rgba(67, 199, 255, 0.28), rgba(18, 78, 140, 0.16));
+        border: 1px solid rgba(87, 215, 255, 0.5);
+        box-shadow: 0 0 0 rgba(87, 215, 255, 0.0);
         opacity: 0;
+        transition: opacity 260ms var(--bezier-snap), box-shadow 260ms var(--bezier-snap);
       }
 
       .castle__base {
         left: 50%;
-        bottom: 26px;
+        bottom: 18px;
         width: 72%;
-        height: 110px;
+        height: 90px;
         transform: translateX(-50%);
         border-radius: 18px;
-        background: linear-gradient(180deg, rgba(140, 90, 40, 1), rgba(80, 45, 22, 1));
-        border: 2px solid rgba(0, 0, 0, 0.35);
+        background: linear-gradient(180deg, #b17b48, #5f3417);
+        border: 2px solid rgba(0, 0, 0, 0.55);
         box-shadow:
-          inset 0 10px 20px rgba(255, 255, 255, 0.08),
-          inset 0 -18px 25px rgba(0, 0, 0, 0.25);
+          inset 0 10px 20px rgba(255, 255, 255, 0.12),
+          inset 0 -14px 20px rgba(0, 0, 0, 0.5);
       }
 
       .castle__roof {
         left: 50%;
-        bottom: 132px;
+        bottom: 102px;
         width: 0;
         height: 0;
         transform: translateX(-50%);
-        border-left: 92px solid transparent;
-        border-right: 92px solid transparent;
-        border-bottom: 60px solid rgba(120, 60, 30, 1);
-        filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.35));
+        border-left: 70px solid transparent;
+        border-right: 70px solid transparent;
+        border-bottom: 42px solid #ad7b3b;
+        filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.4));
+      }
+
+      .castle__roof::after {
+        content: "";
+        position: absolute;
+        inset: -2px -52px;
+        background: repeating-linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.16) 0 6px,
+          rgba(0, 0, 0, 0.12) 6px 12px
+        );
+        mix-blend-mode: soft-light;
+        opacity: 0.35;
       }
 
       .castle__door {
         left: 50%;
-        bottom: 26px;
-        width: 54px;
-        height: 64px;
+        bottom: 18px;
+        width: 48px;
+        height: 60px;
         transform: translateX(-50%);
-        border-radius: 14px 14px 10px 10px;
-        background: linear-gradient(180deg, rgba(35, 18, 10, 1), rgba(10, 6, 5, 1));
-        border: 2px solid rgba(0, 0, 0, 0.45);
-        opacity: 0.0;
+        border-radius: 18px 18px 8px 8px;
+        background: linear-gradient(180deg, #2b150b, #130906);
+        border: 2px solid rgba(0, 0, 0, 0.75);
+        box-shadow:
+          inset 0 10px 16px rgba(255, 255, 255, 0.12),
+          0 6px 12px rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        transition: opacity 220ms var(--bezier-snap);
+      }
+
+      .castle__door::before,
+      .castle__door::after {
+        content: "";
+        position: absolute;
+        top: 24px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #ffe1a2, #b57a32);
+        box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+      }
+
+      .castle__door::before {
+        left: 11px;
+      }
+
+      .castle__door::after {
+        right: 11px;
       }
 
       .castle__torch {
-        bottom: 66px;
-        width: 10px;
+        bottom: 52px;
+        width: 9px;
         height: 22px;
         border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 210, 100, 1), rgba(255, 110, 50, 1));
-        box-shadow: 0 0 14px rgba(255, 170, 60, 0.45);
+        background: linear-gradient(180deg, #ffd27a, #ff9332);
+        box-shadow:
+          0 0 18px rgba(255, 162, 60, 0.7),
+          0 4px 8px rgba(0, 0, 0, 0.7);
         opacity: 0;
+        transition: opacity 220ms var(--bezier-snap);
       }
 
-      .castle__torch--left { left: calc(50% - 52px); }
-      .castle__torch--right { left: calc(50% + 42px); }
+      .castle__torch--left {
+        left: calc(50% - 52px);
+      }
+
+      .castle__torch--right {
+        left: calc(50% + 42px);
+      }
+
+      @keyframes torch-flicker {
+        0% {
+          transform: translateY(0);
+          box-shadow: 0 0 16px rgba(255, 172, 70, 0.65);
+        }
+        50% {
+          transform: translateY(-1px);
+          box-shadow: 0 0 22px rgba(255, 192, 110, 0.85);
+        }
+        100% {
+          transform: translateY(0);
+          box-shadow: 0 0 16px rgba(255, 172, 70, 0.65);
+        }
+      }
 
       .castle__tower {
-        bottom: 86px;
-        width: 44px;
-        height: 94px;
-        border-radius: 18px;
-        background: linear-gradient(180deg, rgba(120, 120, 130, 1), rgba(55, 55, 62, 1));
-        border: 2px solid rgba(0, 0, 0, 0.35);
-        box-shadow: inset 0 10px 18px rgba(255, 255, 255, 0.06);
+        bottom: 66px;
+        width: 46px;
+        height: 92px;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #a2a7b5, #4c515e);
+        border: 2px solid rgba(0, 0, 0, 0.6);
+        box-shadow:
+          inset 0 12px 20px rgba(255, 255, 255, 0.16),
+          inset 0 -14px 20px rgba(0, 0, 0, 0.55);
         opacity: 0;
+        transition: opacity 220ms var(--bezier-snap);
       }
 
-      .castle__tower--left { left: 10%; }
-      .castle__tower--right { right: 10%; }
+      .castle__tower--left {
+        left: 10%;
+      }
+
+      .castle__tower--right {
+        right: 10%;
+      }
+
+      .castle__tower::before {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: 4px;
+        right: 4px;
+        height: 12px;
+        background: repeating-linear-gradient(
+          90deg,
+          #3a3f4e 0 10px,
+          #f5f7ff 10px 14px
+        );
+        border-radius: 8px;
+      }
 
       .castle__weapon {
         left: 50%;
-        bottom: 162px;
-        width: 74px;
-        height: 20px;
+        bottom: 140px;
+        width: 72px;
+        height: 18px;
         transform: translateX(-50%);
         border-radius: 999px;
-        background: linear-gradient(90deg, rgba(40, 40, 44, 1), rgba(90, 90, 100, 1));
-        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
+        background: linear-gradient(90deg, #343741, #686d7a);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.65);
         opacity: 0;
+        transition: opacity 220ms var(--bezier-snap);
+      }
+
+      .castle__weapon::before {
+        content: "";
+        position: absolute;
+        left: 8px;
+        right: 8px;
+        top: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #1b1d22, #444955);
       }
 
       .castle__flag {
-        left: 62%;
-        bottom: 178px;
+        left: 64%;
+        bottom: 154px;
         width: 4px;
-        height: 52px;
-        background: rgba(255, 255, 255, 0.55);
+        height: 48px;
         border-radius: 999px;
+        background: linear-gradient(180deg, #f5f5f5, #b7bbc8);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
         opacity: 0;
+        transition: opacity 220ms var(--bezier-snap);
       }
 
       .castle__flag::after {
@@ -299,159 +624,426 @@
         position: absolute;
         top: 6px;
         left: 4px;
-        width: 22px;
+        width: 24px;
         height: 14px;
         border-radius: 4px;
-        background: linear-gradient(90deg, #ffd166, #b517ff);
-        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+        background: linear-gradient(90deg, var(--gold-mid), #ff7d00);
+        box-shadow: 0 10px 18px rgba(0, 0, 0, 0.45);
+        transform-origin: left center;
+        animation: flag-wave 1800ms ease-in-out infinite;
+      }
+
+      @keyframes flag-wave {
+        0%,
+        100% {
+          transform: translateX(0) skewY(0deg);
+        }
+        50% {
+          transform: translateX(2px) skewY(-5deg);
+        }
       }
 
       .castle__shield {
         inset: -10px;
-        border-radius: 28px;
-        box-shadow: 0 0 0 rgba(90, 190, 255, 0.0);
+        border-radius: 26px;
+        box-shadow: 0 0 0 rgba(var(--mana-blue), 0);
         opacity: 0;
         pointer-events: none;
       }
 
       .castle__particles {
-        inset: -24px;
+        inset: -20px;
         pointer-events: none;
         opacity: 0;
       }
 
-      /* Stage progression (CoC-like) */
-      .castle.stage-1 .castle__roof { opacity: 1; }
-      .castle.stage-1 .castle__base { width: 60%; height: 78px; bottom: 38px; border-radius: 14px; }
-      .castle.stage-1 .castle__roof { border-left-width: 76px; border-right-width: 76px; border-bottom-width: 50px; bottom: 110px; }
+      .castle-upgraded .castle {
+        transform: translateY(-2px) scale(1.02);
+      }
 
-      .castle.stage-2 .castle__base { height: 98px; }
-      .castle.stage-2 .castle__flag { opacity: 1; }
+      .castle.stage-1 .castle__base {
+        width: 62%;
+        height: 74px;
+        bottom: 28px;
+        background: linear-gradient(180deg, #b5874a, #6c3b18);
+      }
+
+      .castle.stage-1 .castle__roof {
+        border-left-width: 60px;
+        border-right-width: 60px;
+        border-bottom-width: 38px;
+        bottom: 96px;
+      }
+
+      .castle.stage-2 .castle__base {
+        height: 90px;
+      }
+
+      .castle.stage-2 .castle__roof {
+        border-left-width: 70px;
+        border-right-width: 70px;
+        border-bottom-width: 46px;
+      }
+
+      .castle.stage-2 .castle__flag {
+        opacity: 1;
+      }
 
       .castle.stage-3 .castle__base {
-        background: linear-gradient(180deg, rgba(145, 150, 160, 1), rgba(70, 72, 78, 1));
+        background: linear-gradient(180deg, #a9afbd, #555a63);
       }
-      .castle.stage-3 .castle__roof { border-bottom-color: rgba(85, 90, 100, 1); }
+
+      .castle.stage-3 .castle__roof {
+        border-bottom-color: #5d646f;
+      }
+
       .castle.stage-3 .castle__base::before {
         content: "";
         position: absolute;
-        top: -10px;
+        top: -12px;
         left: 10px;
         right: 10px;
-        height: 14px;
+        height: 16px;
+        border-radius: 12px;
         background: repeating-linear-gradient(
           90deg,
-          rgba(45, 45, 50, 0.7) 0 10px,
-          rgba(255, 255, 255, 0.05) 10px 16px
+          #393c44 0 10px,
+          #e4e7f2 10px 16px
         );
-        border-radius: 10px;
       }
 
       .castle.stage-4 .castle__base {
-        border-color: rgba(20, 20, 24, 0.85);
+        border-color: #15171c;
         box-shadow:
-          inset 0 0 0 4px rgba(35, 35, 40, 0.85),
-          inset 0 10px 18px rgba(255, 255, 255, 0.05);
+          inset 0 0 0 4px rgba(40, 43, 50, 0.9),
+          inset 0 10px 16px rgba(255, 255, 255, 0.06);
       }
-      .castle.stage-4 .castle__moat { opacity: 1; }
 
-      .castle.stage-5 .castle__door { opacity: 1; border-radius: 22px 22px 12px 12px; }
-      .castle.stage-5 .castle__torch { opacity: 1; }
+      .castle.stage-4 .castle__moat {
+        opacity: 1;
+      }
 
-      .castle.stage-6 .castle__tower { opacity: 1; }
+      .castle.stage-5 .castle__door {
+        opacity: 1;
+      }
 
-      .castle.stage-7 .castle__weapon { opacity: 1; }
-      .castle.stage-7 .castle__flag::after { background: linear-gradient(90deg, #ffd166, #67f5c1); }
+      .castle.stage-5 .castle__torch {
+        opacity: 1;
+        animation: torch-flicker 1400ms ease-in-out infinite;
+      }
+
+      .castle.stage-6 .castle__tower {
+        opacity: 1;
+      }
+
+      .castle.stage-7 .castle__weapon {
+        opacity: 1;
+      }
+
+      .castle.stage-7 .castle__flag::after {
+        background: linear-gradient(90deg, #ffd166, #64f5c2);
+      }
 
       .castle.stage-8 .castle__base {
-        background: linear-gradient(180deg, rgba(255, 214, 120, 1), rgba(168, 92, 0, 1));
-        border-color: rgba(0, 0, 0, 0.35);
+        background: linear-gradient(180deg, #ffd88a, #b98008);
       }
+
       .castle.stage-8 .castle__base::after {
         content: "";
         position: absolute;
-        top: 34px;
-        left: 18px;
-        right: 18px;
-        height: 22px;
-        background: radial-gradient(circle at 20% 50%, rgba(255, 255, 160, 0.95), transparent 55%),
-          radial-gradient(circle at 80% 50%, rgba(255, 255, 160, 0.95), transparent 55%);
-        filter: blur(0.2px);
+        top: 30px;
+        left: 14px;
+        right: 14px;
+        height: 26px;
+        background:
+          radial-gradient(circle at 20% 40%, rgba(255, 255, 190, 0.98), transparent 60%),
+          radial-gradient(circle at 80% 60%, rgba(255, 255, 190, 0.98), transparent 60%);
+        box-shadow: 0 0 18px rgba(255, 246, 210, 0.8);
         opacity: 0.9;
       }
 
       .castle.stage-9 .castle__moat {
         opacity: 1;
-        box-shadow: 0 0 20px rgba(60, 170, 255, 0.35);
+        box-shadow: 0 0 24px rgba(80, 200, 255, 0.6);
       }
+
       .castle.stage-9 .castle__roof {
-        border-bottom-color: rgba(255, 209, 102, 0.75);
+        border-bottom-color: #ffd166;
       }
+
       .castle.stage-9 .castle__roof::after {
-        content: "";
-        position: absolute;
-        left: -10px;
-        top: -58px;
-        width: 20px;
-        height: 60px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, rgba(255, 214, 120, 1), rgba(120, 60, 10, 1));
-        box-shadow: 0 12px 18px rgba(0, 0, 0, 0.35);
+        opacity: 0.7;
       }
 
       .castle.stage-10 .castle__shield {
         opacity: 1;
-        animation: mana-shield 1200ms infinite ease-in-out;
+        animation: mana-shield 1200ms infinite var(--bezier-snap);
       }
 
-      @keyframes mana-shield {
-        0% { box-shadow: 0 0 0 rgba(90, 190, 255, 0.0), 0 0 0 rgba(181, 23, 255, 0.0); }
-        50% { box-shadow: 0 0 26px rgba(90, 190, 255, 0.30), 0 0 40px rgba(181, 23, 255, 0.25); }
-        100% { box-shadow: 0 0 0 rgba(90, 190, 255, 0.0), 0 0 0 rgba(181, 23, 255, 0.0); }
-      }
-
-      .castle-glow {
-        position: absolute;
-        inset: -40px;
-        background: radial-gradient(circle at center, rgba(255, 209, 102, 0.25), transparent 55%);
-        opacity: 0;
-        transition: opacity 220ms ease-out;
-        pointer-events: none;
-      }
-
-      .castle-upgraded .castle {
-        transform: translateY(-2px) scale(1.02);
-        filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.65));
-      }
-
-      .castle-upgraded .castle-glow {
+      .castle.stage-10 .castle__particles {
         opacity: 1;
       }
 
-      .village-actions {
-        display: grid;
-        gap: 10px;
+      @keyframes mana-shield {
+        0% {
+          box-shadow:
+            0 0 0 rgba(79, 211, 255, 0.0),
+            0 0 0 rgba(181, 23, 255, 0.0);
+        }
+        50% {
+          box-shadow:
+            0 0 28px rgba(79, 211, 255, 0.55),
+            0 0 40px rgba(181, 23, 255, 0.4);
+        }
+        100% {
+          box-shadow:
+            0 0 0 rgba(79, 211, 255, 0.0),
+            0 0 0 rgba(181, 23, 255, 0.0);
+        }
       }
 
-      .cta-spin {
-        position: fixed;
+      .world-status {
+        margin-top: 4px;
+        font-size: 0.82rem;
+        color: var(--text-subtle);
+      }
+
+      .world-status span {
+        color: var(--success);
+      }
+
+      .floating-log {
+        margin-top: 10px;
+        background: rgba(12, 12, 24, 0.95);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        box-shadow:
+          0 16px 40px rgba(0, 0, 0, 0.85),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        padding: 10px 12px;
+      }
+
+      .floating-log-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.12), transparent);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--text-subtle);
+      }
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #6bffb0;
+        box-shadow: 0 0 8px rgba(107, 255, 176, 0.8);
+      }
+
+      .log-preview {
+        margin-top: 6px;
+        padding: 7px 9px;
+        border-radius: 10px;
+        background: rgba(4, 6, 16, 0.96);
+        border: 1px dashed rgba(255, 255, 255, 0.12);
+        font-family: "JetBrains Mono", Consolas, monospace;
+        font-size: 0.72rem;
+        color: #d0ddff;
+        max-height: 130px;
+        overflow: auto;
+      }
+
+      .log-preview.log-preview-empty {
+        color: var(--text-subtle);
+        font-style: italic;
+      }
+
+      .cta-compass {
+        position: absolute;
+        right: 22px;
+        bottom: 10px;
+        width: 66px;
+        height: 66px;
+        border-radius: 999px;
+        border: none;
+        background:
+          radial-gradient(circle at 30% 20%, #ffffff, #ffeebb 50%, #ffb347 70%),
+          conic-gradient(from 140deg, #ffd166, #ff7d00, #ffd166);
+        box-shadow:
+          0 18px 38px rgba(0, 0, 0, 0.9),
+          0 0 0 2px rgba(80, 40, 0, 0.7);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        animation: compass-pulse 1600ms infinite var(--bezier-snap);
+      }
+
+      .cta-compass-inner {
+        width: 44px;
+        height: 44px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 30% 20%, #fffdf1, #f4e1aa 60%, #c38b3a);
+        box-shadow:
+          inset 0 3px 6px rgba(255, 255, 255, 0.85),
+          inset 0 -6px 10px rgba(145, 90, 20, 0.85);
+        position: relative;
+      }
+
+      .cta-compass-inner::before {
+        content: "";
+        position: absolute;
+        inset: 10px;
+        border-radius: 999px;
+        border: 2px solid rgba(120, 80, 20, 0.9);
+      }
+
+      .cta-compass-inner::after {
+        content: "";
+        position: absolute;
         left: 50%;
-        bottom: 16px;
-        transform: translateX(-50%);
-        width: min(420px, calc(100vw - 28px));
-        padding: 14px 18px;
+        top: 50%;
+        width: 4px;
+        height: 16px;
+        background: linear-gradient(180deg, #ff4f4f, #9b1212);
+        border-radius: 999px;
+        transform-origin: center 80%;
+        transform: translate(-50%, -80%) rotate(-20deg);
+        box-shadow: 0 0 6px rgba(255, 80, 80, 0.9);
+      }
+
+      @keyframes compass-pulse {
+        0% {
+          transform: scale(1);
+          box-shadow:
+            0 18px 38px rgba(0, 0, 0, 0.9),
+            0 0 0 0 rgba(255, 209, 102, 0.0);
+        }
+        50% {
+          transform: scale(1.06);
+          box-shadow:
+            0 22px 50px rgba(0, 0, 0, 0.95),
+            0 0 14px 4px rgba(255, 209, 102, 0.48);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow:
+            0 18px 38px rgba(0, 0, 0, 0.9),
+            0 0 0 0 rgba(255, 209, 102, 0.0);
+        }
+      }
+
+      .panel-stone {
+        background: radial-gradient(circle at top, rgba(80, 88, 108, 0.35), transparent 60%),
+          linear-gradient(180deg, #232733, #12141c);
         border-radius: 18px;
-        font-size: 1.05rem;
-        font-weight: 900;
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        box-shadow:
+          0 22px 50px rgba(0, 0, 0, 0.9),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        position: relative;
+      }
+
+      .panel-stone::before,
+      .panel-stone::after {
+        content: "";
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #ffffff, #777f8f 65%, #171921);
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+      }
+
+      .panel-stone::before {
+        top: 6px;
+        left: 10px;
+      }
+
+      .panel-stone::after {
+        top: 6px;
+        right: 10px;
+      }
+
+      button {
+        border-radius: 999px;
+        border: none;
+        padding: 9px 16px;
+        font-size: 0.9rem;
+        font-weight: 700;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        background: linear-gradient(135deg, #ffd166, #b517ff);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: linear-gradient(135deg, var(--gold-mid), #ff9f1c);
         color: #1b1400;
-        border: none;
-        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+        box-shadow:
+          0 6px 0 rgba(125, 76, 14, 1),
+          0 10px 20px rgba(0, 0, 0, 0.75);
+        transition:
+          transform 110ms var(--bezier-snap),
+          box-shadow 110ms var(--bezier-snap),
+          filter 110ms var(--bezier-snap);
+        position: relative;
       }
 
-      /* Modal (slide-up sheet) */
+      button::after {
+        content: "";
+        position: absolute;
+        inset: 2px 2px auto 2px;
+        height: 45%;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), transparent);
+        opacity: 0.8;
+        pointer-events: none;
+      }
+
+      button.secondary {
+        background: linear-gradient(135deg, #50586b, #232732);
+        color: #f5f6ff;
+        box-shadow:
+          0 6px 0 rgba(12, 13, 20, 1),
+          0 10px 20px rgba(0, 0, 0, 0.8);
+      }
+
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        box-shadow:
+          0 4px 0 rgba(0, 0, 0, 0.9),
+          0 4px 12px rgba(0, 0, 0, 0.7);
+        transform: none;
+      }
+
+      button:not(:disabled):hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+        box-shadow:
+          0 8px 0 rgba(125, 76, 14, 1),
+          0 16px 28px rgba(0, 0, 0, 0.9);
+      }
+
+      button:not(:disabled):active {
+        transform: translateY(2px);
+        box-shadow:
+          0 3px 0 rgba(80, 48, 10, 1),
+          0 8px 16px rgba(0, 0, 0, 0.85);
+      }
+
       .modal {
         position: fixed;
         inset: 0;
@@ -465,46 +1057,213 @@
       }
 
       .modal-sheet {
-        border-radius: 22px 22px 0 0;
-        background: rgba(12, 6, 28, 0.96);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 -24px 70px rgba(0, 0, 0, 0.75);
+        border-radius: 26px 26px 0 0;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.16), transparent 60%),
+          linear-gradient(180deg, #252a35, #11131a);
+        border: 2px solid rgba(222, 226, 245, 0.18);
+        box-shadow:
+          0 -24px 70px rgba(0, 0, 0, 0.9),
+          0 0 0 1px rgba(0, 0, 0, 0.85);
         padding: 14px 14px 18px;
-        animation: sheet-up 220ms ease-out;
+        animation: sheet-up 260ms var(--bezier-snap);
+        position: relative;
+      }
+
+      .modal-sheet::before {
+        content: "";
+        position: absolute;
+        inset: 6px;
+        border-radius: 22px 22px 0 0;
+        border: 1px solid rgba(0, 0, 0, 0.8);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        pointer-events: none;
       }
 
       @keyframes sheet-up {
-        from { transform: translateY(16px); opacity: 0.6; }
-        to { transform: translateY(0); opacity: 1; }
+        0% {
+          transform: translateY(26px);
+          opacity: 0.5;
+        }
+        60% {
+          transform: translateY(-6px);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
 
       .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
       }
 
       .modal-title {
         font-weight: 800;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        color: var(--text-subtle);
       }
 
       .reels-modal {
-        margin-bottom: 12px;
+        margin-bottom: 10px;
+        padding: 10px 8px 12px;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.12), transparent 70%),
+          linear-gradient(180deg, #343946, #151720);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.1),
+          inset 0 -2px 0 rgba(0, 0, 0, 0.8);
       }
 
-      .visual-log {
-        position: relative;
-        margin-top: 0;
+      .reels {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
       }
 
-      /* Spotlight tutorial */
+      .reels.is-spinning .reel {
+        filter: blur(2px) saturate(1.2);
+      }
+
+      .reel {
+        height: 92px;
+        border-radius: 18px;
+        display: grid;
+        place-items: center;
+        font-size: 2.4rem;
+        background:
+          radial-gradient(circle at 20% 0, rgba(255, 255, 255, 0.22), transparent 70%),
+          linear-gradient(180deg, #e3d6bf, #bca57f);
+        border: 2px solid rgba(80, 52, 22, 0.92);
+        box-shadow:
+          inset 0 2px 6px rgba(255, 255, 255, 0.7),
+          inset 0 -5px 10px rgba(80, 52, 22, 0.8),
+          0 14px 35px rgba(0, 0, 0, 0.85);
+        transition: filter 150ms ease-out, transform 150ms ease-out;
+      }
+
+      .reel.spinning {
+        animation: reel-spin 520ms linear;
+      }
+
+      @keyframes reel-spin {
+        0% {
+          transform: translateY(0) scaleY(1);
+        }
+        50% {
+          transform: translateY(-12px) scaleY(1.04);
+        }
+        100% {
+          transform: translateY(0) scaleY(1);
+        }
+      }
+
+      .coin-particle {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 30% 30%, #fff6c7, #ffd166 55%, #b87a00 100%);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.6);
+        transform: translate(-50%, -50%);
+        z-index: 120;
+        pointer-events: none;
+      }
+
+      .scroll-dialog {
+        position: absolute;
+        left: 50%;
+        top: 18px;
+        transform: translateX(-50%);
+        min-width: min(320px, 90%);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.4), transparent 45%),
+          linear-gradient(180deg, #f9ebc9, #e0cfa0);
+        border-radius: 16px;
+        padding: 10px 12px 10px;
+        box-shadow:
+          0 18px 45px rgba(0, 0, 0, 0.85),
+          0 0 0 1px rgba(120, 85, 40, 0.8);
+        color: #3c2a14;
+        display: none;
+        z-index: 70;
+      }
+
+      .scroll-dialog::before,
+      .scroll-dialog::after {
+        content: "";
+        position: absolute;
+        top: -6px;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 30% 30%, #fdf3d7, #c9a975);
+        box-shadow:
+          0 4px 8px rgba(0, 0, 0, 0.35),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      }
+
+      .scroll-dialog::before {
+        left: 12px;
+      }
+
+      .scroll-dialog::after {
+        right: 12px;
+      }
+
+      .scroll-title {
+        font-weight: 700;
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        font-size: 0.78rem;
+      }
+
+      .scroll-body {
+        font-size: 0.82rem;
+        line-height: 1.5;
+        margin-bottom: 8px;
+      }
+
+      .scroll-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .scroll-actions button {
+        font-size: 0.8rem;
+        padding-inline: 14px;
+      }
+
+      .scroll-visible {
+        display: block;
+        animation: scroll-in 260ms var(--bezier-snap);
+      }
+
+      @keyframes scroll-in {
+        0% {
+          transform: translateX(-50%) translateY(-10px);
+          opacity: 0;
+        }
+        100% {
+          transform: translateX(-50%) translateY(0);
+          opacity: 1;
+        }
+      }
+
       .spotlight {
         position: fixed;
         inset: 0;
-        z-index: 80;
         pointer-events: none;
+        z-index: 80;
       }
 
       .spotlight.hidden {
@@ -528,37 +1287,41 @@
         position: absolute;
         transform: translate(-50%, -50%);
         font-size: 1.6rem;
-        filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.6));
-        animation: finger-bob 900ms infinite ease-in-out;
+        filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.8));
+        animation: finger-bob 900ms infinite var(--bezier-snap);
         pointer-events: none;
       }
 
       @keyframes finger-bob {
-        0% { transform: translate(-50%, -50%) translateY(0); opacity: 0.9; }
-        50% { transform: translate(-50%, -50%) translateY(-8px); opacity: 1; }
-        100% { transform: translate(-50%, -50%) translateY(0); opacity: 0.9; }
-      }
-
-      .spotlight-dim {
-        display: none;
+        0% {
+          transform: translate(-50%, -50%) translateY(0);
+          opacity: 0.9;
+        }
+        50% {
+          transform: translate(-50%, -50%) translateY(-8px);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-50%, -50%) translateY(0);
+          opacity: 0.9;
+        }
       }
 
       .spotlight-tooltip {
         position: absolute;
         max-width: min(320px, calc(100vw - 28px));
-        background: rgba(12, 6, 28, 0.96);
-        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(12, 6, 28, 0.98);
         border-radius: 16px;
-        padding: 12px 12px 10px;
-        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        padding: 10px 11px 8px;
+        box-shadow: 0 20px 55px rgba(0, 0, 0, 0.9);
         pointer-events: none;
       }
 
       .spotlight-text {
-        font-size: 0.92rem;
+        font-size: 0.9rem;
         color: var(--text-main);
-        line-height: 1.45;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
 
       .spotlight-actions {
@@ -568,617 +1331,58 @@
 
       .spotlight-actions button {
         pointer-events: auto;
-      }
-
-      .left {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 16px;
-      }
-
-      .title {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
-        margin-bottom: 4px;
-      }
-
-      .title-main {
-        font-size: 1.6rem;
-        font-weight: 700;
-        letter-spacing: 0.03em;
-      }
-
-      .title-sub {
-        font-size: 0.9rem;
-        color: var(--text-subtle);
-      }
-
-      .board-wrapper {
-        position: relative;
-        padding: 12px;
-        border-radius: 18px;
-        background: radial-gradient(circle at top, #161f3f 0, #050814 70%);
-        box-shadow:
-          inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-          0 18px 45px rgba(0, 0, 0, 0.7);
-      }
-
-      .board {
-        display: grid;
-        grid-template-columns: repeat(var(--board-size), var(--tile-size));
-        grid-template-rows: repeat(var(--board-size), var(--tile-size));
-        gap: var(--gap);
-        position: relative;
-      }
-
-      .tile {
-        width: var(--tile-size);
-        height: var(--tile-size);
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.6rem;
-        cursor: pointer;
-        position: relative;
-        transition:
-          transform 120ms ease-out,
-          box-shadow 120ms ease-out,
-          filter 120ms ease-out,
-          border-radius 120ms ease-out,
-          outline 80ms ease-out;
-        box-shadow:
-          0 6px 10px rgba(0, 0, 0, 0.5),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.25);
-      }
-
-      .tile::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: inherit;
-        background: radial-gradient(circle at 20% 0, rgba(255, 255, 255, 0.35), transparent);
-        mix-blend-mode: screen;
-        opacity: 0.9;
-        pointer-events: none;
-      }
-
-      .tile:hover {
-        transform: translateY(-3px);
-        box-shadow:
-          0 10px 18px rgba(0, 0, 0, 0.7),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-        filter: brightness(1.03);
-      }
-
-      .tile.selected {
-        outline: 3px solid var(--accent);
-        outline-offset: 0;
-        box-shadow:
-          0 0 0 2px rgba(0, 0, 0, 0.9),
-          0 0 16px rgba(255, 204, 0, 0.8);
-        transform: translateY(-1px) scale(1.03);
-      }
-
-      .tile.clearing {
-        animation: pop-out 260ms ease-in forwards;
-      }
-
-      .tile-idle {
-        animation: idle-bounce 2200ms infinite ease-in-out;
-      }
-
-      @keyframes pop-out {
-        0% {
-          transform: scale(1) translateY(-1px);
-          opacity: 1;
-        }
-        100% {
-          transform: scale(0.25) translateY(-6px);
-          opacity: 0;
-        }
-      }
-
-      @keyframes idle-bounce {
-        0%,
-        80%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-3px);
-        }
-      }
-
-      /* Tile color themes */
-      .tile-type-0 {
-        background: linear-gradient(135deg, #ff6b6b, #ff3366);
-      }
-      .tile-type-1 {
-        background: linear-gradient(135deg, #4dd0e1, #2979ff);
-      }
-      .tile-type-2 {
-        background: linear-gradient(135deg, #ffd54f, #ffb300);
-      }
-      .tile-type-3 {
-        background: linear-gradient(135deg, #b39ddb, #7e57c2);
-      }
-      .tile-type-4 {
-        background: linear-gradient(135deg, #81c784, #00c853);
-      }
-      .tile-type-5 {
-        background: linear-gradient(135deg, #ff8a65, #ff7043);
-      }
-
-      .top-bar {
-        grid-column: 1 / -1;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 16px;
-        padding: 10px 18px;
-        border-radius: 999px;
-        background: linear-gradient(
-          90deg,
-          rgba(32, 42, 83, 0.96),
-          rgba(10, 16, 40, 0.96)
-        );
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        box-shadow:
-          0 10px 28px rgba(0, 0, 0, 0.65),
-          0 0 0 1px rgba(255, 255, 255, 0.04);
-      }
-
-      .top-bar-section {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-      }
-
-      .top-bar-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.14em;
-        color: var(--text-subtle);
-      }
-
-      .top-bar-value {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--accent);
-      }
-
-      .start-screen {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: radial-gradient(
-          circle at top,
-          rgba(18, 26, 60, 0.98),
-          rgba(2, 4, 10, 0.98)
-        );
-        z-index: 20;
-      }
-
-      /* Tutorial overlay should not block target buttons */
-      .start-screen.pass-through {
-        pointer-events: none;
-      }
-
-      .start-screen.pass-through .start-card {
-        pointer-events: none;
-      }
-
-      .tutorial-skip {
-        position: fixed;
-        top: 14px;
-        right: 14px;
-        z-index: 30;
-        pointer-events: auto;
         font-size: 0.72rem;
-        padding: 7px 10px;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
-        color: var(--text-main);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
-      }
-
-      .tutorial-skip:hover {
-        filter: brightness(1.08);
+        padding-inline: 12px;
       }
 
       .tutorial-target {
         position: relative;
-        z-index: 25;
-        pointer-events: auto;
-        animation: tutorial-pulse 1000ms infinite ease-in-out;
+        z-index: 100;
+        animation: tutorial-pulse 1100ms infinite var(--bezier-snap);
       }
 
       @keyframes tutorial-pulse {
         0% {
           transform: translateY(0);
           box-shadow:
-            0 6px 15px rgba(0, 0, 0, 0.65),
-            0 0 0 0 rgba(255, 209, 102, 0.0),
-            0 0 0 1px rgba(0, 0, 0, 0.6);
+            0 6px 12px rgba(0, 0, 0, 0.8),
+            0 0 0 0 rgba(255, 209, 102, 0.0);
         }
         50% {
-          transform: translateY(-1px);
+          transform: translateY(-2px);
           box-shadow:
-            0 10px 26px rgba(0, 0, 0, 0.8),
-            0 0 0 6px rgba(255, 209, 102, 0.16),
-            0 0 22px rgba(181, 23, 255, 0.35),
-            0 0 0 1px rgba(0, 0, 0, 0.7);
+            0 12px 26px rgba(0, 0, 0, 0.9),
+            0 0 12px 3px rgba(255, 209, 102, 0.5);
         }
         100% {
           transform: translateY(0);
           box-shadow:
-            0 6px 15px rgba(0, 0, 0, 0.65),
-            0 0 0 0 rgba(255, 209, 102, 0.0),
-            0 0 0 1px rgba(0, 0, 0, 0.6);
+            0 6px 12px rgba(0, 0, 0, 0.8),
+            0 0 0 0 rgba(255, 209, 102, 0.0);
         }
       }
 
-      .start-card {
-        max-width: 440px;
-        width: 90%;
-        background: rgba(6, 10, 30, 0.98);
-        border-radius: 20px;
-        padding: 24px 24px 20px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        box-shadow:
-          0 26px 80px rgba(0, 0, 0, 0.85),
-          0 0 0 1px rgba(255, 255, 255, 0.06);
-      }
-
-      .start-title {
-        font-size: 1.9rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        margin-bottom: 8px;
-      }
-
-      .start-subtitle {
-        font-size: 0.95rem;
-        color: var(--text-subtle);
-        line-height: 1.6;
-        margin-bottom: 20px;
-      }
-
-      .start-button {
-        width: 100%;
-        justify-content: center;
-      }
-
-      .right {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .panel {
-        background: var(--panel-bg);
-        border-radius: 16px;
-        padding: 16px 18px;
-        border: 1px solid var(--panel-border);
-        box-shadow:
-          0 12px 35px rgba(0, 0, 0, 0.6),
-          inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-      }
-
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px 14px;
-        align-items: center;
-      }
-
-      .stat-label {
-        font-size: 0.78rem;
-        text-transform: uppercase;
-        letter-spacing: 0.13em;
-        color: var(--text-subtle);
-      }
-
-      .stat-value {
-        font-size: 1.1rem;
-        font-weight: 600;
-      }
-
-      .stat-highlight {
-        color: var(--accent);
-      }
-
-      .controls {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 12px;
-      }
-
-      button {
-        border-radius: 999px;
-        border: none;
-        padding: 9px 16px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: linear-gradient(135deg, var(--accent), #ff9f1c);
-        color: #1b1400;
-        box-shadow:
-          0 6px 15px rgba(0, 0, 0, 0.65),
-          0 0 0 1px rgba(0, 0, 0, 0.6);
-        transition:
-          transform 110ms ease-out,
-          box-shadow 110ms ease-out,
-          filter 110ms ease-out;
-        white-space: nowrap;
-      }
-
-      button.secondary {
-        background: linear-gradient(135deg, #394b7c, #18213e);
-        color: #f7f8ff;
-      }
-
-      button:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-        box-shadow: none;
-        transform: none;
-      }
-
-      button:not(:disabled):hover {
-        transform: translateY(-1px);
-        filter: brightness(1.05);
-        box-shadow:
-          0 10px 26px rgba(0, 0, 0, 0.8),
-          0 0 0 1px rgba(0, 0, 0, 0.7);
-      }
-
-      button:not(:disabled):active {
-        transform: translateY(1px) scale(0.99);
-        box-shadow:
-          0 3px 10px rgba(0, 0, 0, 0.7),
-          0 0 0 1px rgba(0, 0, 0, 0.85);
-      }
-
-      .hint {
-        font-size: 0.78rem;
-        color: var(--text-subtle);
-        margin-top: 10px;
-        line-height: 1.45;
-      }
-
-      .hint code {
-        font-family: "JetBrains Mono", Consolas, monospace;
-        font-size: 0.78rem;
-        background: rgba(10, 10, 20, 0.8);
-        padding: 1px 5px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .chip-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 6px;
-      }
-
-      .chip {
-        font-size: 0.7rem;
-        text-transform: uppercase;
-        letter-spacing: 0.12em;
-        padding: 4px 8px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent);
-        color: var(--text-subtle);
-      }
-
-      .chip.accent {
-        border-color: rgba(255, 204, 0, 0.6);
-        color: var(--accent);
-        background: radial-gradient(circle at top, rgba(255, 204, 0, 0.2), transparent);
-      }
-
-      .log-preview {
-        margin-top: 10px;
-        padding: 8px 10px;
-        border-radius: 10px;
-        background: rgba(6, 10, 30, 0.96);
-        border: 1px dashed rgba(255, 255, 255, 0.08);
-        max-height: 140px;
-        overflow: auto;
-        font-family: "JetBrains Mono", Consolas, monospace;
-        font-size: 0.75rem;
-        line-height: 1.45;
-        color: #d0ddff;
-      }
-
-      .log-preview-empty {
-        color: var(--text-subtle);
-        font-style: italic;
-      }
-
-      .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        font-size: 0.72rem;
-        padding: 4px 7px;
-        border-radius: 999px;
-        background: var(--accent-soft);
-        color: var(--accent);
-        border: 1px solid rgba(255, 204, 0, 0.45);
-      }
-
-      .badge-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2);
-      }
-
-      .status-line {
-        margin-top: 8px;
-        font-size: 0.82rem;
-        color: var(--text-subtle);
-      }
-
-      .status-line span {
-        color: var(--success);
-      }
-
-      .status-line.error span {
-        color: var(--danger);
-      }
-
-      /* Slot + Village UI */
-      .slot-wrapper {
-        padding: 18px;
-      }
-
-      .slot-machine {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .reels {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .reel {
-        height: 92px;
-        border-radius: 18px;
-        display: grid;
-        place-items: center;
-        font-size: 2.8rem;
-        background: radial-gradient(circle at top, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04));
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        box-shadow:
-          inset 0 0 0 1px rgba(0, 0, 0, 0.55),
-          0 14px 35px rgba(0, 0, 0, 0.6);
-      }
-
-      .reel.spinning {
-        animation: reel-spin 650ms ease-in-out;
-      }
-
-      .reels.is-spinning .reel {
-        filter: blur(1.6px) saturate(1.1);
-      }
-
-      @keyframes reel-spin {
-        0% {
-          transform: translateY(0) scale(1);
-          filter: blur(0);
+      @media (max-height: 720px) {
+        .world-inner {
+          padding-bottom: 10px;
         }
-        25% {
-          transform: translateY(-6px) scale(1.02);
-          filter: blur(0.5px);
+        .floating-log {
+          margin-top: 6px;
         }
-        60% {
-          transform: translateY(10px) scale(0.98);
-          filter: blur(0.8px);
+        .cta-compass {
+          bottom: 6px;
         }
-        100% {
-          transform: translateY(0) scale(1);
-          filter: blur(0);
-        }
-      }
-
-      .coin-particle {
-        position: fixed;
-        width: 10px;
-        height: 10px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 30% 30%, #fff6c7, #ffd166 55%, #b87a00 100%);
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.45);
-        transform: translate(-50%, -50%);
-        z-index: 120;
-        pointer-events: none;
-      }
-
-      .village {
-        margin-top: 12px;
-        padding-top: 12px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-      }
-
-      .village-row {
-        display: grid;
-        grid-template-columns: 64px 1fr;
-        gap: 12px;
-        align-items: center;
-      }
-
-      .village-building {
-        width: 64px;
-        height: 64px;
-        border-radius: 18px;
-        display: grid;
-        place-items: center;
-        font-size: 2rem;
-        background: radial-gradient(circle at top, rgba(255, 209, 102, 0.2), rgba(255, 255, 255, 0.02));
-        border: 1px solid rgba(255, 209, 102, 0.35);
-        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.6);
-      }
-
-      .village-building.shake {
-        animation: building-shake 420ms ease-in-out;
-      }
-
-      @keyframes building-shake {
-        0% { transform: translateX(0); }
-        20% { transform: translateX(-4px) rotate(-1deg); }
-        40% { transform: translateX(4px) rotate(1deg); }
-        60% { transform: translateX(-3px) rotate(-1deg); }
-        80% { transform: translateX(3px) rotate(1deg); }
-        100% { transform: translateX(0); }
-      }
-
-      .village-progress-bar {
-        height: 12px;
-        width: 100%;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.10);
-        overflow: hidden;
-      }
-
-      .village-progress-fill {
-        height: 100%;
-        width: 0%;
-        background: linear-gradient(90deg, #ffd166, #b517ff);
-        box-shadow: 0 0 16px rgba(181, 23, 255, 0.4);
-        transition: width 220ms ease-out;
       }
     </style>
-    <!-- Firebase SDK - Compatibility Version -->
+
+    <!-- Firebase SDK - Compat Version + REST Firestore -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
-      if (typeof firebase !== 'undefined') {
-        console.log('✅ Firebase SDK Loaded Successfully');
+      if (typeof firebase !== "undefined") {
+        console.log("✅ Firebase SDK Loaded Successfully");
       } else {
-        console.error('❌ Firebase SDK Failed to Load');
+        console.error("❌ Firebase SDK Failed to Load");
       }
     </script>
     <script>
@@ -1190,16 +1394,16 @@
         storageBucket: "ppltx-project-dev.firebasestorage.app",
         messagingSenderId: "1008682168971",
         appId: "1:1008682168971:web:bacb1f2acdcb44fc281a8e",
-        databaseId: "mt-game"
+        databaseId: "mt-game",
       };
 
       // Initialize Firebase globally (after SDK scripts are loaded)
       firebase.initializeApp(firebaseConfig);
 
-      console.log('Firebase App Initialized');
-      console.log('Targeting database: mt-game in project: ppltx-project-dev');
+      console.log("Firebase App Initialized");
+      console.log("Targeting database: mt-game in project: ppltx-project-dev");
 
-      // Make saveToFirestore available globally using Firestore REST API
+      // Visual log hook is defined in game script; this function calls it when present.
       window.saveToFirestore = async function (data) {
         if (typeof window.__appendVisualLog === "function") {
           try {
@@ -1208,9 +1412,9 @@
             // ignore visual log errors
           }
         }
+
         const url = `https://firestore.googleapis.com/v1/projects/ppltx-project-dev/databases/mt-game/documents/game_results?key=${firebaseConfig.apiKey}`;
 
-        // Format data for Firestore REST API with proper Firestore types
         const formattedData = {
           fields: {},
         };
@@ -1232,12 +1436,10 @@
           } else if (typeof value === "object") {
             formattedData.fields[key] = { stringValue: JSON.stringify(value) };
           } else {
-            // Default to string for all other primitive / JSON-serializable values
             formattedData.fields[key] = { stringValue: String(value) };
           }
         }
 
-        // Add explicit server-side timestamp field
         formattedData.fields.serverTimestamp = {
           timestampValue: new Date().toISOString(),
         };
@@ -1259,92 +1461,117 @@
     </script>
   </head>
   <body>
-    <div class="phone">
-      <header class="hud">
+    <div class="ocean-waves" aria-hidden="true"></div>
+
+    <div class="phone-frame">
+      <div class="phone-bezel-notch" aria-hidden="true"></div>
+
+      <header class="hud panel-stone">
         <div class="hud-top">
-          <div class="hud-title">Village</div>
+          <div class="hud-title">Floating Island</div>
           <div class="hud-level">Stage <span id="levelValue">1</span>/10</div>
         </div>
-
         <div class="hud-bars">
           <div class="hud-bar">
             <div class="hud-bar-label">Energy</div>
             <div class="hud-bar-track">
-              <div class="hud-bar-fill energy" id="energyFill" style="width: 100%;"></div>
+              <div class="hud-bar-fill energy" id="energyFill" style="width: 100%"></div>
             </div>
             <div class="hud-bar-value"><span id="energyValue">10</span>/10</div>
           </div>
-
           <div class="hud-bar">
             <div class="hud-bar-label">Coins</div>
             <div class="hud-bar-track">
-              <div class="hud-bar-fill coins" id="coinsFill" style="width: 0%;"></div>
+              <div class="hud-bar-fill coins" id="coinsFill" style="width: 0%"></div>
             </div>
             <div class="hud-bar-value"><span id="coinsValue">0</span></div>
           </div>
         </div>
       </header>
 
-      <main class="village-screen">
-        <div class="village-scene">
-          <div class="castle-wrap">
-            <div id="castle" class="castle stage-1" aria-label="Castle stage">
-              <div class="castle__moat"></div>
-              <div class="castle__shadow"></div>
-              <div class="castle__base"></div>
-              <div class="castle__roof"></div>
-              <div class="castle__door"></div>
-              <div class="castle__torch castle__torch--left"></div>
-              <div class="castle__torch castle__torch--right"></div>
-              <div class="castle__tower castle__tower--left"></div>
-              <div class="castle__tower castle__tower--right"></div>
-              <div class="castle__weapon"></div>
-              <div class="castle__flag"></div>
-              <div class="castle__shield"></div>
-              <div class="castle__particles" aria-hidden="true"></div>
+      <section class="world">
+        <div class="world-inner">
+          <div class="world-sky" aria-hidden="true"></div>
+
+          <div class="island">
+            <div class="island-top"></div>
+            <div class="island-side"></div>
+            <div class="castle-wrap">
+              <div id="castle" class="castle stage-1" aria-label="Castle stage">
+                <div class="castle__shadow"></div>
+                <div class="castle__moat"></div>
+                <div class="castle__base"></div>
+                <div class="castle__roof"></div>
+                <div class="castle__door"></div>
+                <div class="castle__torch castle__torch--left"></div>
+                <div class="castle__torch castle__torch--right"></div>
+                <div class="castle__tower castle__tower--left"></div>
+                <div class="castle__tower castle__tower--right"></div>
+                <div class="castle__weapon"></div>
+                <div class="castle__flag"></div>
+                <div class="castle__shield"></div>
+                <div class="castle__particles" aria-hidden="true"></div>
+              </div>
             </div>
-            <div class="castle-glow" id="castleGlow" aria-hidden="true"></div>
+            <div class="island-shadow" aria-hidden="true"></div>
           </div>
 
-          <div class="village-actions">
-            <button id="upgradeBtn" type="button" class="secondary">
-              Upgrade Castle (<span id="upgradeCostValue">0</span>)
-            </button>
-            <button id="refillBtn" type="button" class="secondary">Refill Energy</button>
-          </div>
-
-          <div class="status-line" id="statusLine">
+          <div class="world-status" id="statusLine">
             Status: <span>Ready.</span>
           </div>
-        </div>
-      </main>
 
-      <button id="openSlotBtn" type="button" class="cta-spin">
-        SPIN
+          <div class="village-actions" style="width: 100%; margin-top: 10px;">
+            <button id="upgradeBtn" type="button" class="secondary" style="width: 100%; margin-bottom: 6px;">
+              Upgrade Castle (<span id="upgradeCostValue">0</span>)
+            </button>
+            <button id="refillBtn" type="button" class="secondary" style="width: 100%;">Refill Energy</button>
+          </div>
+        </div>
+      </section>
+
+      <button id="openSlotBtn" type="button" class="cta-compass" aria-label="Open slot machine">
+        <div class="cta-compass-inner"></div>
       </button>
 
       <div id="slotModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Slot machine">
-        <div class="modal-sheet">
+        <div class="modal-sheet panel-stone">
           <div class="modal-header">
-            <div class="modal-title">Slot Machine</div>
-            <button id="closeSlotBtn" type="button" class="modal-close secondary">Close</button>
+            <div class="modal-title">Ancient Tablet</div>
+            <button id="closeSlotBtn" type="button" class="secondary">Close</button>
           </div>
-
-          <div class="reels reels-modal" id="reels">
-            <div class="reel" id="reel0">💰</div>
-            <div class="reel" id="reel1">⚡</div>
-            <div class="reel" id="reel2">🏰</div>
+          <div class="reels-modal">
+            <div class="reels" id="reels">
+              <div class="reel" id="reel0">💰</div>
+              <div class="reel" id="reel1">⚡</div>
+              <div class="reel" id="reel2">🏰</div>
+            </div>
           </div>
-
-          <div class="controls slot-controls">
+          <div class="controls slot-controls" style="display:flex; justify-content:center; gap:10px;">
             <button id="spinBtn" type="button">Spin</button>
           </div>
         </div>
       </div>
 
-      <div class="panel visual-log">
-        <div class="stat-label" style="margin-bottom: 4px;">Visual Log (events being sent)</div>
-        <div id="logPreview" class="log-preview log-preview-empty">No events yet.</div>
+      <div class="floating-log panel-stone">
+        <div class="floating-log-header">
+          <div class="badge">
+            <span class="badge-dot"></span>
+            Research capture
+          </div>
+        </div>
+        <div class="log-preview log-preview-empty" id="logPreview">
+          No events yet.
+        </div>
+      </div>
+
+      <div id="scrollDialog" class="scroll-dialog" role="dialog" aria-modal="true">
+        <div class="scroll-title" id="scrollTitle">Welcome</div>
+        <div class="scroll-body" id="scrollBody">
+          This island is part of a research prototype. You’ll spin an ancient tablet to earn coins and upgrade your castle.
+        </div>
+        <div class="scroll-actions">
+          <button id="scrollContinueBtn" type="button" class="secondary">Continue</button>
+        </div>
       </div>
     </div>
 
@@ -1355,10 +1582,26 @@
         <defs>
           <mask id="spotlightMask">
             <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
-            <rect id="spotlightHole" x="0" y="0" width="1" height="1" rx="18" ry="18" fill="black"></rect>
+            <rect
+              id="spotlightHole"
+              x="0"
+              y="0"
+              width="1"
+              height="1"
+              rx="18"
+              ry="18"
+              fill="black"
+            ></rect>
           </mask>
         </defs>
-        <rect x="0" y="0" width="100%" height="100%" fill="rgba(0,0,0,0.68)" mask="url(#spotlightMask)"></rect>
+        <rect
+          x="0"
+          y="0"
+          width="100%"
+          height="100%"
+          fill="rgba(0,0,0,0.68)"
+          mask="url(#spotlightMask)"
+        ></rect>
       </svg>
       <div class="spotlight-finger" id="tutorialFinger" aria-hidden="true">☝️</div>
       <div class="spotlight-tooltip" id="tutorialTooltip">
@@ -1369,612 +1612,15 @@
       </div>
     </div>
 
+    <!-- Legacy script placeholder (no-op, real logic is in the controller below) -->
     <script>
       (function () {
         "use strict";
-        // Legacy script disabled (UI was overhauled).
-        return;
-
-        // -------- Identifiers (keep same logic as earlier version) --------
-        function generateId(prefix) {
-          if (window.crypto && window.crypto.randomUUID) {
-            return prefix + "_" + window.crypto.randomUUID();
-          }
-          return (
-            prefix +
-            "_" +
-            Date.now().toString(36) +
-            "_" +
-            Math.random().toString(36).slice(2, 10)
-          );
-        }
-
-        const SESSION_ID = generateId("session");
-
-        const USER_ID = (function () {
-          const key = "match3UserId";
-          try {
-            const existing = localStorage.getItem(key);
-            if (existing) return existing;
-            const id = generateId("user");
-            localStorage.setItem(key, id);
-            return id;
-          } catch (e) {
-            return generateId("user");
-          }
-        })();
-
-        const EXPERIMENT_CONDITION = (function () {
-          const key = "match3Condition";
-          const variants = ["A", "B"];
-          try {
-            const existing = localStorage.getItem(key);
-            if (variants.includes(existing)) return existing;
-            const variant = Math.random() < 0.5 ? "A" : "B";
-            localStorage.setItem(key, variant);
-            return variant;
-          } catch (e) {
-            return "A";
-          }
-        })();
-
-        // -------- DOM --------
-        const energyEl = document.getElementById("energyValue");
-        const coinsEl = document.getElementById("coinsValue");
-        const stageEl = document.getElementById("levelValue");
-        const energyFillEl = document.getElementById("energyFill");
-        const coinsFillEl = document.getElementById("coinsFill");
-
-        const castleEl = document.getElementById("castle");
-
-        const upgradeBtn = document.getElementById("upgradeBtn");
-        const upgradeCostEl = document.getElementById("upgradeCostValue");
-        const refillBtn = document.getElementById("refillBtn");
-
-        const openSlotBtn = document.getElementById("openSlotBtn");
-        const slotModalEl = document.getElementById("slotModal");
-        const closeSlotBtn = document.getElementById("closeSlotBtn");
-        const spinBtn = document.getElementById("spinBtn");
-        const reelEls = [
-          document.getElementById("reel0"),
-          document.getElementById("reel1"),
-          document.getElementById("reel2"),
-        ];
-
-        const logPreviewEl = document.getElementById("logPreview");
-        const statusLineEl = document.getElementById("statusLine");
-
-        const tutorialOverlayEl = document.getElementById("tutorialOverlay");
-        const tutorialDimEl = tutorialOverlayEl
-          ? tutorialOverlayEl.querySelector(".spotlight-dim")
-          : null;
-        const tutorialTooltipEl = document.getElementById("tutorialTooltip");
-        const tutorialTextEl = document.getElementById("tutorialText");
-        const skipTutorialBtn = document.getElementById("skipTutorialBtn");
-
-        // -------- State --------
-        const STORAGE_KEY_SAVE = "coinLabState_v2";
-        const STORAGE_KEY_TUTORIAL = "coinLabSpotlightTutorialSeen_v1";
-
-        const MAX_ENERGY = 10;
-        const MAX_STAGE = 10;
-
-        const STAGE_COST = [0, 60, 90, 130, 180, 240, 310, 390, 480, 580, 0];
-
-        let energy = MAX_ENERGY;
-        let coins = 0;
-        let stage = 1;
-        let spinIndex = 0;
-        let eventsSent = 0;
-        let lastSpinAtMs = null;
-
-        let tutorialStep = 0;
-        let tutorialStepShownAtMs = null;
-        let tutorialRiggedSpinUsed = false;
-
-        const SYMBOLS = [
-          { name: "Coin", emoji: "💰", weight: 40, base: 40 },
-          { name: "Energy", emoji: "⚡", weight: 25, base: 25 },
-          { name: "Castle", emoji: "🏰", weight: 25, base: 30 },
-          { name: "Bomb", emoji: "💣", weight: 10, base: -25 },
-        ];
-
-        function setStatus(message, isError = false) {
-          if (!statusLineEl) return;
-          statusLineEl.classList.toggle("error", !!isError);
-          const span = statusLineEl.querySelector("span");
-          if (span) span.textContent = message;
-        }
-
-        function upgradeCostForLevel(lvl) {
-          // Level 1 upgrade cost is cheap; ramps up to Level 10.
-          const base = 60;
-          const cost = Math.round(base * Math.pow(lvl, 1.35));
-          return Math.max(40, cost);
-        }
-
-        function persistState() {
-          try {
-            localStorage.setItem(
-              STORAGE_KEY_SAVE,
-              JSON.stringify({
-                energy,
-                coins,
-                level,
-                coinsSpentThisLevel,
-                spinIndex,
-                upgrades,
-                totalCoinsEarned,
-              })
-            );
-          } catch (e) {
-            // ignore
-          }
-        }
-
-        function loadState() {
-          try {
-            const raw = localStorage.getItem(STORAGE_KEY_SAVE);
-            if (!raw) return;
-            const s = JSON.parse(raw);
-            if (!s || typeof s !== "object") return;
-            if (typeof s.energy === "number") energy = s.energy;
-            if (typeof s.coins === "number") coins = s.coins;
-            if (typeof s.level === "number") level = s.level;
-            if (typeof s.coinsSpentThisLevel === "number")
-              coinsSpentThisLevel = s.coinsSpentThisLevel;
-            if (typeof s.spinIndex === "number") spinIndex = s.spinIndex;
-            if (typeof s.upgrades === "number") upgrades = s.upgrades;
-            if (typeof s.totalCoinsEarned === "number")
-              totalCoinsEarned = s.totalCoinsEarned;
-          } catch (e) {
-            // ignore
-          }
-        }
-
-        function updateUI() {
-          if (energyEl) energyEl.textContent = String(energy);
-          if (coinsEl) coinsEl.textContent = String(coins);
-          if (levelEl) levelEl.textContent = String(level);
-
-          if (spinsValueEl) spinsValueEl.textContent = String(spinIndex);
-          if (coinsEarnedValueEl)
-            coinsEarnedValueEl.textContent = String(totalCoinsEarned);
-          if (upgradesValueEl) upgradesValueEl.textContent = String(upgrades);
-          if (eventsSentValueEl) eventsSentValueEl.textContent = String(eventsSent);
-
-          const cost = upgradeCostForLevel(level);
-          if (upgradeCostEl) upgradeCostEl.textContent = String(cost);
-
-          const progressPct = Math.max(
-            0,
-            Math.min(100, Math.round((coinsSpentThisLevel / cost) * 100))
-          );
-          if (progressFillEl) progressFillEl.style.width = progressPct + "%";
-
-          if (spinBtn) spinBtn.disabled = energy <= 0 || tutorialStep === 3;
-          if (upgradeBtn)
-            upgradeBtn.disabled =
-              coins < cost ||
-              level >= MAX_LEVEL ||
-              (tutorialStep !== 0 && tutorialStep !== 3);
-        }
-
-        // Visual log hook consumed by saveToFirestore (in <head>)
-        window.__appendVisualLog = function (eventObj) {
-          if (!logPreviewEl) return;
-          const existing = logPreviewEl.classList.contains("log-preview-empty")
-            ? []
-            : [];
-          void existing;
-          const now = new Date().toISOString();
-          const line = { at: now, event: eventObj };
-
-          // Keep a small rolling buffer in memory
-          if (!window.__visualLogBuffer) window.__visualLogBuffer = [];
-          window.__visualLogBuffer.push(line);
-          window.__visualLogBuffer = window.__visualLogBuffer.slice(-10);
-
-          logPreviewEl.classList.remove("log-preview-empty");
-          logPreviewEl.textContent = JSON.stringify(
-            window.__visualLogBuffer.map((x) => x.event),
-            null,
-            2
-          );
-        };
-
-        function sendEvent(eventType, payload) {
-          const event = {
-            eventType,
-            userId: USER_ID,
-            sessionId: SESSION_ID,
-            condition: EXPERIMENT_CONDITION,
-            timestamp: new Date().toISOString(),
-            ...payload,
-          };
-
-          if (typeof window.saveToFirestore === "function") {
-            window.saveToFirestore(event);
-            eventsSent += 1;
-            updateUI();
-          }
-        }
-
-        function weightedPickSymbol() {
-          const total = SYMBOLS.reduce((sum, s) => sum + s.weight, 0);
-          let roll = Math.random() * total;
-          for (const s of SYMBOLS) {
-            roll -= s.weight;
-            if (roll <= 0) return s;
-          }
-          return SYMBOLS[0];
-        }
-
-        function computePayout(symbols) {
-          const [a, b, c] = symbols;
-          const names = [a.name, b.name, c.name];
-          const counts = names.reduce((m, n) => {
-            m[n] = (m[n] || 0) + 1;
-            return m;
-          }, {});
-          const entries = Object.entries(counts).sort((x, y) => y[1] - x[1]);
-          const top = entries[0];
-
-          // 3-of-a-kind
-          if (top[1] === 3) {
-            const sym = SYMBOLS.find((s) => s.name === top[0]) || a;
-            return Math.max(0, sym.base * 6);
-          }
-
-          // 2-of-a-kind
-          if (top[1] === 2) {
-            const sym = SYMBOLS.find((s) => s.name === top[0]) || a;
-            return Math.max(0, sym.base * 2);
-          }
-
-          // No match; small consolation unless bomb present
-          const hasBomb = names.includes("Bomb");
-          return hasBomb ? 0 : 5;
-        }
-
-        function animateReels() {
-          reelEls.forEach((el, idx) => {
-            if (!el) return;
-            el.classList.remove("spinning");
-            // Force reflow
-            void el.offsetWidth;
-            el.classList.add("spinning");
-            setTimeout(() => {
-              el.classList.remove("spinning");
-            }, 700 + idx * 60);
-          });
-        }
-
-        function clearTutorialTargets() {
-          if (spinBtn) spinBtn.classList.remove("tutorial-target");
-          if (upgradeBtn) upgradeBtn.classList.remove("tutorial-target");
-          if (startScreenEl) startScreenEl.classList.remove("pass-through");
-        }
-
-        function enterTutorialStep(stepNumber) {
-          tutorialStep = stepNumber;
-          tutorialStepShownAtMs = performance.now();
-          clearTutorialTargets();
-
-          if (!startScreenEl || !tutorialTitleEl || !tutorialBodyEl) return;
-
-          const content = {
-            1: {
-              title: "Welcome",
-              body:
-                "You’ll spin a 3‑reel slot using Energy. Spins earn Coins based on matches. Let’s continue.",
-              showOverlay: true,
-              passThrough: false,
-              buttonText: "Next",
-              target: null,
-            },
-            2: {
-              title: "Step 2: Spin",
-              body:
-                "Tap Spin once. This first tutorial spin is guaranteed to give enough coins to upgrade.",
-              showOverlay: true,
-              passThrough: true,
-              buttonText: "Spin",
-              target: "spin",
-            },
-            3: {
-              title: "Step 3: Upgrade",
-              body:
-                "Now tap Upgrade to level up your village.",
-              showOverlay: true,
-              passThrough: true,
-              buttonText: "Upgrade",
-              target: "upgrade",
-            },
-          }[stepNumber];
-
-          tutorialTitleEl.textContent = content.title;
-          tutorialBodyEl.textContent = content.body;
-          startGameBtn.textContent = content.buttonText;
-
-          if (content.showOverlay) startScreenEl.classList.remove("hidden");
-          if (content.passThrough) startScreenEl.classList.add("pass-through");
-
-          if (content.target === "spin" && spinBtn) spinBtn.classList.add("tutorial-target");
-          if (content.target === "upgrade" && upgradeBtn) upgradeBtn.classList.add("tutorial-target");
-
-          // Safety net: if we reach step 3 without enough coins, grant missing coins
-          if (stepNumber === 3) {
-            const cost = upgradeCostForLevel(level);
-            if (coins < cost) {
-              const missing = cost - coins;
-              coins += missing;
-              totalCoinsEarned += missing;
-              setStatus("Tutorial safety net: granted coins for upgrade.", false);
-              sendEvent("tutorial_step", {
-                stepNumber,
-                timeSpentOnStep: 0,
-                grantedCoins: missing,
-              });
-            }
-          }
-
-          // Log step entry
-          sendEvent("tutorial_step", {
-            stepNumber,
-            timeSpentOnStep: 0,
-            phase: "enter",
-          });
-
-          updateUI();
-        }
-
-        function completeTutorialStep(stepNumber) {
-          if (tutorialStep !== stepNumber) return;
-          const spentMs = Math.max(0, performance.now() - tutorialStepShownAtMs);
-          sendEvent("tutorial_step", {
-            stepNumber,
-            timeSpentOnStep: Math.round(spentMs),
-            phase: "complete",
-          });
-        }
-
-        function nextTutorialStep() {
-          if (tutorialStep === 1) {
-            completeTutorialStep(1);
-            enterTutorialStep(2);
-            return;
-          }
-          if (tutorialStep === 2) {
-            // Do not advance here; advance on successful spin completion
-            return;
-          }
-          if (tutorialStep === 3) {
-            // Do not advance here; advance on successful upgrade completion
-            return;
-          }
-        }
-
-        async function handleSpin() {
-          if (energy <= 0) {
-            setStatus("No energy. Refill to spin.", true);
-            return;
-          }
-          if (tutorialStep === 3) return;
-
-          const nowMs = performance.now();
-          const reactionTimeMs =
-            lastSpinAtMs === null ? 0 : Math.round(nowMs - lastSpinAtMs);
-          lastSpinAtMs = nowMs;
-
-          const energyBefore = energy;
-          energy -= 1;
-          spinIndex += 1;
-
-          animateReels();
-          // Small delay for "spin" feel
-          await new Promise((r) => setTimeout(r, 520));
-
-          let result = [weightedPickSymbol(), weightedPickSymbol(), weightedPickSymbol()];
-
-          // Tutorial rig: first tutorial spin guarantees enough coins for upgrade
-          if (tutorialStep === 2 && !tutorialRiggedSpinUsed) {
-            tutorialRiggedSpinUsed = true;
-            const coinSym = SYMBOLS.find((s) => s.name === "Coin") || SYMBOLS[0];
-            result = [coinSym, coinSym, coinSym];
-          }
-          reelEls.forEach((el, i) => {
-            if (el) el.textContent = result[i].emoji;
-          });
-
-          let coinsGained = computePayout(result);
-
-          if (tutorialStep === 2) {
-            const cost = upgradeCostForLevel(level);
-            const needed = Math.max(0, cost - coins);
-            if (needed > 0) {
-              coinsGained = Math.max(coinsGained, needed);
-            }
-          }
-          coins += coinsGained;
-          totalCoinsEarned += coinsGained;
-
-          setStatus(
-            coinsGained > 0
-              ? `Spin ${spinIndex}: +${coinsGained} coins`
-              : `Spin ${spinIndex}: no payout`,
-            coinsGained <= 0
-          );
-
-          sendEvent("spin_attempt", {
-            spinIndex,
-            energyBefore,
-            resultReels: result.map((s) => s.name),
-            resultReelsEmoji: result.map((s) => s.emoji),
-            coinsGained,
-            reactionTimeMs,
-          });
-
-          persistState();
-          updateUI();
-
-          // Event-driven tutorial progression: advance after successful spin completes
-          if (tutorialStep === 2) {
-            const cost = upgradeCostForLevel(level);
-            if (coinsGained > 0 && coins >= cost) {
-              completeTutorialStep(2);
-              enterTutorialStep(3);
-            }
-          }
-        }
-
-        function handleUpgrade() {
-          const cost = upgradeCostForLevel(level);
-          if (level >= MAX_LEVEL) {
-            setStatus("Max level reached.", false);
-            return;
-          }
-          if (coins < cost) {
-            setStatus("Not enough coins to upgrade.", true);
-            return;
-          }
-
-          const levelBefore = level;
-          coins -= cost;
-          coinsSpentThisLevel += cost;
-          upgrades += 1;
-
-          // Level up when progress fills (spend cost each upgrade; 1 upgrade == level)
-          level = Math.min(MAX_LEVEL, level + 1);
-          coinsSpentThisLevel = 0;
-
-          if (buildingEl) {
-            buildingEl.classList.remove("shake");
-            void buildingEl.offsetWidth;
-            buildingEl.classList.add("shake");
-          }
-
-          setStatus(`Upgraded to Level ${level}!`, false);
-
-          sendEvent("upgrade_attempt", {
-            levelBefore,
-            levelAfter: level,
-            cost,
-            coinsRemaining: coins,
-          });
-
-          persistState();
-          updateUI();
-
-          // Event-driven tutorial progression: advance after successful upgrade
-          if (tutorialStep === 3) {
-            completeTutorialStep(3);
-            tutorialStep = 0;
-            clearTutorialTargets();
-            try {
-              localStorage.setItem(STORAGE_KEY_HAS_SEEN_TUTORIAL, "1");
-            } catch (e) {}
-            if (startScreenEl) startScreenEl.classList.add("hidden");
-            setStatus("Tutorial complete. Keep spinning and upgrading!", false);
-          }
-
-          if (level >= MAX_LEVEL) {
-            sendGameEnd("max_level_reached");
-          }
-        }
-
-        function handleRefill() {
-          const before = energy;
-          energy = MAX_ENERGY;
-          setStatus("Energy refilled.", false);
-          sendEvent("energy_refill", {
-            energyBefore: before,
-            energyAfter: energy,
-          });
-          persistState();
-          updateUI();
-        }
-
-        function sendGameStart() {
-          sendEvent("game_start", {
-            initialEnergy: energy,
-            initialCoins: coins,
-          });
-        }
-
-        function sendGameEnd(reason) {
-          sendEvent("game_end", {
-            endReason: reason,
-            totalSpins: spinIndex,
-            totalCoinsEarned: totalCoinsEarned,
-            maxLevelReached: level,
-            totalUpgrades: upgrades,
-            coinsRemaining: coins,
-            energyRemaining: energy,
-          });
-        }
-
-        // -------- Tutorial wiring --------
-        function isNewUserForTutorial() {
-          try {
-            return localStorage.getItem(STORAGE_KEY_HAS_SEEN_TUTORIAL) !== "1";
-          } catch (e) {
-            return true;
-          }
-        }
-
-        startGameBtn.addEventListener("click", function () {
-          if (tutorialStep === 0) {
-            if (startScreenEl) startScreenEl.classList.add("hidden");
-            return;
-          }
-          nextTutorialStep();
-        });
-
-        if (skipTutorialBtn) {
-          skipTutorialBtn.addEventListener("click", function () {
-            // Dev/testing escape hatch
-            if (tutorialStep !== 0) {
-              sendEvent("tutorial_step", {
-                stepNumber: tutorialStep,
-                timeSpentOnStep: Math.round(
-                  Math.max(0, performance.now() - tutorialStepShownAtMs)
-                ),
-                phase: "skipped",
-              });
-            }
-            tutorialStep = 0;
-            clearTutorialTargets();
-            try {
-              localStorage.setItem(STORAGE_KEY_HAS_SEEN_TUTORIAL, "1");
-            } catch (e) {}
-            if (startScreenEl) startScreenEl.classList.add("hidden");
-            setStatus("Tutorial skipped (dev).", false);
-            updateUI();
-          });
-        }
-
-        // -------- Buttons --------
-        spinBtn.addEventListener("click", handleSpin);
-        upgradeBtn.addEventListener("click", handleUpgrade);
-        refillBtn.addEventListener("click", handleRefill);
-        endSessionBtn.addEventListener("click", function () {
-          sendGameEnd("user_ended");
-          setStatus("Session ended. You can keep interacting if needed.", false);
-        });
-
-        // -------- Boot --------
-        loadState();
-        updateUI();
-        sendEvent("game_start", { initialEnergy: energy, initialCoins: coins });
-
-        if (!tutorialSeen()) {
-          enterTutorialStep(1);
-        } else {
-          endTutorial();
-        }
+        // Intentionally empty: legacy logic has been superseded.
       })();
     </script>
+
+    <!-- New game controller -->
     <script>
       (function () {
         "use strict";
@@ -2021,7 +1667,6 @@
           }
         })();
 
-        // DOM
         const energyEl = document.getElementById("energyValue");
         const coinsEl = document.getElementById("coinsValue");
         const stageEl = document.getElementById("levelValue");
@@ -2043,8 +1688,15 @@
           document.getElementById("reel1"),
           document.getElementById("reel2"),
         ];
+        const reelsWrap = document.getElementById("reels");
 
         const statusLineEl = document.getElementById("statusLine");
+
+        const scrollDialogEl = document.getElementById("scrollDialog");
+        const scrollTitleEl = document.getElementById("scrollTitle");
+        const scrollBodyEl = document.getElementById("scrollBody");
+        const scrollContinueBtn = document.getElementById("scrollContinueBtn");
+
         const tutorialOverlayEl = document.getElementById("tutorialOverlay");
         const tutorialTooltipEl = document.getElementById("tutorialTooltip");
         const tutorialTextEl = document.getElementById("tutorialText");
@@ -2052,9 +1704,11 @@
         const spotlightHoleEl = document.getElementById("spotlightHole");
         const skipTutorialBtn = document.getElementById("skipTutorialBtn");
 
-        // State
-        const STORAGE_KEY_SAVE = "coinLabState_v2";
-        const STORAGE_KEY_TUTORIAL = "coinLabSpotlightTutorialSeen_v1";
+        const logPreviewEl = document.getElementById("logPreview");
+
+        const STORAGE_KEY_SAVE = "coinIslandState_v1";
+        const STORAGE_KEY_TUTORIAL = "coinIslandTutorialSeen_v1";
+
         const MAX_ENERGY = 10;
         const MAX_STAGE = 10;
         const STAGE_COST = [0, 60, 90, 130, 180, 240, 310, 390, 480, 580, 0];
@@ -2065,7 +1719,7 @@
         let spinIndex = 0;
         let lastSpinAtMs = null;
 
-        let tutorialStep = 0; // 1 open slot, 2 spin, 3 upgrade
+        let tutorialStep = 0; // 1: open slot (compass), 2: spin, 3: upgrade
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
 
@@ -2082,6 +1736,21 @@
           const span = statusLineEl.querySelector("span");
           if (span) span.textContent = message;
         }
+
+        window.__appendVisualLog = function (eventObj) {
+          if (!logPreviewEl) return;
+          const now = new Date().toISOString();
+          const entry = { at: now, event: eventObj };
+          if (!window.__visualLogBuffer) window.__visualLogBuffer = [];
+          window.__visualLogBuffer.push(entry);
+          window.__visualLogBuffer = window.__visualLogBuffer.slice(-10);
+          logPreviewEl.classList.remove("log-preview-empty");
+          logPreviewEl.textContent = JSON.stringify(
+            window.__visualLogBuffer.map((x) => x.event),
+            null,
+            2
+          );
+        };
 
         function sendEvent(eventType, payload) {
           const event = {
@@ -2149,6 +1818,7 @@
           }
 
           if (upgradeCostEl) upgradeCostEl.textContent = String(cost);
+
           if (spinBtn) spinBtn.disabled = energy <= 0;
           if (openSlotBtn) openSlotBtn.disabled = energy <= 0;
           if (upgradeBtn) upgradeBtn.disabled = stage >= MAX_STAGE || coins < cost;
@@ -2186,7 +1856,6 @@
         }
 
         function animateReelsFast() {
-          const reelsWrap = document.getElementById("reels");
           if (reelsWrap) reelsWrap.classList.add("is-spinning");
           reelEls.forEach((el) => {
             if (!el) return;
@@ -2197,6 +1866,54 @@
           });
           if (reelsWrap) {
             setTimeout(() => reelsWrap.classList.remove("is-spinning"), 560);
+          }
+        }
+
+        function spawnFlyingCoins(count) {
+          const sourceEl = reelsWrap || spinBtn;
+          if (!sourceEl || !coinsEl) return;
+          const from = sourceEl.getBoundingClientRect();
+          const to = coinsEl.getBoundingClientRect();
+
+          const startX = from.left + from.width / 2;
+          const startY = from.top + from.height / 2;
+          const endX = to.left + to.width / 2;
+          const endY = to.top + to.height / 2;
+
+          for (let i = 0; i < count; i++) {
+            const p = document.createElement("div");
+            p.className = "coin-particle";
+            document.body.appendChild(p);
+
+            p.style.left = Math.round(startX) + "px";
+            p.style.top = Math.round(startY) + "px";
+
+            const midX = startX + (endX - startX) * 0.5 + (Math.random() * 120 - 60);
+            const midY = Math.min(startY, endY) - (80 + Math.random() * 120);
+            const dur = 720 + Math.random() * 260;
+
+            p.animate(
+              [
+                { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
+                {
+                  transform: `translate(${midX - startX}px, ${
+                    midY - startY
+                  }px) translate(-50%, -50%) scale(1.1)`,
+                  opacity: 1,
+                },
+                {
+                  transform: `translate(${endX - startX}px, ${
+                    endY - startY
+                  }px) translate(-50%, -50%) scale(0.6)`,
+                  opacity: 0,
+                },
+              ],
+              {
+                duration: dur,
+                easing: "cubic-bezier(0.2, 0.9, 0.2, 1)",
+                fill: "forwards",
+              }
+            ).onfinish = () => p.remove();
           }
         }
 
@@ -2244,7 +1961,10 @@
           }
 
           const tooltipTop = rect.top > 180 ? rect.top - 12 : rect.bottom + 12;
-          const tooltipLeft = Math.max(14, Math.min(rect.left, window.innerWidth - 14 - 320));
+          const tooltipLeft = Math.max(
+            14,
+            Math.min(rect.left, window.innerWidth - 14 - 320)
+          );
           tutorialTooltipEl.style.top = tooltipTop + "px";
           tutorialTooltipEl.style.left = tooltipLeft + "px";
         }
@@ -2257,27 +1977,39 @@
           sendEvent("tutorial_step", { stepNumber, phase, timeSpentOnStep: spentMs });
         }
 
+        function showScrollForStep(stepNumber) {
+          if (!scrollDialogEl) return;
+          let title = "Tutorial";
+          let body = "";
+          if (stepNumber === 1) {
+            title = "Step 1 – Ancient Tablet";
+            body =
+              "First, tap the golden compass to open the slot machine.";
+          } else if (stepNumber === 2) {
+            title = "Step 2 – Rigged Spin";
+            body =
+              "Now tap Spin on the tablet. This first spin is rigged to win enough coins.";
+          } else if (stepNumber === 3) {
+            title = "Step 3 – Upgrade";
+            body =
+              "Finally, use your coins to upgrade the castle on the island.";
+          }
+          scrollTitleEl.textContent = title;
+          scrollBodyEl.textContent = body;
+          scrollDialogEl.classList.add("scroll-visible");
+          if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+        }
+
+        function hideScroll() {
+          if (!scrollDialogEl) return;
+          scrollDialogEl.classList.remove("scroll-visible");
+        }
+
         function enterTutorialStep(stepNumber) {
           tutorialStep = stepNumber;
           tutorialStepShownAtMs = performance.now();
           clearTutorialHighlight();
-          if (!tutorialOverlayEl || !tutorialTextEl) return;
-          tutorialOverlayEl.classList.remove("hidden");
-
-          if (stepNumber === 1) {
-            tutorialTextEl.textContent = "Tap SPIN to open the slot machine.";
-            openSlotBtn.classList.add("tutorial-target");
-            positionSpotlightOn(openSlotBtn);
-          } else if (stepNumber === 2) {
-            tutorialTextEl.textContent = "Now tap Spin. (This spin is rigged to win.)";
-            spinBtn.classList.add("tutorial-target");
-            positionSpotlightOn(spinBtn);
-          } else if (stepNumber === 3) {
-            tutorialTextEl.textContent = "Upgrade your castle to progress.";
-            upgradeBtn.classList.add("tutorial-target");
-            positionSpotlightOn(upgradeBtn);
-          }
-
+          showScrollForStep(stepNumber);
           logTutorialStep(stepNumber, "start");
         }
 
@@ -2291,6 +2023,7 @@
           tutorialStepShownAtMs = null;
           clearTutorialHighlight();
           if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+          hideScroll();
           setTutorialSeen();
         }
 
@@ -2322,7 +2055,8 @@
           spinIndex += 1;
 
           animateReelsFast();
-          await new Promise((r) => setTimeout(r, 360));
+          // Wait slightly longer than reel animation (520ms)
+          await new Promise((r) => setTimeout(r, 560));
 
           let tutorialRigged = false;
           let result = [weightedPickSymbol(), weightedPickSymbol(), weightedPickSymbol()];
@@ -2348,10 +2082,6 @@
           coins += coinsWon;
           setStatus(coinsWon > 0 ? `+${coinsWon} coins!` : "No payout.", coinsWon <= 0);
 
-          if (coinsWon > 0) {
-            spawnFlyingCoins(15);
-          }
-
           sendEvent("spin_result", {
             spinIndex,
             energyBefore,
@@ -2362,52 +2092,12 @@
             tutorialRigged,
           });
 
+          if (coinsWon > 0) {
+            spawnFlyingCoins(15);
+          }
+
           persistState();
           updateUI();
-        }
-
-        function spawnFlyingCoins(count) {
-          const sourceEl = document.getElementById("reels") || spinBtn;
-          if (!sourceEl || !coinsEl) return;
-          const from = sourceEl.getBoundingClientRect();
-          const to = coinsEl.getBoundingClientRect();
-
-          const startX = from.left + from.width / 2;
-          const startY = from.top + from.height / 2;
-          const endX = to.left + to.width / 2;
-          const endY = to.top + to.height / 2;
-
-          for (let i = 0; i < count; i++) {
-            const p = document.createElement("div");
-            p.className = "coin-particle";
-            p.textContent = "●";
-            p.style.left = Math.round(startX) + "px";
-            p.style.top = Math.round(startY) + "px";
-            document.body.appendChild(p);
-
-            const midX = startX + (endX - startX) * 0.5 + (Math.random() * 120 - 60);
-            const midY = Math.min(startY, endY) - (80 + Math.random() * 120);
-
-            const dur = 720 + Math.random() * 260;
-            p.animate(
-              [
-                { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
-                {
-                  transform:
-                    `translate(${midX - startX}px, ${midY - startY}px) translate(-50%, -50%) scale(1.1)`,
-                  opacity: 1,
-                },
-                {
-                  transform:
-                    `translate(${endX - startX}px, ${endY - startY}px) translate(-50%, -50%) scale(0.6)`,
-                  opacity: 0.0,
-                },
-              ],
-              { duration: dur, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
-            ).onfinish = () => {
-              p.remove();
-            };
-          }
         }
 
         function handleUpgrade() {
@@ -2460,28 +2150,77 @@
           updateUI();
         }
 
-        // Wiring
         openSlotBtn.addEventListener("click", function () {
           openSlotModal();
           if (tutorialStep === 1) {
             completeTutorialStep(1);
-            enterTutorialStep(2);
+            hideScroll();
+            if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
+            clearTutorialHighlight();
+            tutorialStep = 2;
+            tutorialStepShownAtMs = performance.now();
+            tutorialTextEl.textContent =
+              "Tap Spin to perform the first rigged spin.";
+            spinBtn.classList.add("tutorial-target");
+            positionSpotlightOn(spinBtn);
+            logTutorialStep(2, "start");
           }
         });
 
-        closeSlotBtn.addEventListener("click", closeSlotModal);
+        closeSlotBtn.addEventListener("click", function () {
+          closeSlotModal();
+        });
 
         spinBtn.addEventListener("click", async function () {
           if (tutorialStep === 2) {
             await runSpin(true);
             completeTutorialStep(2);
-            enterTutorialStep(3);
+            hideScroll();
+            tutorialStep = 3;
+            tutorialStepShownAtMs = performance.now();
+            if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
+            tutorialTextEl.textContent =
+              "Now tap Upgrade to improve your castle.";
+            clearTutorialHighlight();
+            upgradeBtn.classList.add("tutorial-target");
+            positionSpotlightOn(upgradeBtn);
+            logTutorialStep(3, "start");
             return;
           }
-          runSpin(false);
+          await runSpin(false);
         });
-        upgradeBtn.addEventListener("click", handleUpgrade);
-        refillBtn.addEventListener("click", handleRefill);
+
+        upgradeBtn.addEventListener("click", function () {
+          handleUpgrade();
+        });
+
+        refillBtn.addEventListener("click", function () {
+          handleRefill();
+        });
+
+        if (scrollContinueBtn) {
+          scrollContinueBtn.addEventListener("click", function () {
+            hideScroll();
+            if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
+
+            if (tutorialStep === 1) {
+              clearTutorialHighlight();
+              openSlotBtn.classList.add("tutorial-target");
+              tutorialTextEl.textContent = "Tap the compass to open the slot machine.";
+              positionSpotlightOn(openSlotBtn);
+            } else if (tutorialStep === 2) {
+              clearTutorialHighlight();
+              spinBtn.classList.add("tutorial-target");
+              tutorialTextEl.textContent = "Tap Spin to perform the rigged spin.";
+              positionSpotlightOn(spinBtn);
+            } else if (tutorialStep === 3) {
+              clearTutorialHighlight();
+              upgradeBtn.classList.add("tutorial-target");
+              tutorialTextEl.textContent = "Tap Upgrade to level up your castle.";
+              positionSpotlightOn(upgradeBtn);
+            }
+          });
+        }
 
         if (skipTutorialBtn) {
           skipTutorialBtn.addEventListener("click", function () {
@@ -2493,14 +2232,14 @@
 
         window.addEventListener("resize", function () {
           if (tutorialStep === 1) positionSpotlightOn(openSlotBtn);
-          if (tutorialStep === 2) positionSpotlightOn(closeSlotBtn);
+          if (tutorialStep === 2) positionSpotlightOn(spinBtn);
           if (tutorialStep === 3) positionSpotlightOn(upgradeBtn);
         });
 
-        // Boot
         loadState();
         updateUI();
         sendEvent("game_start", { initialEnergy: energy, initialCoins: coins });
+
         if (!tutorialSeen()) {
           enterTutorialStep(1);
         } else {
@@ -2510,4 +2249,3 @@
     </script>
   </body>
 </html>
-
