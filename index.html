@@ -256,6 +256,65 @@
         z-index: 20;
       }
 
+      /* Tutorial overlay should not block target buttons */
+      .start-screen.pass-through {
+        pointer-events: none;
+      }
+
+      .start-screen.pass-through .start-card {
+        pointer-events: none;
+      }
+
+      .tutorial-skip {
+        position: fixed;
+        top: 14px;
+        right: 14px;
+        z-index: 30;
+        pointer-events: auto;
+        font-size: 0.72rem;
+        padding: 7px 10px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05));
+        color: var(--text-main);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+      }
+
+      .tutorial-skip:hover {
+        filter: brightness(1.08);
+      }
+
+      .tutorial-target {
+        position: relative;
+        z-index: 25;
+        pointer-events: auto;
+        animation: tutorial-pulse 1000ms infinite ease-in-out;
+      }
+
+      @keyframes tutorial-pulse {
+        0% {
+          transform: translateY(0);
+          box-shadow:
+            0 6px 15px rgba(0, 0, 0, 0.65),
+            0 0 0 0 rgba(255, 209, 102, 0.0),
+            0 0 0 1px rgba(0, 0, 0, 0.6);
+        }
+        50% {
+          transform: translateY(-1px);
+          box-shadow:
+            0 10px 26px rgba(0, 0, 0, 0.8),
+            0 0 0 6px rgba(255, 209, 102, 0.16),
+            0 0 22px rgba(181, 23, 255, 0.35),
+            0 0 0 1px rgba(0, 0, 0, 0.7);
+        }
+        100% {
+          transform: translateY(0);
+          box-shadow:
+            0 6px 15px rgba(0, 0, 0, 0.65),
+            0 0 0 0 rgba(255, 209, 102, 0.0),
+            0 0 0 1px rgba(0, 0, 0, 0.6);
+        }
+      }
+
       .start-card {
         max-width: 440px;
         width: 90%;
@@ -687,6 +746,9 @@
           Continue
         </button>
       </div>
+      <button id="skipTutorialBtn" type="button" class="tutorial-skip">
+        Skip tutorial
+      </button>
     </div>
 
     <div class="app">
@@ -845,6 +907,7 @@
         // -------- DOM --------
         const startScreenEl = document.getElementById("startScreen");
         const startGameBtn = document.getElementById("startGameBtn");
+        const skipTutorialBtn = document.getElementById("skipTutorialBtn");
         const tutorialTitleEl = document.getElementById("tutorialTitle");
         const tutorialBodyEl = document.getElementById("tutorialBody");
 
@@ -892,8 +955,11 @@
         let eventsSent = 0;
 
         let lastSpinAtMs = null;
+
+        // Tutorial state
         let tutorialStep = 0; // 0 means not in tutorial
         let tutorialStepShownAtMs = null;
+        let tutorialRiggedSpinUsed = false;
 
         const SYMBOLS = [
           { name: "Coin", emoji: "💰", weight: 40, base: 40 },
@@ -1073,40 +1139,80 @@
           });
         }
 
-        function showTutorialStep(stepNumber) {
+        function clearTutorialTargets() {
+          if (spinBtn) spinBtn.classList.remove("tutorial-target");
+          if (upgradeBtn) upgradeBtn.classList.remove("tutorial-target");
+          if (startScreenEl) startScreenEl.classList.remove("pass-through");
+        }
+
+        function enterTutorialStep(stepNumber) {
           tutorialStep = stepNumber;
           tutorialStepShownAtMs = performance.now();
+          clearTutorialTargets();
+
           if (!startScreenEl || !tutorialTitleEl || !tutorialBodyEl) return;
 
           const content = {
             1: {
               title: "Welcome",
               body:
-                "You’ll spin a 3‑reel slot using Energy. Spins earn Coins based on matches. Let’s try it.",
-              button: "Next",
+                "You’ll spin a 3‑reel slot using Energy. Spins earn Coins based on matches. Let’s continue.",
+              showOverlay: true,
+              passThrough: false,
+              buttonText: "Next",
+              target: null,
             },
             2: {
               title: "Step 2: Spin",
               body:
-                "Tap Spin once to see a result and earn coins. (Spin is required to continue.)",
-              button: "Spin now",
+                "Tap Spin once. This first tutorial spin is guaranteed to give enough coins to upgrade.",
+              showOverlay: true,
+              passThrough: true,
+              buttonText: "Spin",
+              target: "spin",
             },
             3: {
               title: "Step 3: Upgrade",
               body:
-                "Great. Now spend coins to upgrade your village. (Upgrade is required to continue.)",
-              button: "Upgrade now",
+                "Now tap Upgrade to level up your village.",
+              showOverlay: true,
+              passThrough: true,
+              buttonText: "Upgrade",
+              target: "upgrade",
             },
           }[stepNumber];
 
           tutorialTitleEl.textContent = content.title;
           tutorialBodyEl.textContent = content.body;
-          startGameBtn.textContent = content.button;
-          startScreenEl.classList.remove("hidden");
+          startGameBtn.textContent = content.buttonText;
 
+          if (content.showOverlay) startScreenEl.classList.remove("hidden");
+          if (content.passThrough) startScreenEl.classList.add("pass-through");
+
+          if (content.target === "spin" && spinBtn) spinBtn.classList.add("tutorial-target");
+          if (content.target === "upgrade" && upgradeBtn) upgradeBtn.classList.add("tutorial-target");
+
+          // Safety net: if we reach step 3 without enough coins, grant missing coins
+          if (stepNumber === 3) {
+            const cost = upgradeCostForLevel(level);
+            if (coins < cost) {
+              const missing = cost - coins;
+              coins += missing;
+              totalCoinsEarned += missing;
+              setStatus("Tutorial safety net: granted coins for upgrade.", false);
+              sendEvent("tutorial_step", {
+                stepNumber,
+                timeSpentOnStep: 0,
+                grantedCoins: missing,
+              });
+            }
+          }
+
+          // Log step entry
           sendEvent("tutorial_step", {
             stepNumber,
             timeSpentOnStep: 0,
+            phase: "enter",
           });
 
           updateUI();
@@ -1118,8 +1224,24 @@
           sendEvent("tutorial_step", {
             stepNumber,
             timeSpentOnStep: Math.round(spentMs),
-            completed: true,
+            phase: "complete",
           });
+        }
+
+        function nextTutorialStep() {
+          if (tutorialStep === 1) {
+            completeTutorialStep(1);
+            enterTutorialStep(2);
+            return;
+          }
+          if (tutorialStep === 2) {
+            // Do not advance here; advance on successful spin completion
+            return;
+          }
+          if (tutorialStep === 3) {
+            // Do not advance here; advance on successful upgrade completion
+            return;
+          }
         }
 
         async function handleSpin() {
@@ -1142,12 +1264,27 @@
           // Small delay for "spin" feel
           await new Promise((r) => setTimeout(r, 520));
 
-          const result = [weightedPickSymbol(), weightedPickSymbol(), weightedPickSymbol()];
+          let result = [weightedPickSymbol(), weightedPickSymbol(), weightedPickSymbol()];
+
+          // Tutorial rig: first tutorial spin guarantees enough coins for upgrade
+          if (tutorialStep === 2 && !tutorialRiggedSpinUsed) {
+            tutorialRiggedSpinUsed = true;
+            const coinSym = SYMBOLS.find((s) => s.name === "Coin") || SYMBOLS[0];
+            result = [coinSym, coinSym, coinSym];
+          }
           reelEls.forEach((el, i) => {
             if (el) el.textContent = result[i].emoji;
           });
 
-          const coinsGained = computePayout(result);
+          let coinsGained = computePayout(result);
+
+          if (tutorialStep === 2) {
+            const cost = upgradeCostForLevel(level);
+            const needed = Math.max(0, cost - coins);
+            if (needed > 0) {
+              coinsGained = Math.max(coinsGained, needed);
+            }
+          }
           coins += coinsGained;
           totalCoinsEarned += coinsGained;
 
@@ -1170,9 +1307,13 @@
           persistState();
           updateUI();
 
+          // Event-driven tutorial progression: advance after successful spin completes
           if (tutorialStep === 2) {
-            completeTutorialStep(2);
-            showTutorialStep(3);
+            const cost = upgradeCostForLevel(level);
+            if (coinsGained > 0 && coins >= cost) {
+              completeTutorialStep(2);
+              enterTutorialStep(3);
+            }
           }
         }
 
@@ -1214,9 +1355,11 @@
           persistState();
           updateUI();
 
+          // Event-driven tutorial progression: advance after successful upgrade
           if (tutorialStep === 3) {
             completeTutorialStep(3);
             tutorialStep = 0;
+            clearTutorialTargets();
             try {
               localStorage.setItem(STORAGE_KEY_HAS_SEEN_TUTORIAL, "1");
             } catch (e) {}
@@ -1271,30 +1414,34 @@
 
         startGameBtn.addEventListener("click", function () {
           if (tutorialStep === 0) {
-            // Start / continue from welcome
             if (startScreenEl) startScreenEl.classList.add("hidden");
             return;
           }
-
-          if (tutorialStep === 1) {
-            completeTutorialStep(1);
-            showTutorialStep(2);
-            return;
-          }
-
-          if (tutorialStep === 2) {
-            // Force a spin
-            if (spinBtn) spinBtn.focus();
-            handleSpin();
-            return;
-          }
-
-          if (tutorialStep === 3) {
-            if (upgradeBtn) upgradeBtn.focus();
-            handleUpgrade();
-            return;
-          }
+          nextTutorialStep();
         });
+
+        if (skipTutorialBtn) {
+          skipTutorialBtn.addEventListener("click", function () {
+            // Dev/testing escape hatch
+            if (tutorialStep !== 0) {
+              sendEvent("tutorial_step", {
+                stepNumber: tutorialStep,
+                timeSpentOnStep: Math.round(
+                  Math.max(0, performance.now() - tutorialStepShownAtMs)
+                ),
+                phase: "skipped",
+              });
+            }
+            tutorialStep = 0;
+            clearTutorialTargets();
+            try {
+              localStorage.setItem(STORAGE_KEY_HAS_SEEN_TUTORIAL, "1");
+            } catch (e) {}
+            if (startScreenEl) startScreenEl.classList.add("hidden");
+            setStatus("Tutorial skipped (dev).", false);
+            updateUI();
+          });
+        }
 
         // -------- Buttons --------
         spinBtn.addEventListener("click", handleSpin);
@@ -1311,7 +1458,7 @@
         sendGameStart();
 
         if (isNewUserForTutorial()) {
-          showTutorialStep(1);
+          enterTutorialStep(1);
         } else if (startScreenEl) {
           startScreenEl.classList.add("hidden");
         }
