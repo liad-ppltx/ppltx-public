@@ -26,6 +26,14 @@
         --gold-dark: #b8860b;
 
         --mana-blue: #4fd3ff;
+        --void-1: #160826;
+        --void-2: #070212;
+        --metal-1: #2a2f3a;
+        --metal-2: #12141b;
+        --metal-edge: rgba(255, 255, 255, 0.14);
+        --rivet: radial-gradient(circle at 30% 30%, #f2f5ff, #747c8f 60%, #0b0d14 100%);
+        --beam-energy: linear-gradient(90deg, #4df0ff, #2be9b1 55%, #4df0ff);
+        --beam-coins: linear-gradient(90deg, #ffd166, #ff7d00 55%, #ffd166);
 
         --text-main: #fdfdfd;
         --text-subtle: #d1d6ea;
@@ -48,13 +56,9 @@
           sans-serif;
         color: var(--text-main);
         background:
-          radial-gradient(circle at top, var(--sky-glow), transparent 55%),
-          linear-gradient(
-            180deg,
-            var(--bg-ocean-top),
-            var(--bg-ocean-mid) 45%,
-            var(--bg-ocean-bottom)
-          );
+          radial-gradient(circle at 30% 0%, rgba(120, 190, 255, 0.35), transparent 55%),
+          radial-gradient(circle at 70% 10%, rgba(60, 120, 255, 0.25), transparent 60%),
+          linear-gradient(180deg, #02102c, #000814 60%, #00030a);
         overflow: hidden;
       }
 
@@ -125,9 +129,9 @@
         padding: 14px 12px 90px;
         border-radius: 32px;
         background:
-          radial-gradient(circle at top, rgba(255, 255, 255, 0.16), transparent 65%),
-          radial-gradient(circle at bottom, rgba(0, 0, 0, 0.85), transparent 60%),
-          linear-gradient(145deg, #1a102b, #050614);
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.14), transparent 65%),
+          radial-gradient(circle at bottom, rgba(0, 0, 0, 0.9), transparent 60%),
+          linear-gradient(145deg, #16192a, #050612);
         box-shadow:
           0 40px 110px rgba(0, 0, 0, 0.9),
           0 0 0 2px rgba(255, 255, 255, 0.08);
@@ -153,16 +157,12 @@
 
       .hud {
         background:
-          radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.08), transparent 55%),
-          repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.06) 0 10px,
-            rgba(0, 0, 0, 0.08) 10px 22px
-          ),
-          linear-gradient(180deg, #2a190f, #130a06);
+          radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.10), transparent 55%),
+          radial-gradient(circle at 80% 10%, rgba(140, 200, 255, 0.08), transparent 60%),
+          linear-gradient(180deg, var(--metal-1), var(--metal-2));
         border-radius: 20px;
         padding: 10px 11px 10px;
-        border: 1px solid rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         box-shadow:
           0 20px 60px rgba(0, 0, 0, 0.8),
           inset 0 1px 0 rgba(255, 255, 255, 0.08);
@@ -175,15 +175,48 @@
         inset: 8px;
         border-radius: 14px;
         background:
-          radial-gradient(circle at 30% 20%, rgba(120, 210, 255, 0.22), transparent 60%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(0, 0, 0, 0.25));
-        border: 1px solid rgba(255, 255, 255, 0.10);
+          radial-gradient(circle at 30% 20%, rgba(120, 210, 255, 0.18), transparent 60%),
+          radial-gradient(circle at 70% 30%, rgba(255, 209, 102, 0.10), transparent 65%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.35));
+        border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.18),
-          inset 0 -12px 18px rgba(0, 0, 0, 0.35);
+          inset 0 -14px 20px rgba(0, 0, 0, 0.45);
         opacity: 0.85;
         pointer-events: none;
       }
+
+      .hud::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at 10% 20%, rgba(255,255,255,0.12), transparent 55%),
+          radial-gradient(circle at 90% 70%, rgba(255,255,255,0.08), transparent 60%);
+        pointer-events: none;
+        opacity: 0.35;
+        mix-blend-mode: screen;
+      }
+
+      .hud .hud-top::before,
+      .hud .hud-top::after {
+        content: "";
+        position: absolute;
+        top: -2px;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--rivet);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.75);
+      }
+
+      .hud .hud-top {
+        position: relative;
+      }
+
+      .hud .hud-top::before { left: 6px; }
+      .hud .hud-top::after { right: 6px; }
 
       .hud > * {
         position: relative;
@@ -232,10 +265,19 @@
         height: 10px;
         border-radius: 999px;
         background:
-          radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.22), transparent 60%),
-          linear-gradient(180deg, rgba(20, 28, 44, 0.88), rgba(6, 10, 18, 0.92));
-        border: 1px solid rgba(160, 200, 255, 0.16);
+          radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.14), transparent 60%),
+          linear-gradient(180deg, rgba(10, 12, 18, 0.92), rgba(0, 0, 0, 0.92));
+        border: 1px solid rgba(255, 255, 255, 0.14);
         overflow: hidden;
+      }
+
+      .hud-bar-track::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        pointer-events: none;
+        background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.10), transparent 60%);
       }
 
       .hud-bar-fill {
@@ -246,11 +288,19 @@
       }
 
       .hud-bar-fill.energy {
-        background: linear-gradient(90deg, #46f4b6, #4de8ff);
+        background:
+          radial-gradient(circle at 30% 50%, rgba(255,255,255,0.32), transparent 55%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.14) 0 6px, rgba(0,0,0,0.10) 6px 14px),
+          var(--beam-energy);
+        box-shadow: 0 0 18px rgba(79, 211, 255, 0.55);
       }
 
       .hud-bar-fill.coins {
-        background: linear-gradient(90deg, var(--gold-mid), #ff7d00);
+        background:
+          radial-gradient(circle at 30% 50%, rgba(255,255,255,0.26), transparent 55%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 6px, rgba(0,0,0,0.10) 6px 14px),
+          var(--beam-coins);
+        box-shadow: 0 0 18px rgba(255, 177, 60, 0.45);
       }
 
       .hud-bar-value {
@@ -269,8 +319,9 @@
         width: 100%;
         border-radius: 26px;
         background:
-          radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.12), transparent 65%),
-          linear-gradient(180deg, rgba(10, 12, 22, 0.98), rgba(4, 6, 16, 0.98));
+          radial-gradient(circle at 30% 10%, rgba(181, 23, 255, 0.25), transparent 60%),
+          radial-gradient(circle at 70% 20%, rgba(79, 211, 255, 0.12), transparent 65%),
+          linear-gradient(180deg, rgba(22, 6, 32, 0.98), rgba(6, 2, 18, 0.98));
         border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow:
           0 28px 80px rgba(0, 0, 0, 0.9),
@@ -1118,8 +1169,10 @@
       .modal-sheet {
         border-radius: 26px 26px 0 0;
         background:
-          radial-gradient(circle at top, rgba(255, 255, 255, 0.16), transparent 60%),
-          linear-gradient(180deg, #252a35, #11131a);
+          radial-gradient(circle at 20% 0%, rgba(255,255,255,0.10), transparent 65%),
+          radial-gradient(circle at 70% 30%, rgba(255,209,102,0.10), transparent 70%),
+          repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 8px, rgba(0,0,0,0.06) 8px 16px),
+          linear-gradient(180deg, #1d212c, #0b0c11);
         border: 2px solid rgba(222, 226, 245, 0.18);
         box-shadow:
           0 -24px 70px rgba(0, 0, 0, 0.9),
@@ -1174,8 +1227,9 @@
         padding: 10px 8px 12px;
         border-radius: 18px;
         background:
-          radial-gradient(circle at 50% 0, rgba(255, 255, 255, 0.12), transparent 70%),
-          linear-gradient(180deg, #343946, #151720);
+          radial-gradient(circle at 30% 10%, rgba(255,255,255,0.10), transparent 70%),
+          repeating-linear-gradient(45deg, rgba(0,0,0,0.25) 0 10px, rgba(255,255,255,0.03) 10px 20px),
+          linear-gradient(180deg, #161a24, #07070b);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.1),
           inset 0 -2px 0 rgba(0, 0, 0, 0.8);
@@ -1822,7 +1876,8 @@
         let tutorialRiggedSpinUsed = false;
 
         const SYMBOLS = [
-          { name: "Coin", icon: "coin", weight: 40, base: 40 },
+          // Coin uses 2 high-fidelity variants to match AAA look
+          { name: "Coin", icon: "coin_compass", weight: 40, base: 40, variants: ["coin_compass", "coin_griffin"] },
           { name: "Energy", icon: "energy", weight: 25, base: 25 },
           { name: "Castle", icon: "castle", weight: 25, base: 30 },
           { name: "Bomb", icon: "bomb", weight: 10, base: -25 },
@@ -1834,7 +1889,7 @@
         }
 
         const ICONS = {
-          coin: svgDataUri(`
+          coin_compass: svgDataUri(`
             <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
               <defs>
                 <radialGradient id="g" cx="35%" cy="30%" r="70%">
@@ -1849,21 +1904,50 @@
                   <stop offset="1" stop-color="#8a4f00"/>
                 </radialGradient>
                 <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="18" stdDeviation="10" flood-color="#000" flood-opacity="0.55"/>
+                  <feDropShadow dx="0" dy="20" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
                 </filter>
               </defs>
               <g filter="url(#shadow)">
                 <circle cx="128" cy="128" r="98" fill="url(#g)" stroke="url(#rim)" stroke-width="16"/>
-                <circle cx="128" cy="128" r="70" fill="rgba(255,255,255,0.10)" stroke="rgba(0,0,0,0.25)" stroke-width="4"/>
-                <!-- lion-ish emboss -->
-                <path d="M92 152c12-28 24-46 36-54 12-8 24-8 36 0 12 8 24 26 36 54"
+                <circle cx="128" cy="128" r="70" fill="rgba(255,255,255,0.08)" stroke="rgba(0,0,0,0.25)" stroke-width="4"/>
+                <!-- compass rose -->
+                <path d="M128 72l18 42-18 16-18-16z" fill="rgba(0,0,0,0.22)"/>
+                <path d="M128 184l-18-42 18-16 18 16z" fill="rgba(255,255,255,0.16)"/>
+                <path d="M72 128l42-18 16 18-16 18z" fill="rgba(0,0,0,0.18)"/>
+                <path d="M184 128l-42 18-16-18 16-18z" fill="rgba(255,255,255,0.12)"/>
+                <circle cx="128" cy="128" r="10" fill="rgba(0,0,0,0.25)"/>
+                <circle cx="124" cy="124" r="4" fill="rgba(255,255,255,0.38)"/>
+              </g>
+            </svg>
+          `),
+          coin_griffin: svgDataUri(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+              <defs>
+                <radialGradient id="g" cx="35%" cy="30%" r="70%">
+                  <stop offset="0" stop-color="#fff6cc"/>
+                  <stop offset="0.35" stop-color="#ffd166"/>
+                  <stop offset="0.7" stop-color="#c67c00"/>
+                  <stop offset="1" stop-color="#6b3f00"/>
+                </radialGradient>
+                <radialGradient id="rim" cx="40%" cy="35%" r="70%">
+                  <stop offset="0" stop-color="#fff6c7"/>
+                  <stop offset="0.5" stop-color="#ffb347"/>
+                  <stop offset="1" stop-color="#7a4200"/>
+                </radialGradient>
+                <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="20" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
+                </filter>
+              </defs>
+              <g filter="url(#shadow)">
+                <circle cx="128" cy="128" r="98" fill="url(#g)" stroke="url(#rim)" stroke-width="16"/>
+                <circle cx="128" cy="128" r="70" fill="rgba(255,255,255,0.08)" stroke="rgba(0,0,0,0.25)" stroke-width="4"/>
+                <!-- griffin-ish emboss -->
+                <path d="M92 150c18-38 54-58 78-42 16 10 14 34-4 48 10 4 18 10 24 18"
                       fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="10" stroke-linecap="round"/>
-                <path d="M96 126c10-10 20-16 32-18 12-2 20 0 24 8 4-8 12-10 24-8 12 2 22 8 32 18"
-                      fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="6" stroke-linecap="round"/>
-                <path d="M118 156c4-14 10-22 18-24 8-2 14 6 18 24"
-                      fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="8" stroke-linecap="round"/>
-                <circle cx="128" cy="86" r="10" fill="rgba(0,0,0,0.22)"/>
-                <circle cx="124" cy="82" r="4" fill="rgba(255,255,255,0.35)"/>
+                <path d="M104 136c10-18 26-28 40-26 10 2 14 12 10 22"
+                      fill="none" stroke="rgba(255,255,255,0.20)" stroke-width="6" stroke-linecap="round"/>
+                <circle cx="146" cy="112" r="6" fill="rgba(0,0,0,0.25)"/>
+                <circle cx="144" cy="110" r="2" fill="rgba(255,255,255,0.45)"/>
               </g>
             </svg>
           `),
@@ -1887,10 +1971,10 @@
                 </filter>
               </defs>
               <g filter="url(#glow)">
-                <path d="M128 18l56 80-34 0 28 54-46 0 18 86-84-106 40 0-22-54 44 0z"
+                <!-- faceted lightning shard -->
+                <path d="M128 12l60 84-40 6 30 54-52 4 22 88-96-112 44-2-26-56 50-6z"
                       fill="url(#bg)" stroke="rgba(255,255,255,0.35)" stroke-width="6" stroke-linejoin="round"/>
-                <path d="M116 64l34 0-20 38 28 0-34 60 10-48-28 0z"
-                      fill="rgba(255,255,255,0.28)"/>
+                <path d="M110 66l42-6-24 44 32-6-40 70 14-56-32 4z" fill="rgba(255,255,255,0.28)"/>
               </g>
             </svg>
           `),
@@ -1956,7 +2040,7 @@
         }
 
         // Set initial reel visuals
-        setReelIcon(reelEls[0], "coin");
+        setReelIcon(reelEls[0], "coin_compass");
         setReelIcon(reelEls[1], "energy");
         setReelIcon(reelEls[2], "castle");
 
@@ -2061,7 +2145,13 @@
           let roll = Math.random() * total;
           for (const s of SYMBOLS) {
             roll -= s.weight;
-            if (roll <= 0) return s;
+            if (roll <= 0) {
+              if (s.variants && s.variants.length) {
+                const v = s.variants[Math.floor(Math.random() * s.variants.length)];
+                return { ...s, icon: v };
+              }
+              return s;
+            }
           }
           return SYMBOLS[0];
         }
