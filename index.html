@@ -1093,8 +1093,10 @@
     <script>
       (function () {
         "use strict";
+        // Legacy script disabled (UI was overhauled).
+        return;
 
-        // -------- Identifiers (keep same logic as Match-3 version) --------
+        // -------- Identifiers (keep same logic as earlier version) --------
         function generateId(prefix) {
           if (window.crypto && window.crypto.randomUUID) {
             return prefix + "_" + window.crypto.randomUUID();
@@ -1138,59 +1140,56 @@
         })();
 
         // -------- DOM --------
-        const startScreenEl = document.getElementById("startScreen");
-        const startGameBtn = document.getElementById("startGameBtn");
-        const skipTutorialBtn = document.getElementById("skipTutorialBtn");
-        const tutorialTitleEl = document.getElementById("tutorialTitle");
-        const tutorialBodyEl = document.getElementById("tutorialBody");
-
         const energyEl = document.getElementById("energyValue");
         const coinsEl = document.getElementById("coinsValue");
-        const levelEl = document.getElementById("levelValue");
+        const stageEl = document.getElementById("levelValue");
+        const energyFillEl = document.getElementById("energyFill");
+        const coinsFillEl = document.getElementById("coinsFill");
 
+        const castleEl = document.getElementById("castle");
+
+        const upgradeBtn = document.getElementById("upgradeBtn");
+        const upgradeCostEl = document.getElementById("upgradeCostValue");
+        const refillBtn = document.getElementById("refillBtn");
+
+        const openSlotBtn = document.getElementById("openSlotBtn");
+        const slotModalEl = document.getElementById("slotModal");
+        const closeSlotBtn = document.getElementById("closeSlotBtn");
+        const spinBtn = document.getElementById("spinBtn");
         const reelEls = [
           document.getElementById("reel0"),
           document.getElementById("reel1"),
           document.getElementById("reel2"),
         ];
-        const spinBtn = document.getElementById("spinBtn");
-        const refillBtn = document.getElementById("refillBtn");
-        const upgradeBtn = document.getElementById("upgradeBtn");
-        const endSessionBtn = document.getElementById("endSessionBtn");
-
-        const spinsValueEl = document.getElementById("spinsValue");
-        const coinsEarnedValueEl = document.getElementById("coinsEarnedValue");
-        const upgradesValueEl = document.getElementById("upgradesValue");
-        const eventsSentValueEl = document.getElementById("eventsSentValue");
-
-        const progressFillEl = document.getElementById("progressFill");
-        const upgradeCostEl = document.getElementById("upgradeCostValue");
-        const buildingEl = document.getElementById("building");
 
         const logPreviewEl = document.getElementById("logPreview");
         const statusLineEl = document.getElementById("statusLine");
 
-        // -------- State --------
-        const STORAGE_KEY_HAS_SEEN_TUTORIAL = "coinLabSeenTutorial_v1";
-        const STORAGE_KEY_SAVE = "coinLabState_v1";
+        const tutorialOverlayEl = document.getElementById("tutorialOverlay");
+        const tutorialDimEl = tutorialOverlayEl
+          ? tutorialOverlayEl.querySelector(".spotlight-dim")
+          : null;
+        const tutorialTooltipEl = document.getElementById("tutorialTooltip");
+        const tutorialTextEl = document.getElementById("tutorialText");
+        const skipTutorialBtn = document.getElementById("skipTutorialBtn");
 
-        const MAX_LEVEL = 10;
+        // -------- State --------
+        const STORAGE_KEY_SAVE = "coinLabState_v2";
+        const STORAGE_KEY_TUTORIAL = "coinLabSpotlightTutorialSeen_v1";
+
         const MAX_ENERGY = 10;
+        const MAX_STAGE = 10;
+
+        const STAGE_COST = [0, 60, 90, 130, 180, 240, 310, 390, 480, 580, 0];
 
         let energy = MAX_ENERGY;
         let coins = 0;
-        let level = 1;
-        let coinsSpentThisLevel = 0;
-
+        let stage = 1;
         let spinIndex = 0;
-        let upgrades = 0;
-        let totalCoinsEarned = 0;
         let eventsSent = 0;
-
         let lastSpinAtMs = null;
 
-        // Tutorial state
-        let tutorialStep = 0; // 0 means not in tutorial
+        let tutorialStep = 0;
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
 
@@ -1198,7 +1197,7 @@
           { name: "Coin", emoji: "💰", weight: 40, base: 40 },
           { name: "Energy", emoji: "⚡", weight: 25, base: 25 },
           { name: "Castle", emoji: "🏰", weight: 25, base: 30 },
-          { name: "Bomb", emoji: "💣", weight: 10, base: -20 },
+          { name: "Bomb", emoji: "💣", weight: 10, base: -25 },
         ];
 
         function setStatus(message, isError = false) {
@@ -1688,12 +1687,479 @@
         // -------- Boot --------
         loadState();
         updateUI();
-        sendGameStart();
+        sendEvent("game_start", { initialEnergy: energy, initialCoins: coins });
 
-        if (isNewUserForTutorial()) {
+        if (!tutorialSeen()) {
           enterTutorialStep(1);
-        } else if (startScreenEl) {
-          startScreenEl.classList.add("hidden");
+        } else {
+          endTutorial();
+        }
+      })();
+    </script>
+    <script>
+      (function () {
+        "use strict";
+
+        function generateId(prefix) {
+          if (window.crypto && window.crypto.randomUUID) {
+            return prefix + "_" + window.crypto.randomUUID();
+          }
+          return (
+            prefix +
+            "_" +
+            Date.now().toString(36) +
+            "_" +
+            Math.random().toString(36).slice(2, 10)
+          );
+        }
+
+        const SESSION_ID = generateId("session");
+
+        const USER_ID = (function () {
+          const key = "match3UserId";
+          try {
+            const existing = localStorage.getItem(key);
+            if (existing) return existing;
+            const id = generateId("user");
+            localStorage.setItem(key, id);
+            return id;
+          } catch (e) {
+            return generateId("user");
+          }
+        })();
+
+        const EXPERIMENT_CONDITION = (function () {
+          const key = "match3Condition";
+          const variants = ["A", "B"];
+          try {
+            const existing = localStorage.getItem(key);
+            if (variants.includes(existing)) return existing;
+            const variant = Math.random() < 0.5 ? "A" : "B";
+            localStorage.setItem(key, variant);
+            return variant;
+          } catch (e) {
+            return "A";
+          }
+        })();
+
+        // DOM
+        const energyEl = document.getElementById("energyValue");
+        const coinsEl = document.getElementById("coinsValue");
+        const stageEl = document.getElementById("levelValue");
+        const energyFillEl = document.getElementById("energyFill");
+        const coinsFillEl = document.getElementById("coinsFill");
+
+        const castleEl = document.getElementById("castle");
+
+        const upgradeBtn = document.getElementById("upgradeBtn");
+        const upgradeCostEl = document.getElementById("upgradeCostValue");
+        const refillBtn = document.getElementById("refillBtn");
+
+        const openSlotBtn = document.getElementById("openSlotBtn");
+        const slotModalEl = document.getElementById("slotModal");
+        const closeSlotBtn = document.getElementById("closeSlotBtn");
+        const spinBtn = document.getElementById("spinBtn");
+        const reelEls = [
+          document.getElementById("reel0"),
+          document.getElementById("reel1"),
+          document.getElementById("reel2"),
+        ];
+
+        const statusLineEl = document.getElementById("statusLine");
+        const tutorialOverlayEl = document.getElementById("tutorialOverlay");
+        const tutorialDimEl = tutorialOverlayEl
+          ? tutorialOverlayEl.querySelector(".spotlight-dim")
+          : null;
+        const tutorialTooltipEl = document.getElementById("tutorialTooltip");
+        const tutorialTextEl = document.getElementById("tutorialText");
+        const skipTutorialBtn = document.getElementById("skipTutorialBtn");
+
+        // State
+        const STORAGE_KEY_SAVE = "coinLabState_v2";
+        const STORAGE_KEY_TUTORIAL = "coinLabSpotlightTutorialSeen_v1";
+        const MAX_ENERGY = 10;
+        const MAX_STAGE = 10;
+        const STAGE_COST = [0, 60, 90, 130, 180, 240, 310, 390, 480, 580, 0];
+
+        let energy = MAX_ENERGY;
+        let coins = 0;
+        let stage = 1;
+        let spinIndex = 0;
+        let lastSpinAtMs = null;
+
+        let tutorialStep = 0; // 1 spin, 2 close, 3 upgrade
+        let tutorialStepShownAtMs = null;
+        let tutorialRiggedSpinUsed = false;
+
+        const SYMBOLS = [
+          { name: "Coin", emoji: "💰", weight: 40, base: 40 },
+          { name: "Energy", emoji: "⚡", weight: 25, base: 25 },
+          { name: "Castle", emoji: "🏰", weight: 25, base: 30 },
+          { name: "Bomb", emoji: "💣", weight: 10, base: -25 },
+        ];
+
+        function setStatus(message, isError) {
+          if (!statusLineEl) return;
+          statusLineEl.classList.toggle("error", !!isError);
+          const span = statusLineEl.querySelector("span");
+          if (span) span.textContent = message;
+        }
+
+        function sendEvent(eventType, payload) {
+          const event = {
+            eventType,
+            userId: USER_ID,
+            sessionId: SESSION_ID,
+            condition: EXPERIMENT_CONDITION,
+            timestamp: new Date().toISOString(),
+            ...payload,
+          };
+          if (typeof window.saveToFirestore === "function") {
+            window.saveToFirestore(event);
+          }
+        }
+
+        function upgradeCostForStage(s) {
+          if (s >= MAX_STAGE) return 0;
+          return STAGE_COST[s] || 100;
+        }
+
+        function updateCastleStage() {
+          if (!castleEl) return;
+          for (let i = 1; i <= MAX_STAGE; i++) {
+            castleEl.classList.remove("stage-" + i);
+          }
+          castleEl.classList.add("stage-" + stage);
+        }
+
+        function persistState() {
+          try {
+            localStorage.setItem(
+              STORAGE_KEY_SAVE,
+              JSON.stringify({ energy, coins, stage, spinIndex })
+            );
+          } catch (e) {}
+        }
+
+        function loadState() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY_SAVE);
+            if (!raw) return;
+            const s = JSON.parse(raw);
+            if (!s || typeof s !== "object") return;
+            if (typeof s.energy === "number") energy = s.energy;
+            if (typeof s.coins === "number") coins = s.coins;
+            if (typeof s.stage === "number") stage = s.stage;
+            if (typeof s.spinIndex === "number") spinIndex = s.spinIndex;
+          } catch (e) {}
+        }
+
+        function updateUI() {
+          if (energyEl) energyEl.textContent = String(energy);
+          if (coinsEl) coinsEl.textContent = String(coins);
+          if (stageEl) stageEl.textContent = String(stage);
+
+          if (energyFillEl) {
+            energyFillEl.style.width = Math.round((energy / MAX_ENERGY) * 100) + "%";
+          }
+
+          const cost = upgradeCostForStage(stage);
+          if (coinsFillEl) {
+            const denom = Math.max(1, cost);
+            const pct = Math.max(0, Math.min(100, Math.round((coins / denom) * 100)));
+            coinsFillEl.style.width = pct + "%";
+          }
+
+          if (upgradeCostEl) upgradeCostEl.textContent = String(cost);
+          if (spinBtn) spinBtn.disabled = energy <= 0;
+          if (openSlotBtn) openSlotBtn.disabled = energy <= 0;
+          if (upgradeBtn) upgradeBtn.disabled = stage >= MAX_STAGE || coins < cost;
+
+          updateCastleStage();
+        }
+
+        function weightedPickSymbol() {
+          const total = SYMBOLS.reduce((sum, s) => sum + s.weight, 0);
+          let roll = Math.random() * total;
+          for (const s of SYMBOLS) {
+            roll -= s.weight;
+            if (roll <= 0) return s;
+          }
+          return SYMBOLS[0];
+        }
+
+        function computePayout(symbols) {
+          const names = symbols.map((s) => s.name);
+          const counts = names.reduce((m, n) => {
+            m[n] = (m[n] || 0) + 1;
+            return m;
+          }, {});
+          const entries = Object.entries(counts).sort((x, y) => y[1] - x[1]);
+          const [topName, topCount] = entries[0];
+          if (topCount === 3) {
+            const sym = SYMBOLS.find((s) => s.name === topName) || symbols[0];
+            return Math.max(0, sym.base * 6);
+          }
+          if (topCount === 2) {
+            const sym = SYMBOLS.find((s) => s.name === topName) || symbols[0];
+            return Math.max(0, sym.base * 2);
+          }
+          return names.includes("Bomb") ? 0 : 5;
+        }
+
+        function animateReelsFast() {
+          reelEls.forEach((el) => {
+            if (!el) return;
+            el.classList.remove("spinning");
+            void el.offsetWidth;
+            el.classList.add("spinning");
+            setTimeout(() => el.classList.remove("spinning"), 520);
+          });
+        }
+
+        function tutorialSeen() {
+          try {
+            return localStorage.getItem(STORAGE_KEY_TUTORIAL) === "1";
+          } catch (e) {
+            return false;
+          }
+        }
+
+        function setTutorialSeen() {
+          try {
+            localStorage.setItem(STORAGE_KEY_TUTORIAL, "1");
+          } catch (e) {}
+        }
+
+        function clearTutorialHighlight() {
+          [openSlotBtn, closeSlotBtn, upgradeBtn].forEach((el) => {
+            if (el) el.classList.remove("tutorial-target");
+          });
+        }
+
+        function positionSpotlightOn(targetEl) {
+          if (!tutorialDimEl || !tutorialTooltipEl || !targetEl) return;
+          const rect = targetEl.getBoundingClientRect();
+          const pad = 10;
+          tutorialDimEl.style.setProperty("--hole-x", rect.left - pad + "px");
+          tutorialDimEl.style.setProperty("--hole-y", rect.top - pad + "px");
+          tutorialDimEl.style.setProperty("--hole-w", rect.width + pad * 2 + "px");
+          tutorialDimEl.style.setProperty("--hole-h", rect.height + pad * 2 + "px");
+
+          const tooltipTop = rect.top > 180 ? rect.top - 12 : rect.bottom + 12;
+          const tooltipLeft = Math.max(14, Math.min(rect.left, window.innerWidth - 14 - 320));
+          tutorialTooltipEl.style.top = tooltipTop + "px";
+          tutorialTooltipEl.style.left = tooltipLeft + "px";
+        }
+
+        function logTutorialStep(stepNumber, phase) {
+          const spentMs =
+            tutorialStepShownAtMs === null
+              ? 0
+              : Math.round(Math.max(0, performance.now() - tutorialStepShownAtMs));
+          sendEvent("tutorial_step", { stepNumber, phase, timeSpentOnStep: spentMs });
+        }
+
+        function enterTutorialStep(stepNumber) {
+          tutorialStep = stepNumber;
+          tutorialStepShownAtMs = performance.now();
+          clearTutorialHighlight();
+          if (!tutorialOverlayEl || !tutorialTextEl) return;
+          tutorialOverlayEl.classList.remove("hidden");
+
+          if (stepNumber === 1) {
+            tutorialTextEl.textContent = "Tap SPIN to open the slot and spin once.";
+            openSlotBtn.classList.add("tutorial-target");
+            positionSpotlightOn(openSlotBtn);
+          } else if (stepNumber === 2) {
+            tutorialTextEl.textContent = "Now close the slot machine.";
+            closeSlotBtn.classList.add("tutorial-target");
+            positionSpotlightOn(closeSlotBtn);
+          } else if (stepNumber === 3) {
+            tutorialTextEl.textContent = "Upgrade your castle to progress.";
+            upgradeBtn.classList.add("tutorial-target");
+            positionSpotlightOn(upgradeBtn);
+          }
+
+          logTutorialStep(stepNumber, "start");
+        }
+
+        function completeTutorialStep(stepNumber) {
+          if (tutorialStep !== stepNumber) return;
+          logTutorialStep(stepNumber, "end");
+        }
+
+        function endTutorial() {
+          tutorialStep = 0;
+          tutorialStepShownAtMs = null;
+          clearTutorialHighlight();
+          if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+          setTutorialSeen();
+        }
+
+        function openSlotModal() {
+          if (!slotModalEl) return;
+          slotModalEl.classList.remove("hidden");
+          sendEvent("ui_navigation", { action: "open_slot" });
+        }
+
+        function closeSlotModal() {
+          if (!slotModalEl) return;
+          slotModalEl.classList.add("hidden");
+          sendEvent("ui_navigation", { action: "close_slot" });
+          if (tutorialStep === 2) {
+            completeTutorialStep(2);
+            enterTutorialStep(3);
+          }
+        }
+
+        async function runSpin(triggeredByTutorial) {
+          if (energy <= 0) {
+            setStatus("Out of energy. Refill to spin.", true);
+            return;
+          }
+
+          const nowMs = performance.now();
+          const reactionTimeMs =
+            lastSpinAtMs === null ? 0 : Math.round(nowMs - lastSpinAtMs);
+          lastSpinAtMs = nowMs;
+
+          const energyBefore = energy;
+          energy -= 1;
+          spinIndex += 1;
+
+          animateReelsFast();
+          await new Promise((r) => setTimeout(r, 360));
+
+          let tutorialRigged = false;
+          let result = [weightedPickSymbol(), weightedPickSymbol(), weightedPickSymbol()];
+
+          if (tutorialStep === 1 && !tutorialRiggedSpinUsed) {
+            tutorialRiggedSpinUsed = true;
+            tutorialRigged = true;
+            const coinSym = SYMBOLS.find((s) => s.name === "Coin") || SYMBOLS[0];
+            result = [coinSym, coinSym, coinSym];
+          }
+
+          reelEls.forEach((el, i) => {
+            if (el) el.textContent = result[i].emoji;
+          });
+
+          let coinsWon = computePayout(result);
+          if (triggeredByTutorial && tutorialRigged) {
+            const cost = upgradeCostForStage(stage);
+            const needed = Math.max(0, cost - coins);
+            coinsWon = Math.max(coinsWon, needed);
+          }
+
+          coins += coinsWon;
+          setStatus(coinsWon > 0 ? `+${coinsWon} coins!` : "No payout.", coinsWon <= 0);
+
+          sendEvent("spin_result", {
+            spinIndex,
+            energyBefore,
+            resultReels: result.map((s) => s.name),
+            resultReelsEmoji: result.map((s) => s.emoji),
+            coinsWon,
+            reactionTimeMs,
+            tutorialRigged,
+          });
+
+          persistState();
+          updateUI();
+
+          if (tutorialStep === 1) {
+            completeTutorialStep(1);
+            enterTutorialStep(2);
+          }
+        }
+
+        function handleUpgrade() {
+          const cost = upgradeCostForStage(stage);
+          if (stage >= MAX_STAGE) return;
+
+          if (coins < cost && tutorialStep === 3) {
+            const missing = cost - coins;
+            if (missing > 0) coins += missing;
+          }
+
+          if (coins < cost) {
+            setStatus("Not enough coins to upgrade.", true);
+            return;
+          }
+
+          const before = stage;
+          coins -= cost;
+          stage = Math.min(MAX_STAGE, stage + 1);
+
+          const wrap = castleEl ? castleEl.closest(".castle-wrap") : null;
+          if (wrap) {
+            wrap.classList.remove("castle-upgraded");
+            void wrap.offsetWidth;
+            wrap.classList.add("castle-upgraded");
+            setTimeout(() => wrap.classList.remove("castle-upgraded"), 520);
+          }
+
+          sendEvent("village_upgrade", {
+            stageBefore: before,
+            stageAfter: stage,
+            cost,
+            coinsRemaining: coins,
+          });
+
+          persistState();
+          updateUI();
+
+          if (tutorialStep === 3) {
+            completeTutorialStep(3);
+            endTutorial();
+          }
+        }
+
+        function handleRefill() {
+          const before = energy;
+          energy = MAX_ENERGY;
+          sendEvent("energy_refill", { energyBefore: before, energyAfter: energy });
+          persistState();
+          updateUI();
+        }
+
+        // Wiring
+        openSlotBtn.addEventListener("click", async function () {
+          openSlotModal();
+          if (tutorialStep === 1) {
+            await runSpin(true);
+          }
+        });
+        closeSlotBtn.addEventListener("click", closeSlotModal);
+        spinBtn.addEventListener("click", function () {
+          runSpin(false);
+        });
+        upgradeBtn.addEventListener("click", handleUpgrade);
+        refillBtn.addEventListener("click", handleRefill);
+
+        if (skipTutorialBtn) {
+          skipTutorialBtn.addEventListener("click", function () {
+            if (tutorialStep) logTutorialStep(tutorialStep, "skip");
+            endTutorial();
+            updateUI();
+          });
+        }
+
+        window.addEventListener("resize", function () {
+          if (tutorialStep === 1) positionSpotlightOn(openSlotBtn);
+          if (tutorialStep === 2) positionSpotlightOn(closeSlotBtn);
+          if (tutorialStep === 3) positionSpotlightOn(upgradeBtn);
+        });
+
+        // Boot
+        loadState();
+        updateUI();
+        sendEvent("game_start", { initialEnergy: energy, initialCoins: coins });
+        if (!tutorialSeen()) {
+          enterTutorialStep(1);
+        } else {
+          endTutorial();
         }
       })();
     </script>
