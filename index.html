@@ -27,9 +27,8 @@
       body {
         margin: 0;
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: grid;
+        place-items: center;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           sans-serif;
         background-image: var(--bg);
@@ -40,25 +39,296 @@
         display: none !important;
       }
 
-      .app {
-        display: grid;
-        grid-template-columns: auto minmax(260px, 320px);
-        gap: 32px;
-        padding: 24px 32px;
-        border-radius: 20px;
-        background: radial-gradient(circle at top left, #202a53 0, #050814 55%, #000 100%);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow:
-          0 28px 80px rgba(0, 0, 0, 0.75),
-          0 0 0 1px rgba(255, 255, 255, 0.04);
-        max-width: 1100px;
-        width: 100%;
+      /* Mobile-first shell */
+      .phone {
+        width: min(420px, 100vw);
+        min-height: 100vh;
+        padding: 16px 14px 86px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
-      @media (max-width: 880px) {
-        .app {
-          grid-template-columns: 1fr;
+      @media (min-width: 680px) {
+        .phone {
+          min-height: 820px;
+          border-radius: 26px;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          background: radial-gradient(circle at top left, rgba(255, 209, 102, 0.06), rgba(255, 255, 255, 0.0) 55%),
+            radial-gradient(circle at top, rgba(181, 23, 255, 0.10), rgba(0, 0, 0, 0) 55%);
+          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.75);
         }
+      }
+
+      .hud {
+        background: rgba(12, 6, 28, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        padding: 12px 12px 10px;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(10px);
+      }
+
+      .hud-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .hud-title {
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        color: var(--text-subtle);
+      }
+
+      .hud-level {
+        font-weight: 700;
+        color: var(--accent);
+      }
+
+      .hud-bars {
+        display: grid;
+        gap: 10px;
+      }
+
+      .hud-bar {
+        display: grid;
+        grid-template-columns: 54px 1fr auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .hud-bar-label {
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-subtle);
+      }
+
+      .hud-bar-track {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        overflow: hidden;
+      }
+
+      .hud-bar-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        transition: width 220ms ease-out;
+      }
+
+      .hud-bar-fill.energy {
+        background: linear-gradient(90deg, #67f5c1, #3bf0ff);
+      }
+
+      .hud-bar-fill.coins {
+        background: linear-gradient(90deg, #ffd166, #b517ff);
+      }
+
+      .hud-bar-value {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        color: var(--text-main);
+      }
+
+      .village-screen {
+        flex: 1;
+        display: flex;
+        align-items: stretch;
+      }
+
+      .village-scene {
+        width: 100%;
+        background: rgba(12, 6, 28, 0.70);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 22px;
+        padding: 14px;
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.6);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .castle-wrap {
+        position: relative;
+        height: 280px;
+        border-radius: 20px;
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255, 209, 102, 0.22), transparent 55%),
+          radial-gradient(circle at 70% 0%, rgba(181, 23, 255, 0.25), transparent 55%),
+          linear-gradient(180deg, rgba(255,255,255,0.06), rgba(0,0,0,0.15));
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        display: grid;
+        place-items: center;
+        margin-bottom: 14px;
+      }
+
+      .castle {
+        font-size: 4rem;
+        line-height: 1;
+        display: grid;
+        place-items: center;
+        filter: drop-shadow(0 18px 24px rgba(0, 0, 0, 0.55));
+        transition: transform 240ms ease-out, filter 240ms ease-out;
+      }
+
+      .castle.stage-1::before { content: "⛺"; }
+      .castle.stage-2::before { content: "🏚️"; }
+      .castle.stage-3::before { content: "🏠"; }
+      .castle.stage-4::before { content: "🏡"; }
+      .castle.stage-5::before { content: "🏰"; }
+      .castle.stage-6::before { content: "🏰✨"; }
+      .castle.stage-7::before { content: "🏰🏳️"; }
+      .castle.stage-8::before { content: "🏰👑"; }
+      .castle.stage-9::before { content: "🏰🌟👑"; }
+      .castle.stage-10::before { content: "🏰🏳️‍🌈👑✨"; }
+
+      .castle-glow {
+        position: absolute;
+        inset: -40px;
+        background: radial-gradient(circle at center, rgba(255, 209, 102, 0.25), transparent 55%);
+        opacity: 0;
+        transition: opacity 220ms ease-out;
+        pointer-events: none;
+      }
+
+      .castle-upgraded .castle {
+        transform: translateY(-2px) scale(1.02);
+        filter: drop-shadow(0 22px 28px rgba(0, 0, 0, 0.65));
+      }
+
+      .castle-upgraded .castle-glow {
+        opacity: 1;
+      }
+
+      .village-actions {
+        display: grid;
+        gap: 10px;
+      }
+
+      .cta-spin {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        width: min(420px, calc(100vw - 28px));
+        padding: 14px 18px;
+        border-radius: 18px;
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: linear-gradient(135deg, #ffd166, #b517ff);
+        color: #1b1400;
+        border: none;
+        box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+      }
+
+      /* Modal (slide-up sheet) */
+      .modal {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        align-items: end;
+        z-index: 60;
+      }
+
+      .modal.hidden {
+        display: none;
+      }
+
+      .modal-sheet {
+        border-radius: 22px 22px 0 0;
+        background: rgba(12, 6, 28, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 -24px 70px rgba(0, 0, 0, 0.75);
+        padding: 14px 14px 18px;
+        animation: sheet-up 220ms ease-out;
+      }
+
+      @keyframes sheet-up {
+        from { transform: translateY(16px); opacity: 0.6; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+
+      .modal-title {
+        font-weight: 800;
+        letter-spacing: 0.04em;
+      }
+
+      .reels-modal {
+        margin-bottom: 12px;
+      }
+
+      .visual-log {
+        position: relative;
+        margin-top: 0;
+      }
+
+      /* Spotlight tutorial */
+      .spotlight {
+        position: fixed;
+        inset: 0;
+        z-index: 80;
+      }
+
+      .spotlight.hidden {
+        display: none;
+      }
+
+      .spotlight-dim {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.62);
+        /* hole rectangle controlled by CSS vars */
+        clip-path: polygon(
+          0% 0%,
+          0% 100%,
+          100% 100%,
+          100% 0%,
+          0% 0%,
+          0% 0%,
+          calc(var(--hole-x, 0px)) calc(var(--hole-y, 0px)),
+          calc(var(--hole-x, 0px)) calc(var(--hole-y, 0px) + var(--hole-h, 0px)),
+          calc(var(--hole-x, 0px) + var(--hole-w, 0px)) calc(var(--hole-y, 0px) + var(--hole-h, 0px)),
+          calc(var(--hole-x, 0px) + var(--hole-w, 0px)) calc(var(--hole-y, 0px)),
+          calc(var(--hole-x, 0px)) calc(var(--hole-y, 0px))
+        );
+      }
+
+      .spotlight-tooltip {
+        position: absolute;
+        max-width: min(320px, calc(100vw - 28px));
+        background: rgba(12, 6, 28, 0.96);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 16px;
+        padding: 12px 12px 10px;
+        box-shadow: 0 18px 55px rgba(0, 0, 0, 0.7);
+      }
+
+      .spotlight-text {
+        font-size: 0.92rem;
+        color: var(--text-main);
+        line-height: 1.45;
+        margin-bottom: 10px;
+      }
+
+      .spotlight-actions {
+        display: flex;
+        justify-content: flex-end;
       }
 
       .left {
@@ -734,125 +1004,88 @@
     </script>
   </head>
   <body>
-    <div id="startScreen" class="start-screen">
-      <div class="start-card">
-        <div class="start-title" id="tutorialTitle">Welcome</div>
-        <div class="start-subtitle" id="tutorialBody">
-          This is a simplified slot-machine prototype for research. You'll spin using
-          <strong>Energy</strong> and earn <strong>Coins</strong> to upgrade your
-          village.
+    <div class="phone">
+      <header class="hud">
+        <div class="hud-top">
+          <div class="hud-title">Village</div>
+          <div class="hud-level">Stage <span id="levelValue">1</span>/10</div>
         </div>
-        <button id="startGameBtn" type="button" class="start-button">
-          Continue
-        </button>
-      </div>
-      <button id="skipTutorialBtn" type="button" class="tutorial-skip">
-        Skip tutorial
+
+        <div class="hud-bars">
+          <div class="hud-bar">
+            <div class="hud-bar-label">Energy</div>
+            <div class="hud-bar-track">
+              <div class="hud-bar-fill energy" id="energyFill" style="width: 100%;"></div>
+            </div>
+            <div class="hud-bar-value"><span id="energyValue">10</span>/10</div>
+          </div>
+
+          <div class="hud-bar">
+            <div class="hud-bar-label">Coins</div>
+            <div class="hud-bar-track">
+              <div class="hud-bar-fill coins" id="coinsFill" style="width: 0%;"></div>
+            </div>
+            <div class="hud-bar-value"><span id="coinsValue">0</span></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="village-screen">
+        <div class="village-scene">
+          <div class="castle-wrap">
+            <div id="castle" class="castle stage-1" aria-label="Castle stage"></div>
+            <div class="castle-glow" id="castleGlow" aria-hidden="true"></div>
+          </div>
+
+          <div class="village-actions">
+            <button id="upgradeBtn" type="button" class="secondary">
+              Upgrade Castle (<span id="upgradeCostValue">0</span>)
+            </button>
+            <button id="refillBtn" type="button" class="secondary">Refill Energy</button>
+          </div>
+
+          <div class="status-line" id="statusLine">
+            Status: <span>Ready.</span>
+          </div>
+        </div>
+      </main>
+
+      <button id="openSlotBtn" type="button" class="cta-spin">
+        SPIN
       </button>
+
+      <div id="slotModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Slot machine">
+        <div class="modal-sheet">
+          <div class="modal-header">
+            <div class="modal-title">Slot Machine</div>
+            <button id="closeSlotBtn" type="button" class="modal-close secondary">Close</button>
+          </div>
+
+          <div class="reels reels-modal" id="reels">
+            <div class="reel" id="reel0">💰</div>
+            <div class="reel" id="reel1">⚡</div>
+            <div class="reel" id="reel2">🏰</div>
+          </div>
+
+          <div class="controls slot-controls">
+            <button id="spinBtn" type="button">Spin</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel visual-log">
+        <div class="stat-label" style="margin-bottom: 4px;">Visual Log (events being sent)</div>
+        <div id="logPreview" class="log-preview log-preview-empty">No events yet.</div>
+      </div>
     </div>
 
-    <div class="app">
-      <div class="top-bar">
-        <div class="top-bar-section">
-          <span class="top-bar-label">Energy</span>
-          <span class="top-bar-value"><span id="energyValue">10</span></span>
-        </div>
-        <div class="top-bar-section">
-          <span class="top-bar-label">Coins</span>
-          <span class="top-bar-value"><span id="coinsValue">0</span></span>
-        </div>
-        <div class="top-bar-section">
-          <span class="top-bar-label">Level</span>
-          <span class="top-bar-value"><span id="levelValue">1</span>/10</span>
-        </div>
-      </div>
-
-      <div class="left">
-        <div class="title">
-          <div class="title-main">Coin‑Style Slot Lab</div>
-          <div class="title-sub">
-            Tap <strong>Spin</strong> to consume Energy and earn Coins. Spend Coins to
-            upgrade your village and progress levels.
-          </div>
-        </div>
-
-        <div class="board-wrapper slot-wrapper" aria-label="Slot machine">
-          <div class="slot-machine">
-            <div class="reels" id="reels">
-              <div class="reel" id="reel0">💰</div>
-              <div class="reel" id="reel1">⚡</div>
-              <div class="reel" id="reel2">🏰</div>
-            </div>
-            <div class="controls slot-controls">
-              <button id="spinBtn" type="button">Spin</button>
-              <button id="refillBtn" type="button" class="secondary">Refill</button>
-              <button id="endSessionBtn" type="button" class="secondary">End</button>
-            </div>
-            <div class="status-line" id="statusLine">
-              Status: <span>Ready.</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="right">
-        <div class="panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div class="badge">
-              <span class="badge-dot"></span>
-              Research capture (REST)
-            </div>
-          </div>
-
-          <div class="stats-grid">
-            <div>
-              <div class="stat-label">Spins</div>
-              <div class="stat-value stat-highlight" id="spinsValue">0</div>
-            </div>
-            <div>
-              <div class="stat-label">Coins Earned</div>
-              <div class="stat-value" id="coinsEarnedValue">0</div>
-            </div>
-            <div>
-              <div class="stat-label">Upgrades</div>
-              <div class="stat-value" id="upgradesValue">0</div>
-            </div>
-            <div>
-              <div class="stat-label">Events Sent</div>
-              <div class="stat-value" id="eventsSentValue">0</div>
-            </div>
-          </div>
-
-          <div class="hint">
-            - Symbols: 💰, ⚡, 🏰, 💣<br />
-            - 3-of-a-kind pays big, 2-of-a-kind pays small, 💣 reduces payout.<br />
-            - Upgrade cost increases each level (1→10).
-          </div>
-
-          <div class="village">
-            <div class="stat-label" style="margin-bottom: 6px;">Village progress</div>
-            <div class="village-row">
-              <div class="village-building" id="building">🏰</div>
-              <div class="village-progress">
-                <div class="village-progress-bar">
-                  <div class="village-progress-fill" id="progressFill" style="width: 0%;"></div>
-                </div>
-                <div class="status-line" style="margin-top: 8px;">
-                  Upgrade: <span id="upgradeCostValue">0</span> coins
-                </div>
-              </div>
-            </div>
-            <div class="controls" style="margin-top: 12px;">
-              <button id="upgradeBtn" type="button">Upgrade</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="stat-label" style="margin-bottom: 4px;">Visual Log (events being sent)</div>
-          <div id="logPreview" class="log-preview log-preview-empty">
-            No events yet.
-          </div>
+    <!-- Spotlight tutorial overlay -->
+    <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
+      <div class="spotlight-dim"></div>
+      <div class="spotlight-tooltip" id="tutorialTooltip">
+        <div class="spotlight-text" id="tutorialText">Tutorial</div>
+        <div class="spotlight-actions">
+          <button id="skipTutorialBtn" type="button" class="secondary">Skip</button>
         </div>
       </div>
     </div>
