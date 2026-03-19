@@ -1561,8 +1561,31 @@
       console.log("Firebase App Initialized");
       console.log("Targeting database: mt-game in project: ppltx-project-dev");
 
-      // Visual log hook is defined in game script; this function calls it when present.
-      window.saveToFirestore = async function (data) {
+      // Unified BigQuery-friendly logger:
+      // saveToFirestore(eventType: string, params: object)
+      // Always writes a flat envelope:
+      // { userId, sessionId, condition, timestamp, eventType, eventParams }
+      window.saveToFirestore = async function (eventType, params) {
+        const ctx = (window.__researchContext && typeof window.__researchContext === "object")
+          ? window.__researchContext
+          : {};
+
+        let eventParamsStr = "{}";
+        try {
+          eventParamsStr = JSON.stringify(params ?? {});
+        } catch (e) {
+          eventParamsStr = JSON.stringify({ _stringifyError: String(e) });
+        }
+
+        const data = {
+          userId: String(ctx.userId || ""),
+          sessionId: String(ctx.sessionId || ""),
+          condition: String(ctx.condition || ""),
+          timestamp: new Date().toISOString(),
+          eventType: String(eventType || ""),
+          eventParams: eventParamsStr,
+        };
+
         if (typeof window.__appendVisualLog === "function") {
           try {
             window.__appendVisualLog(data);
@@ -1598,9 +1621,9 @@
           }
         }
 
-        formattedData.fields.serverTimestamp = {
-          timestampValue: new Date().toISOString(),
-        };
+        // Required schema timestamp field (client ISO as timestampValue)
+        // Note: True server-side timestamps are not available via this unauthenticated REST write.
+        // We keep the schema field name as `timestamp`.
 
         try {
           const response = await fetch(url, {
@@ -2043,17 +2066,16 @@
           );
         };
 
-        function sendEvent(eventType, payload) {
-          const event = {
-            eventType,
-            userId: USER_ID,
-            sessionId: SESSION_ID,
-            condition: EXPERIMENT_CONDITION,
-            timestamp: new Date().toISOString(),
-            ...payload,
-          };
+        // Expose research context for the unified logger
+        window.__researchContext = {
+          userId: USER_ID,
+          sessionId: SESSION_ID,
+          condition: EXPERIMENT_CONDITION,
+        };
+
+        function logEvent(eventType, params) {
           if (typeof window.saveToFirestore === "function") {
-            window.saveToFirestore(event);
+            window.saveToFirestore(eventType, params || {});
           }
         }
 
@@ -2271,7 +2293,7 @@
             tutorialStepShownAtMs === null
               ? 0
               : Math.round(Math.max(0, performance.now() - tutorialStepShownAtMs));
-          sendEvent("tutorial_step", { stepNumber, phase, timeSpentOnStep: spentMs });
+          logEvent("tutorial_step", { stepNumber, phase, timeSpentOnStep: spentMs });
         }
 
         function showScrollForStep(stepNumber) {
@@ -2327,13 +2349,13 @@
         function openSlotModal() {
           if (!slotModalEl) return;
           slotModalEl.classList.remove("hidden");
-          sendEvent("ui_navigation", { action: "open_slot" });
+          logEvent("ui_navigation", { action: "open_slot" });
         }
 
         function closeSlotModal() {
           if (!slotModalEl) return;
           slotModalEl.classList.add("hidden");
-          sendEvent("ui_navigation", { action: "close_slot" });
+          logEvent("ui_navigation", { action: "close_slot" });
         }
 
         async function runSpin(triggeredByTutorial) {
@@ -2379,7 +2401,7 @@
           coins += coinsWon;
           setStatus(coinsWon > 0 ? `+${coinsWon} coins!` : "No payout.", coinsWon <= 0);
 
-          sendEvent("spin_result", {
+          logEvent("spin_result", {
             spinIndex,
             energyBefore,
             resultReels: result.map((s) => s.name),
@@ -2424,7 +2446,7 @@
             setTimeout(() => wrap.classList.remove("castle-upgraded"), 520);
           }
 
-          sendEvent("village_upgrade", {
+          logEvent("village_upgrade", {
             stageBefore: before,
             stageAfter: stage,
             cost,
@@ -2443,7 +2465,7 @@
         function handleRefill() {
           const before = energy;
           energy = MAX_ENERGY;
-          sendEvent("energy_refill", { energyBefore: before, energyAfter: energy });
+          logEvent("energy_refill", { energyBefore: before, energyAfter: energy });
           persistState();
           updateUI();
         }
@@ -2536,7 +2558,7 @@
 
         loadState();
         updateUI();
-        sendEvent("game_start", { initialEnergy: energy, initialCoins: coins });
+        logEvent("game_start", { initialEnergy: energy, initialCoins: coins });
 
         if (!tutorialSeen()) {
           enterTutorialStep(1);
