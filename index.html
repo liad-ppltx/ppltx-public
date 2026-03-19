@@ -1035,17 +1035,34 @@
         padding: 6px 10px;
         font-weight: 900;
         letter-spacing: 0.08em;
-        color: rgba(255,255,255,0.9);
+        color: rgba(255,255,255,0.95);
         cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease-out;
         background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.16), transparent 60%),
-          linear-gradient(180deg, #2a2f3a, #12141c);
-        border: 1px solid rgba(220,230,255,0.12);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.75);
-        z-index: 12;
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.10), transparent 60%),
+          repeating-linear-gradient(
+            90deg,
+            rgba(255,255,255,0.05) 0 6px,
+            rgba(0,0,0,0.10) 6px 14px
+          ),
+          linear-gradient(180deg, rgba(45,28,14,0.85), rgba(12,7,3,0.78));
+        border: 1px solid rgba(220,230,255,0.14);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.75), 0 0 14px rgba(79,211,255,0.08);
+        z-index: 120;
       }
 
       .entity-tag__label { color: var(--text-subtle); margin-right: 4px; }
+
+      /* Tags only appear while hovering their parent asset */
+      #castle:hover ~ #castleTag,
+      #cannon:hover ~ #cannonTag,
+      #cannon2:hover ~ #cannon2Tag,
+      #wall:hover ~ #wallTag {
+        opacity: 1;
+        pointer-events: auto;
+      }
 
       .entity-tag--castle { left: 26px; top: 168px; }
       .entity-tag--cannon { right: 22px; top: 228px; }
@@ -1146,9 +1163,9 @@
       #cannon,
       #cannon2,
       #wall {
-        pointer-events: auto;
-        cursor: pointer;
-        z-index: 100;
+        pointer-events: auto !important;
+        cursor: pointer !important;
+        z-index: 110;
       }
 
       #castle {
@@ -1198,6 +1215,19 @@
         opacity: 1;
         transform: translateX(-50%) translateY(-2px);
       }
+
+      /* Make entire asset containers hit-test reliably */
+      #castle *,
+      #cannon *,
+      #cannon2 *,
+      #wall * {
+        pointer-events: none;
+      }
+
+      /* Ensure wall never steals cannon clicks due to overlap */
+      #wall { z-index: 105; }
+      #cannon,
+      #cannon2 { z-index: 110; }
 
       .cannon.cannon2 {
         right: auto;
@@ -2306,6 +2336,9 @@
             <button id="cannonTag" type="button" class="entity-tag entity-tag--cannon">
               <span class="entity-tag__label">Lv.</span> <span id="cannonLevelTag">0</span>
             </button>
+            <button id="cannon2Tag" type="button" class="entity-tag entity-tag--cannon2 hidden">
+              <span class="entity-tag__label">Lv.</span> <span id="cannon2LevelTag">0</span>
+            </button>
             <button id="wallTag" type="button" class="entity-tag entity-tag--wall hidden">
               <span class="entity-tag__label">Lv.</span> <span id="wallLevelTag">0</span>
             </button>
@@ -2563,9 +2596,11 @@
 
         const castleTagBtn = document.getElementById("castleTag");
         const cannonTagBtn = document.getElementById("cannonTag");
+        const cannon2TagBtn = document.getElementById("cannon2Tag");
         const wallTagBtn = document.getElementById("wallTag");
         const castleLevelTagEl = document.getElementById("castleLevelTag");
         const cannonLevelTagEl = document.getElementById("cannonLevelTag");
+        const cannon2LevelTagEl = document.getElementById("cannon2LevelTag");
         const wallLevelTagEl = document.getElementById("wallLevelTag");
 
         const upgradeBtn = document.getElementById("upgradeBtn");
@@ -2634,7 +2669,8 @@
         let energy = MAX_ENERGY;
         let coins = 0;
         let stage = 1;
-        let cannonLevel = 0;
+        let cannon1Level = 0;
+        let cannon2Level = 0;
         let wallLevel = 0;
         let hasWall = false;
         let hasSecondCannon = false;
@@ -2940,7 +2976,8 @@
                 energy,
                 coins,
                 stage,
-                cannonLevel,
+                cannon1Level,
+                cannon2Level,
                 wallLevel,
                 hasWall,
                 hasSecondCannon,
@@ -2959,7 +2996,8 @@
             if (typeof s.energy === "number") energy = s.energy;
             if (typeof s.coins === "number") coins = s.coins;
             if (typeof s.stage === "number") stage = s.stage;
-            if (typeof s.cannonLevel === "number") cannonLevel = s.cannonLevel;
+            if (typeof s.cannon1Level === "number") cannon1Level = s.cannon1Level;
+            if (typeof s.cannon2Level === "number") cannon2Level = s.cannon2Level;
             if (typeof s.wallLevel === "number") wallLevel = s.wallLevel;
             if (typeof s.hasWall === "boolean") hasWall = s.hasWall;
             if (typeof s.hasSecondCannon === "boolean") hasSecondCannon = s.hasSecondCannon;
@@ -2971,9 +3009,10 @@
           if (energyEl) energyEl.textContent = String(energy);
           if (coinsEl) coinsEl.textContent = String(coins);
           if (stageEl) stageEl.textContent = String(stage);
-          if (cannonLevelValueEl) cannonLevelValueEl.textContent = String(cannonLevel);
+          if (cannonLevelValueEl) cannonLevelValueEl.textContent = String(cannon1Level);
           if (castleLevelTagEl) castleLevelTagEl.textContent = String(stage);
-          if (cannonLevelTagEl) cannonLevelTagEl.textContent = String(cannonLevel);
+          if (cannonLevelTagEl) cannonLevelTagEl.textContent = String(cannon1Level);
+          if (cannon2LevelTagEl) cannon2LevelTagEl.textContent = String(cannon2Level);
           if (wallLevelTagEl) wallLevelTagEl.textContent = String(wallLevel);
 
           if (energyFillEl) {
@@ -2993,9 +3032,9 @@
           if (openSlotBtn) openSlotBtn.disabled = energy <= 0;
           if (upgradeBtn) upgradeBtn.disabled = stage >= MAX_STAGE || coins < cost;
           if (upgradeCannonBtn) {
-            const cCost = cannonUpgradeCostForLevel(cannonLevel);
+            const cCost = cannonUpgradeCostForLevel(cannon1Level);
             upgradeCannonBtn.disabled =
-              cannonLevel >= stage || coins < cCost;
+              cannon1Level >= stage || coins < cCost;
           }
 
           if (castleEl) {
@@ -3003,31 +3042,32 @@
           }
 
           if (cannonEl) {
-            cannonEl.dataset.lv = String(cannonLevel);
+            cannonEl.dataset.lv = String(cannon1Level);
             for (let i = 0; i <= 10; i++)
               cannonEl.classList.remove("cannon-lvl-" + i);
             cannonEl.classList.add(
-              "cannon-lvl-" + Math.min(10, Math.max(0, cannonLevel))
+              "cannon-lvl-" + Math.min(10, Math.max(0, cannon1Level))
             );
             const scaleBucket =
-              1 + Math.min(3, Math.floor(cannonLevel / 3)) * 0.05;
+              1 + Math.min(3, Math.floor(cannon1Level / 3)) * 0.05;
             cannonEl.style.transform = `rotate(-6deg) scale(${scaleBucket})`;
-            cannonEl.style.filter = `drop-shadow(0 18px 22px rgba(0,0,0,0.65)) brightness(${1 + Math.min(0.3, cannonLevel * 0.03)})`;
+            cannonEl.style.filter = `drop-shadow(0 18px 22px rgba(0,0,0,0.65)) brightness(${1 + Math.min(0.3, cannon1Level * 0.03)})`;
           }
 
           if (cannon2El) {
-            cannon2El.dataset.lv = String(cannonLevel);
+            cannon2El.dataset.lv = String(cannon2Level);
             for (let i = 0; i <= 10; i++)
               cannon2El.classList.remove("cannon-lvl-" + i);
             cannon2El.classList.add(
-              "cannon-lvl-" + Math.min(10, Math.max(0, cannonLevel))
+              "cannon-lvl-" + Math.min(10, Math.max(0, cannon2Level))
             );
             const scaleBucket =
-              1 + Math.min(3, Math.floor(cannonLevel / 3)) * 0.05;
+              1 + Math.min(3, Math.floor(cannon2Level / 3)) * 0.05;
             cannon2El.style.transform = `rotate(8deg) scale(${scaleBucket})`;
-            cannon2El.style.filter = `drop-shadow(0 18px 22px rgba(0,0,0,0.65)) brightness(${1 + Math.min(0.3, cannonLevel * 0.03)})`;
+            cannon2El.style.filter = `drop-shadow(0 18px 22px rgba(0,0,0,0.65)) brightness(${1 + Math.min(0.3, cannon2Level * 0.03)})`;
             cannon2El.style.display = hasSecondCannon ? "block" : "none";
             cannon2El.classList.toggle("hidden", !hasSecondCannon);
+            if (cannon2TagBtn) cannon2TagBtn.classList.toggle("hidden", !hasSecondCannon);
           }
 
           if (wallEl) {
@@ -3474,11 +3514,17 @@
           updateUI();
         }
 
-        function handleCannonUpgrade() {
-          const before = cannonLevel;
-          const cost = cannonUpgradeCostForLevel(cannonLevel);
+        function handleCannonUpgrade(cannonIndex) {
+          const before = cannonIndex === 2 ? cannon2Level : cannon1Level;
+          const cost = cannonUpgradeCostForLevel(before);
 
-          if (cannonLevel >= stage) {
+          if (cannonIndex === 2 && !hasSecondCannon) {
+            setStatus("Buy Second Cannon in the Shop first.", true);
+            return;
+          }
+
+          // Level gating: cannot exceed castle stage.
+          if (before >= stage) {
             setStatus("Upgrade Castle first!", true);
             logEvent("defense_upgrade_attempt", {
               levelBefore: before,
@@ -3503,15 +3549,28 @@
           }
 
           coins -= cost;
-          cannonLevel += 1;
+          const after = before + 1;
+          if (cannonIndex === 2) cannon2Level = after;
+          else cannon1Level = after;
+
           setStatus("Cannon upgraded!", false);
 
           logEvent("defense_upgrade_attempt", {
             levelBefore: before,
-            levelAfter: cannonLevel,
+            levelAfter: after,
             cost,
             success: true,
             reason: "ok",
+            cannonIndex,
+          });
+
+          // Request: include which specific cannon was upgraded inside village_upgrade.
+          logEvent("village_upgrade", {
+            cannonIndex,
+            levelBefore: before,
+            levelAfter: after,
+            cost,
+            coinsRemaining: coins,
           });
 
           persistState();
@@ -3580,17 +3639,18 @@
           updateUI();
         }
 
-        let upgradeContext = null; // "castle" | "cannon" | "wall" | "cannon2"
+        let upgradeContext = null; // { type: "castle"|"cannon"|"wall", index?: 1|2 }
 
         function openUpgradeModal(type, index) {
           if (!upgradeModalEl) return;
-          upgradeContext = type;
+          upgradeContext = { type, index: typeof index === "number" ? index : 0 };
 
           logEvent("upgrade_modal_opened", {
             type,
             index: typeof index === "number" ? index : 0,
             castleLevel: stage,
-            cannonLevel,
+            cannon1Level,
+            cannon2Level,
             wallLevel: hasWall ? wallLevel : 0,
             hasSecondCannon,
           });
@@ -3610,15 +3670,17 @@
             nextStat = stage >= MAX_STAGE ? "HP: MAX" : `HP: ${hpNow} -> ${hpNext}`;
             cost = upgradeCostForStage(stage);
             canUpgrade = stage < MAX_STAGE && coins >= cost;
-          } else if (type === "cannon" || type === "cannon2") {
-            title = "Cannon Upgrade";
-            const dmgNow = 20 + cannonLevel * 5;
-            const lvlNext = cannonLevel + 1;
+          } else if (type === "cannon") {
+            title = index === 2 ? "Cannon 2 Upgrade" : "Cannon 1 Upgrade";
+            const lvlNow = index === 2 ? cannon2Level : cannon1Level;
+            const dmgNow = 20 + lvlNow * 5;
+            const lvlNext = lvlNow + 1;
             const dmgNext = 20 + lvlNext * 5;
             currentStat = `Damage: ${dmgNow}`;
             nextStat = `Damage: ${dmgNow} -> ${dmgNext}`;
-            cost = cannonUpgradeCostForLevel(cannonLevel);
-            canUpgrade = cannonLevel < stage && cannonLevel < MAX_STAGE && coins >= cost;
+            cost = cannonUpgradeCostForLevel(lvlNow);
+            canUpgrade =
+              lvlNow < stage && lvlNow < MAX_STAGE && coins >= cost && (index !== 2 || hasSecondCannon);
           } else if (type === "wall") {
             title = "Wall Upgrade";
             const lvlNow = hasWall ? wallLevel : 0;
@@ -3694,7 +3756,7 @@
           if (!battleModalEl) return;
           battleModalEl.classList.remove("hidden");
           if (battlePlayerCastleEl) battlePlayerCastleEl.textContent = String(stage);
-          if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(cannonLevel);
+          if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(cannon1Level);
           if (battlePlayerWallEl) battlePlayerWallEl.textContent = String(hasWall ? wallLevel : 0);
           if (battleBotLevelEl) battleBotLevelEl.textContent = String(stage);
           if (battleBotCannonEl) battleBotCannonEl.textContent = String(stage);
@@ -3742,18 +3804,20 @@
           if (battleInProgress) return;
           battleInProgress = true;
 
-          const playerCannon = cannonLevel;
+          const playerCannon1 = cannon1Level;
+          const playerCannon2 = hasSecondCannon ? cannon2Level : 0;
           const playerCastle = stage;
           const delta = Math.random() > 0.5 ? 1 : -1;
           battleBotLevel = clamp(playerCastle + delta, 1, MAX_STAGE);
           const totalCannons = 1 + (hasSecondCannon ? 1 : 0);
 
-          if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(playerCannon);
+          if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(playerCannon1);
           if (battleBotLevelEl) battleBotLevelEl.textContent = String(battleBotLevel);
 
           logEvent("attack_started", {
             botLevel: battleBotLevel,
-            playerCannonLevel: playerCannon,
+            playerCannonLevel: playerCannon1,
+            playerCannon2Level: playerCannon2,
             botHp: battleBotLevel * 100,
             playerHp: playerCastle * 100 + (hasWall ? wallLevel * 50 : 0),
             totalCannons,
@@ -3821,7 +3885,8 @@
           }
 
           const arenaRect = battleArenaEl.getBoundingClientRect();
-          const playerDmg = (20 + playerCannon * 5) * totalCannons;
+          const playerDmg =
+            (20 + playerCannon1 * 5) + (hasSecondCannon ? (20 + playerCannon2 * 5) : 0);
           const botDmg = 20 + battleBotLevel * 5;
 
           (async function combatLoop() {
@@ -4005,7 +4070,8 @@
             logEvent("battle_speed_toggled", {
               speed: next,
               playerCastleLevel: stage,
-              playerCannonLevel: cannonLevel,
+              playerCannonLevel: cannon1Level,
+              playerCannon2Level: cannon2Level,
               hasSecondCannon,
               wallLevel: hasWall ? wallLevel : 0,
             });
@@ -4021,11 +4087,11 @@
         if (confirmUpgradeBtn) {
           confirmUpgradeBtn.addEventListener("click", function () {
             if (!upgradeContext) return;
-            if (upgradeContext === "castle") {
+            if (upgradeContext.type === "castle") {
               handleUpgrade();
-            } else if (upgradeContext === "cannon" || upgradeContext === "cannon2") {
-              handleCannonUpgrade();
-            } else if (upgradeContext === "wall") {
+            } else if (upgradeContext.type === "cannon") {
+              handleCannonUpgrade(upgradeContext.index === 2 ? 2 : 1);
+            } else if (upgradeContext.type === "wall") {
               if (!hasWall) {
                 const cost = 900;
                 if (stage >= 3 && coins >= cost) {
@@ -4052,12 +4118,13 @@
 
         bindUpgradeClick(castleEl, "castle", 0);
         bindUpgradeClick(cannonEl, "cannon", 1);
-        bindUpgradeClick(cannon2El, "cannon2", 2);
+        bindUpgradeClick(cannon2El, "cannon", 2);
         bindUpgradeClick(wallEl, "wall", 3);
 
         // Lv tags (if visible) must also route to the correct context.
         bindUpgradeClick(castleTagBtn, "castle", 0);
         bindUpgradeClick(cannonTagBtn, "cannon", 1);
+        bindUpgradeClick(cannon2TagBtn, "cannon", 2);
         bindUpgradeClick(wallTagBtn, "wall", 3);
 
         refillBtn.addEventListener("click", function () {
