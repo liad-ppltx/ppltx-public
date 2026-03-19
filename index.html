@@ -1058,7 +1058,7 @@
       /* Tags only appear while hovering their parent asset */
       #castle:hover ~ #castleTag,
       #cannon:hover ~ #cannonTag,
-      #cannon2:hover ~ #cannon2Tag,
+      #cannon2Hit:hover ~ #cannon2Tag,
       #wall:hover ~ #wallTag {
         opacity: 1;
         pointer-events: auto;
@@ -1066,8 +1066,27 @@
 
       .entity-tag--castle { left: 26px; top: 168px; }
       .entity-tag--cannon { right: 22px; top: 228px; }
-      .entity-tag--cannon2 { left: 22px; top: 228px; }
+      .entity-tag--cannon2 { left: 65px; top: 208px; transform: translateX(-50%); }
       .entity-tag--wall { left: 26px; top: 214px; }
+
+      /* Transparent interaction wrapper (Cannon 2) */
+      #cannon2Hit {
+        position: absolute;
+        left: 10px;
+        top: 218px;
+        width: 110px;
+        height: 90px;
+        z-index: 150;
+        pointer-events: auto !important;
+        cursor: pointer;
+        background: transparent;
+      }
+
+      /* Keep the actual cannon above the wall, but let the hitbox own hover */
+      #cannon2 {
+        z-index: 150;
+        pointer-events: none !important;
+      }
 
       .wall {
         position: absolute;
@@ -1178,42 +1197,6 @@
 
       #wall:hover {
         filter: brightness(1.2);
-      }
-
-      #castle::after,
-      #cannon::after,
-      #cannon2::after,
-      #wall::after {
-        content: "Lv. " attr(data-lv);
-        position: absolute;
-        top: -14px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 5px 10px;
-        border-radius: 999px;
-        font-weight: 1000;
-        letter-spacing: 0.12em;
-        font-size: 0.68rem;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.95);
-        background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.20), transparent 60%),
-          linear-gradient(180deg, rgba(22,24,35,0.98), rgba(8,9,14,0.98));
-        border: 1px solid rgba(220, 230, 255, 0.16);
-        box-shadow:
-          0 18px 40px rgba(0,0,0,0.75),
-          0 0 14px rgba(79,211,255,0.12);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 140ms ease-out, transform 140ms ease-out;
-      }
-
-      #castle:hover::after,
-      #cannon:hover::after,
-      #cannon2:hover::after,
-      #wall:hover::after {
-        opacity: 1;
-        transform: translateX(-50%) translateY(-2px);
       }
 
       /* Make entire asset containers hit-test reliably */
@@ -2328,6 +2311,8 @@
               </div>
             </div>
             <div id="cannon" class="cannon cannon-lvl-0" aria-label="Cannon"></div>
+            <!-- Larger transparent hitbox overlay for reliable Cannon 2 hover/click -->
+            <div id="cannon2Hit" class="cannon2-hitbox hidden" aria-hidden="true"></div>
             <div id="cannon2" class="cannon cannon2 cannon-lvl-0 hidden" aria-label="Second Cannon"></div>
 
             <button id="castleTag" type="button" class="entity-tag entity-tag--castle">
@@ -2591,6 +2576,7 @@
 
         const castleEl = document.getElementById("castle");
         const cannonEl = document.getElementById("cannon");
+        const cannon2HitEl = document.getElementById("cannon2Hit");
         const cannon2El = document.getElementById("cannon2");
         const wallEl = document.getElementById("wall");
 
@@ -3069,6 +3055,9 @@
             cannon2El.classList.toggle("hidden", !hasSecondCannon);
             if (cannon2TagBtn) cannon2TagBtn.classList.toggle("hidden", !hasSecondCannon);
           }
+
+          // Transparent hitbox for reliable Cannon 2 hover/click
+          if (cannon2HitEl) cannon2HitEl.classList.toggle("hidden", !hasSecondCannon);
 
           if (wallEl) {
             for (let i = 0; i <= 10; i++) wallEl.classList.remove("wall-lvl-" + i);
@@ -4119,6 +4108,7 @@
         bindUpgradeClick(castleEl, "castle", 0);
         bindUpgradeClick(cannonEl, "cannon", 1);
         bindUpgradeClick(cannon2El, "cannon", 2);
+        bindUpgradeClick(cannon2HitEl, "cannon", 2);
         bindUpgradeClick(wallEl, "wall", 3);
 
         // Lv tags (if visible) must also route to the correct context.
