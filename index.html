@@ -204,25 +204,24 @@
         mix-blend-mode: screen;
       }
 
-      .hud .hud-top::before,
-      .hud .hud-top::after {
-        content: "";
+      /* Exactly TWO symmetric rivets on HUD corners */
+      .hud-rivet {
         position: absolute;
-        top: -2px;
-        width: 10px;
-        height: 10px;
+        top: 8px;
+        width: 9px;
+        height: 9px;
         border-radius: 50%;
         background:
-          radial-gradient(circle at 30% 30%, #f7f9ff, #8a93a6 62%, #0b0d14 100%);
-        box-shadow: 0 8px 16px rgba(0,0,0,0.75);
+          radial-gradient(circle at 30% 30%, #ffffff, #b8c1d6 55%, #3a4153 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.55),
+          0 6px 12px rgba(0,0,0,0.65);
+        z-index: 2;
+        pointer-events: none;
       }
 
-      .hud .hud-top {
-        position: relative;
-      }
-
-      .hud .hud-top::before { left: 6px; }
-      .hud .hud-top::after { right: 6px; }
+      .hud-rivet--tl { left: 10px; }
+      .hud-rivet--tr { right: 10px; }
 
       .hud > * {
         position: relative;
@@ -1183,9 +1182,11 @@
         box-shadow:
           0 -24px 70px rgba(0, 0, 0, 0.9),
           0 0 0 1px rgba(0, 0, 0, 0.85);
-        padding: 14px 14px 18px;
+        padding: 10px 10px 12px;
         animation: sheet-up 260ms var(--bezier-snap);
         position: relative;
+        max-height: min(62vh, 520px);
+        overflow: auto;
       }
 
       .modal-sheet::before {
@@ -1217,7 +1218,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
 
       .modal-title {
@@ -1229,13 +1230,13 @@
       }
 
       .reels-modal {
-        margin-bottom: 10px;
-        padding: 10px 8px 12px;
+        margin-bottom: 8px;
+        padding: 8px 7px 9px;
         border-radius: 18px;
         background:
           radial-gradient(circle at 30% 10%, rgba(255,255,255,0.10), transparent 70%),
-          repeating-linear-gradient(45deg, rgba(0,0,0,0.25) 0 10px, rgba(255,255,255,0.03) 10px 20px),
-          linear-gradient(180deg, #161a24, #07070b);
+          radial-gradient(circle at 70% 80%, rgba(0,0,0,0.45), transparent 65%),
+          linear-gradient(180deg, #171a22, #07070b);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.1),
           inset 0 -2px 0 rgba(0, 0, 0, 0.8);
@@ -1253,7 +1254,7 @@
       }
 
       .reel {
-        height: 92px;
+        height: 76px;
         border-radius: 18px;
         display: grid;
         place-items: center;
@@ -1275,21 +1276,19 @@
         inset: 8px;
         border-radius: 14px;
         background:
-          repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.05) 0 8px,
-            rgba(0, 0, 0, 0.08) 8px 16px
-          ),
-          radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.10), transparent 60%);
+          radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12), transparent 60%),
+          radial-gradient(circle at 70% 80%, rgba(0, 0, 0, 0.35), transparent 65%),
+          linear-gradient(180deg, rgba(18, 12, 10, 0.35), rgba(0, 0, 0, 0.25));
         border: 1px solid rgba(255, 255, 255, 0.06);
         pointer-events: none;
       }
 
       .reel img.reel-icon {
-        width: 64px;
-        height: 64px;
+        width: 56px;
+        height: 56px;
         image-rendering: auto;
         filter:
+          drop-shadow(0 10px 15px rgba(0,0,0,0.5))
           drop-shadow(0 12px 18px rgba(0, 0, 0, 0.85))
           drop-shadow(0 0 18px rgba(255, 209, 102, 0.35));
         transform: translateZ(0);
@@ -1433,6 +1432,12 @@
         inset: 0;
         pointer-events: auto;
         background: transparent;
+      }
+
+      .spotlight-blocker {
+        position: absolute;
+        background: transparent;
+        pointer-events: auto;
       }
 
       .spotlight-svg {
@@ -1648,6 +1653,8 @@
       <div class="phone-bezel-notch" aria-hidden="true"></div>
 
       <header class="hud panel-stone">
+        <span class="hud-rivet hud-rivet--tl" aria-hidden="true"></span>
+        <span class="hud-rivet hud-rivet--tr" aria-hidden="true"></span>
         <div class="hud-top">
           <div class="hud-title">Floating Island</div>
           <div class="hud-level">Stage <span id="levelValue">1</span>/10</div>
@@ -1758,7 +1765,12 @@
 
     <!-- Spotlight tutorial overlay -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
-      <div class="spotlight-shield" aria-hidden="true"></div>
+      <div class="spotlight-shield" aria-hidden="true">
+        <div class="spotlight-blocker" data-blocker="top"></div>
+        <div class="spotlight-blocker" data-blocker="left"></div>
+        <div class="spotlight-blocker" data-blocker="right"></div>
+        <div class="spotlight-blocker" data-blocker="bottom"></div>
+      </div>
       <svg class="spotlight-svg" width="100%" height="100%" aria-hidden="true">
         <defs>
           <mask id="spotlightMask">
@@ -2271,6 +2283,46 @@
           spotlightHoleEl.setAttribute("height", String(Math.round(h)));
           spotlightHoleEl.setAttribute("rx", "18");
           spotlightHoleEl.setAttribute("ry", "18");
+
+          // Make the hole truly clickable by blocking around it with 4 regions.
+          const shield = document.querySelector(".spotlight-shield");
+          if (shield) {
+            const topB = shield.querySelector('[data-blocker="top"]');
+            const leftB = shield.querySelector('[data-blocker="left"]');
+            const rightB = shield.querySelector('[data-blocker="right"]');
+            const bottomB = shield.querySelector('[data-blocker="bottom"]');
+
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            if (topB) {
+              topB.style.left = "0px";
+              topB.style.top = "0px";
+              topB.style.width = vw + "px";
+              topB.style.height = Math.max(0, y) + "px";
+            }
+
+            if (bottomB) {
+              bottomB.style.left = "0px";
+              bottomB.style.top = Math.min(vh, y + h) + "px";
+              bottomB.style.width = vw + "px";
+              bottomB.style.height = Math.max(0, vh - (y + h)) + "px";
+            }
+
+            if (leftB) {
+              leftB.style.left = "0px";
+              leftB.style.top = Math.max(0, y) + "px";
+              leftB.style.width = Math.max(0, x) + "px";
+              leftB.style.height = Math.max(0, h) + "px";
+            }
+
+            if (rightB) {
+              rightB.style.left = Math.min(vw, x + w) + "px";
+              rightB.style.top = Math.max(0, y) + "px";
+              rightB.style.width = Math.max(0, vw - (x + w)) + "px";
+              rightB.style.height = Math.max(0, h) + "px";
+            }
+          }
 
           if (tutorialFingerEl) {
             const cx = rect.left + rect.width / 2;
