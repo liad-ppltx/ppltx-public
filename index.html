@@ -1502,7 +1502,51 @@
         border: 1px solid rgba(120, 85, 40, 0.65);
         padding: 10px 11px 8px;
         box-shadow: 0 20px 55px rgba(0, 0, 0, 0.9);
-        pointer-events: none;
+        pointer-events: auto;
+      }
+
+      /* Smart-positioned tutorial popup with arrow */
+      .spotlight-tooltip[data-placement="center"] {
+        left: 50% !important;
+        top: 50% !important;
+        transform: translate(-50%, -50%);
+      }
+
+      .spotlight-tooltip:not([data-placement="center"]) {
+        transform: translateY(0);
+      }
+
+      .spotlight-tooltip::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        filter: drop-shadow(0 6px 10px rgba(0,0,0,0.45));
+      }
+
+      .spotlight-tooltip[data-placement="above"]::after {
+        left: var(--arrow-x, 50%);
+        bottom: -10px;
+        transform: translateX(-50%);
+        border-width: 10px 10px 0 10px;
+        border-color: rgba(220, 198, 150, 0.98) transparent transparent transparent;
+      }
+
+      .spotlight-tooltip[data-placement="below"]::after {
+        left: var(--arrow-x, 50%);
+        top: -10px;
+        transform: translateX(-50%);
+        border-width: 0 10px 10px 10px;
+        border-color: transparent transparent rgba(250, 237, 210, 0.98) transparent;
+      }
+
+      .spotlight-tooltip[data-placement="right"]::after {
+        top: var(--arrow-y, 50%);
+        left: -10px;
+        transform: translateY(-50%);
+        border-width: 10px 10px 10px 0;
+        border-color: transparent rgba(240, 220, 178, 0.98) transparent transparent;
       }
 
       .spotlight-text {
@@ -1587,6 +1631,7 @@
       .spotlight-actions {
         display: flex;
         justify-content: flex-end;
+        gap: 10px;
       }
 
       .spotlight-actions button {
@@ -1749,7 +1794,7 @@
     <div class="phone-frame">
       <div class="phone-bezel-notch" aria-hidden="true"></div>
 
-      <header class="hud panel-stone">
+      <header class="hud">
         <span class="hud-rivet hud-rivet--tl" aria-hidden="true"></span>
         <span class="hud-rivet hud-rivet--tr" aria-hidden="true"></span>
         <div class="hud-top">
@@ -1849,15 +1894,7 @@
         </div>
       </div>
 
-      <div id="scrollDialog" class="scroll-dialog" role="dialog" aria-modal="true">
-        <div class="scroll-title" id="scrollTitle">Welcome</div>
-        <div class="scroll-body" id="scrollBody">
-          This island is part of a research prototype. You’ll spin an ancient tablet to earn coins and upgrade your castle.
-        </div>
-        <div class="scroll-actions">
-          <button id="scrollContinueBtn" type="button" class="secondary metal-btn">Continue</button>
-        </div>
-      </div>
+      <!-- legacy scroll dialog removed (tutorial uses tooltip popup below) -->
     </div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
@@ -1884,6 +1921,7 @@
       <div class="spotlight-tooltip" id="tutorialTooltip">
         <div class="spotlight-text" id="tutorialText">Tutorial</div>
         <div class="spotlight-actions">
+          <button id="tutorialContinueBtn" type="button" class="secondary metal-btn">Continue</button>
           <button id="skipTutorialBtn" type="button" class="wax-seal">Skip</button>
         </div>
       </div>
@@ -1969,16 +2007,12 @@
 
         const statusLineEl = document.getElementById("statusLine");
 
-        const scrollDialogEl = document.getElementById("scrollDialog");
-        const scrollTitleEl = document.getElementById("scrollTitle");
-        const scrollBodyEl = document.getElementById("scrollBody");
-        const scrollContinueBtn = document.getElementById("scrollContinueBtn");
-
         const tutorialOverlayEl = document.getElementById("tutorialOverlay");
         const tutorialTooltipEl = document.getElementById("tutorialTooltip");
         const tutorialTextEl = document.getElementById("tutorialText");
         const tutorialFingerEl = document.getElementById("tutorialFinger");
         const spotlightHoleEl = document.getElementById("spotlightHole");
+        const tutorialContinueBtn = document.getElementById("tutorialContinueBtn");
         const skipTutorialBtn = document.getElementById("skipTutorialBtn");
 
         const logPreviewEl = document.getElementById("logPreview");
@@ -1996,7 +2030,7 @@
         let spinIndex = 0;
         let lastSpinAtMs = null;
 
-        let tutorialStep = 0; // 1: open slot (compass), 2: spin, 3: upgrade
+        let tutorialStep = 0; // 1..6 per guided tour
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
 
@@ -2447,14 +2481,6 @@
             tutorialFingerEl.style.left = Math.round(cx) + "px";
             tutorialFingerEl.style.top = Math.round(cy + 10) + "px";
           }
-
-          const tooltipTop = rect.top > 180 ? rect.top - 12 : rect.bottom + 12;
-          const tooltipLeft = Math.max(
-            14,
-            Math.min(rect.left, window.innerWidth - 14 - 320)
-          );
-          tutorialTooltipEl.style.top = tooltipTop + "px";
-          tutorialTooltipEl.style.left = tooltipLeft + "px";
         }
 
         function logTutorialStep(stepNumber, phase) {
@@ -2465,40 +2491,130 @@
           logEvent("tutorial_step", { stepNumber, phase, timeSpentOnStep: spentMs });
         }
 
-        function showScrollForStep(stepNumber) {
-          if (!scrollDialogEl) return;
-          let title = "Tutorial";
-          let body = "";
-          if (stepNumber === 1) {
-            title = "Step 1 – Ancient Tablet";
-            body =
-              "First, tap the golden compass to open the slot machine.";
-          } else if (stepNumber === 2) {
-            title = "Step 2 – Rigged Spin";
-            body =
-              "Now tap Spin on the tablet. This first spin is rigged to win enough coins.";
-          } else if (stepNumber === 3) {
-            title = "Step 3 – Upgrade";
-            body =
-              "Finally, use your coins to upgrade the castle on the island.";
-          }
-          scrollTitleEl.textContent = title;
-          scrollBodyEl.textContent = body;
-          scrollDialogEl.classList.add("scroll-visible");
-          // Keep halo hidden while scroll is visible (no dimming overlay).
-          if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+        function hideTutorialPopup() {
+          if (tutorialTooltipEl) tutorialTooltipEl.style.display = "none";
         }
 
-        function hideScroll() {
-          if (!scrollDialogEl) return;
-          scrollDialogEl.classList.remove("scroll-visible");
+        function showTutorialPopup() {
+          if (tutorialTooltipEl) tutorialTooltipEl.style.display = "block";
+        }
+
+        function positionTutorialPopup(targetEl, placement) {
+          if (!tutorialTooltipEl) return;
+
+          tutorialTooltipEl.dataset.placement = placement || "above";
+          tutorialTooltipEl.style.removeProperty("--arrow-x");
+          tutorialTooltipEl.style.removeProperty("--arrow-y");
+
+          if (placement === "center" || !targetEl) {
+            tutorialTooltipEl.style.top = "50%";
+            tutorialTooltipEl.style.left = "50%";
+            return;
+          }
+
+          const rect = targetEl.getBoundingClientRect();
+          const tipW = Math.min(320, window.innerWidth - 28);
+          const margin = 12;
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+
+          let left = centerX - tipW / 2;
+          left = Math.max(14, Math.min(left, window.innerWidth - 14 - tipW));
+
+          let top = 14;
+          if (placement === "above") {
+            top = Math.max(14, rect.top - margin - 96);
+            const arrowX = Math.max(18, Math.min(tipW - 18, centerX - left));
+            tutorialTooltipEl.style.setProperty("--arrow-x", `${Math.round(arrowX)}px`);
+          } else if (placement === "below") {
+            top = Math.min(window.innerHeight - 14 - 120, rect.bottom + margin);
+            const arrowX = Math.max(18, Math.min(tipW - 18, centerX - left));
+            tutorialTooltipEl.style.setProperty("--arrow-x", `${Math.round(arrowX)}px`);
+          } else if (placement === "right") {
+            left = Math.min(window.innerWidth - 14 - tipW, rect.right + margin);
+            top = Math.max(14, Math.min(window.innerHeight - 14 - 120, centerY - 60));
+            const arrowY = Math.max(18, Math.min(120 - 18, centerY - top));
+            tutorialTooltipEl.style.setProperty("--arrow-y", `${Math.round(arrowY)}px`);
+          }
+
+          tutorialTooltipEl.style.left = Math.round(left) + "px";
+          tutorialTooltipEl.style.top = Math.round(top) + "px";
+        }
+
+        function setHaloTarget(targetEl) {
+          if (!tutorialOverlayEl) return;
+          if (!targetEl) {
+            tutorialOverlayEl.classList.add("hidden");
+            if (tutorialFingerEl) tutorialFingerEl.style.display = "none";
+            return;
+          }
+          tutorialOverlayEl.classList.remove("hidden");
+          if (tutorialFingerEl) tutorialFingerEl.style.display = "block";
+          positionSpotlightOn(targetEl);
+        }
+
+        function renderTutorialStep(stepNumber) {
+          if (!tutorialTextEl || !tutorialTooltipEl) return;
+
+          const energyTarget = document.querySelector(".hud-bar-track--energy");
+          const coinsTarget = document.querySelector(".hud-bar-track--coins");
+
+          clearTutorialHighlight();
+
+          let msg = "";
+          let target = null;
+          let placement = "above";
+
+          if (stepNumber === 1) {
+            msg =
+              "Welcome to the Realm! Tap CONTINUE to start the tour or SKIP to play.";
+            placement = "center";
+          } else if (stepNumber === 2) {
+            msg = "Tap the compass to open your Ancient Tablet.";
+            target = openSlotBtn;
+            placement = "above";
+          } else if (stepNumber === 3) {
+            msg =
+              "The reels hold your fate. Spin to win coins and energy!";
+            target = spinBtn;
+            placement = "above";
+          } else if (stepNumber === 4) {
+            msg =
+              "Energy ⚡ fuels your spins. It refills over time or via the Refill button.";
+            target = energyTarget || energyFillEl;
+            placement = "below";
+          } else if (stepNumber === 5) {
+            msg =
+              "Coins 💰 are used to grow your Kingdom. Keep an eye on your wealth!";
+            target = coinsTarget || coinsFillEl;
+            placement = "below";
+          } else if (stepNumber === 6) {
+            msg =
+              "Upgrade your Castle to reach higher stages and unlock new glory.";
+            target = castleEl;
+            placement = "right";
+          }
+
+          tutorialTextEl.textContent = msg;
+          showTutorialPopup();
+
+          if (placement === "center") {
+            tutorialTooltipEl.dataset.placement = "center";
+            positionTutorialPopup(null, "center");
+            setHaloTarget(null);
+            return;
+          }
+
+          if (target) target.classList.add("tutorial-target");
+          setHaloTarget(target);
+          positionTutorialPopup(target, placement);
         }
 
         function enterTutorialStep(stepNumber) {
           tutorialStep = stepNumber;
           tutorialStepShownAtMs = performance.now();
           clearTutorialHighlight();
-          showScrollForStep(stepNumber);
+          renderTutorialStep(stepNumber);
           logTutorialStep(stepNumber, "start");
         }
 
@@ -2512,7 +2628,7 @@
           tutorialStepShownAtMs = null;
           clearTutorialHighlight();
           if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
-          hideScroll();
+          hideTutorialPopup();
           setTutorialSeen();
         }
 
@@ -2626,10 +2742,7 @@
           persistState();
           updateUI();
 
-          if (tutorialStep === 3) {
-            completeTutorialStep(3);
-            endTutorial();
-          }
+          // Tutorial no longer ends on upgrade; step 6 explains the castle then ends on Continue.
         }
 
         function handleRefill() {
@@ -2642,18 +2755,9 @@
 
         openSlotBtn.addEventListener("click", function () {
           openSlotModal();
-          if (tutorialStep === 1) {
-            completeTutorialStep(1);
-            hideScroll();
-            if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
-            clearTutorialHighlight();
-            tutorialStep = 2;
-            tutorialStepShownAtMs = performance.now();
-            tutorialTextEl.textContent =
-              "Tap Spin to perform the first rigged spin.";
-            spinBtn.classList.add("tutorial-target");
-            positionSpotlightOn(spinBtn);
-            logTutorialStep(2, "start");
+          if (tutorialStep === 2) {
+            completeTutorialStep(2);
+            enterTutorialStep(3);
           }
         });
 
@@ -2662,19 +2766,10 @@
         });
 
         spinBtn.addEventListener("click", async function () {
-          if (tutorialStep === 2) {
-            await runSpin(true);
-            completeTutorialStep(2);
-            hideScroll();
-            tutorialStep = 3;
-            tutorialStepShownAtMs = performance.now();
-            if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
-            tutorialTextEl.textContent =
-              "Now tap Upgrade to improve your castle.";
-            clearTutorialHighlight();
-            upgradeBtn.classList.add("tutorial-target");
-            positionSpotlightOn(upgradeBtn);
-            logTutorialStep(3, "start");
+          if (tutorialStep === 3) {
+            await runSpin(true); // rigged first tutorial spin
+            completeTutorialStep(3);
+            enterTutorialStep(4);
             return;
           }
           await runSpin(false);
@@ -2688,42 +2783,45 @@
           handleRefill();
         });
 
-        if (scrollContinueBtn) {
-          scrollContinueBtn.addEventListener("click", function () {
-            hideScroll();
-            if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
+        function logTutorialAction(action) {
+          if (tutorialStep > 0) {
+            logEvent("tutorial_step", { stepNumber: tutorialStep, phase: action });
+          }
+        }
 
-            if (tutorialStep === 1) {
-              clearTutorialHighlight();
-              openSlotBtn.classList.add("tutorial-target");
-              tutorialTextEl.textContent = "Tap the compass to open the slot machine.";
-              positionSpotlightOn(openSlotBtn);
-            } else if (tutorialStep === 2) {
-              clearTutorialHighlight();
-              spinBtn.classList.add("tutorial-target");
-              tutorialTextEl.textContent = "Tap Spin to perform the rigged spin.";
-              positionSpotlightOn(spinBtn);
-            } else if (tutorialStep === 3) {
-              clearTutorialHighlight();
-              upgradeBtn.classList.add("tutorial-target");
-              tutorialTextEl.textContent = "Tap Upgrade to level up your castle.";
-              positionSpotlightOn(upgradeBtn);
+        if (tutorialContinueBtn) {
+          tutorialContinueBtn.addEventListener("click", function () {
+            if (tutorialStep <= 0) return;
+            logTutorialAction("continue_click");
+
+            // Steps 2 and 3 are action-gated (compass/spin). Continue should not skip them.
+            if (tutorialStep === 2 || tutorialStep === 3) {
+              renderTutorialStep(tutorialStep);
+              return;
             }
+
+            completeTutorialStep(tutorialStep);
+            if (tutorialStep >= 6) {
+              endTutorial();
+              return;
+            }
+            enterTutorialStep(tutorialStep + 1);
           });
         }
 
         if (skipTutorialBtn) {
           skipTutorialBtn.addEventListener("click", function () {
-            if (tutorialStep) logTutorialStep(tutorialStep, "skip");
+            if (tutorialStep > 0) {
+              logTutorialAction("skip_click");
+              completeTutorialStep(tutorialStep);
+            }
             endTutorial();
             updateUI();
           });
         }
 
         window.addEventListener("resize", function () {
-          if (tutorialStep === 1) positionSpotlightOn(openSlotBtn);
-          if (tutorialStep === 2) positionSpotlightOn(spinBtn);
-          if (tutorialStep === 3) positionSpotlightOn(upgradeBtn);
+          if (tutorialStep > 0) renderTutorialStep(tutorialStep);
         });
 
         loadState();
