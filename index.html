@@ -156,21 +156,17 @@
       }
 
       .hud {
-        /* Carved dark wood + polished glass inlay */
+        /* Sleek flowing dark metallic panel + filigree */
         background:
-          radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.10), transparent 55%),
-          repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.05) 0 8px,
-            rgba(0, 0, 0, 0.10) 8px 18px
-          ),
-          linear-gradient(180deg, #2a160c, #120805);
+          radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.16), transparent 55%),
+          radial-gradient(circle at 90% 10%, rgba(120, 210, 255, 0.06), transparent 60%),
+          linear-gradient(180deg, #1b1f2b, #0a0c14);
         border-radius: 20px;
         padding: 10px 11px 10px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(220, 230, 255, 0.10);
         box-shadow:
           0 20px 60px rgba(0, 0, 0, 0.8),
-          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+          inset 0 1px 0 rgba(255, 255, 255, 0.10);
         position: relative;
       }
 
@@ -180,10 +176,13 @@
         inset: 8px;
         border-radius: 14px;
         background:
-          radial-gradient(circle at 30% 20%, rgba(120, 210, 255, 0.18), transparent 60%),
-          radial-gradient(circle at 70% 30%, rgba(255, 209, 102, 0.12), transparent 65%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.38));
-        border: 1px solid rgba(160, 200, 255, 0.14);
+          radial-gradient(circle at 18% 30%, rgba(255, 255, 255, 0.10), transparent 58%),
+          radial-gradient(circle at 70% 20%, rgba(255, 209, 102, 0.06), transparent 65%),
+          repeating-radial-gradient(circle at 14% 40%,
+            rgba(255,255,255,0.06) 0 2px,
+            rgba(0,0,0,0.00) 2px 10px),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.40));
+        border: 1px solid rgba(180, 200, 255, 0.10);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.18),
           inset 0 -14px 20px rgba(0, 0, 0, 0.45);
@@ -204,7 +203,7 @@
         mix-blend-mode: screen;
       }
 
-      /* Exactly TWO symmetric rivets on HUD corners */
+      /* Exactly ONE symmetric rivet per side */
       .hud-rivet {
         position: absolute;
         top: 8px;
@@ -212,7 +211,7 @@
         height: 9px;
         border-radius: 50%;
         background:
-          radial-gradient(circle at 30% 30%, #ffffff, #b8c1d6 55%, #3a4153 100%);
+          radial-gradient(circle at 30% 30%, #ffffff, #cfd6ea 55%, #3a4153 100%);
         box-shadow:
           inset 0 1px 0 rgba(255,255,255,0.55),
           0 6px 12px rgba(0,0,0,0.65);
@@ -272,8 +271,12 @@
         background:
           radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.14), transparent 60%),
           linear-gradient(180deg, rgba(10, 12, 18, 0.92), rgba(0, 0, 0, 0.92));
-        border: 1px solid rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(220, 235, 255, 0.12);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.10),
+          inset 0 -8px 14px rgba(0,0,0,0.70);
         overflow: hidden;
+        position: relative;
       }
 
       .hud-bar-track::before {
@@ -282,7 +285,25 @@
         inset: 0;
         border-radius: 999px;
         pointer-events: none;
-        background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.10), transparent 60%);
+        background:
+          radial-gradient(circle at 20% 30%, rgba(255,255,255,0.10), transparent 60%),
+          linear-gradient(180deg, rgba(255,255,255,0.10), transparent);
+      }
+
+      .hud-bar-track--energy {
+        border-color: rgba(120, 240, 255, 0.20);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.12),
+          inset 0 -8px 14px rgba(0,0,0,0.75),
+          0 0 18px rgba(79, 211, 255, 0.12);
+      }
+
+      .hud-bar-track--coins {
+        border-color: rgba(255, 201, 92, 0.22);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.12),
+          inset 0 -8px 14px rgba(0,0,0,0.75),
+          0 0 18px rgba(255, 177, 60, 0.10);
       }
 
       .hud-bar-fill {
@@ -294,18 +315,30 @@
 
       .hud-bar-fill.energy {
         background:
-          radial-gradient(circle at 30% 50%, rgba(255,255,255,0.32), transparent 55%),
-          repeating-linear-gradient(90deg, rgba(255,255,255,0.14) 0 6px, rgba(0,0,0,0.10) 6px 14px),
-          var(--beam-energy);
-        box-shadow: 0 0 18px rgba(79, 211, 255, 0.55);
+          radial-gradient(circle at 18% 50%, rgba(255,255,255,0.40), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.18) 0 6px, rgba(0,0,0,0.10) 6px 14px),
+          linear-gradient(90deg, #0b1d3a, #2fe6ff 25%, #87f5ff 50%, #2fe6ff 75%, #0b1d3a);
+        box-shadow:
+          0 0 20px rgba(79, 211, 255, 0.60),
+          inset 0 0 14px rgba(255,255,255,0.20);
+        animation: beam-pulse 1200ms infinite var(--bezier-snap);
       }
 
       .hud-bar-fill.coins {
         background:
-          radial-gradient(circle at 30% 50%, rgba(255,255,255,0.26), transparent 55%),
-          repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 6px, rgba(0,0,0,0.10) 6px 14px),
-          var(--beam-coins);
-        box-shadow: 0 0 18px rgba(255, 177, 60, 0.45);
+          radial-gradient(circle at 18% 50%, rgba(255,255,255,0.34), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.16) 0 6px, rgba(0,0,0,0.10) 6px 14px),
+          linear-gradient(90deg, #2a1203, #ffb347 22%, #ffe08a 52%, #ffb347 78%, #2a1203);
+        box-shadow:
+          0 0 18px rgba(255, 177, 60, 0.52),
+          inset 0 0 12px rgba(255,255,255,0.16);
+        animation: beam-pulse 1400ms infinite var(--bezier-snap);
+      }
+
+      @keyframes beam-pulse {
+        0% { filter: brightness(1) saturate(1.05); }
+        50% { filter: brightness(1.12) saturate(1.2); }
+        100% { filter: brightness(1) saturate(1.05); }
       }
 
       .hud-bar-value {
@@ -1427,18 +1460,7 @@
         display: none;
       }
 
-      .spotlight-shield {
-        position: absolute;
-        inset: 0;
-        pointer-events: auto;
-        background: transparent;
-      }
-
-      .spotlight-blocker {
-        position: absolute;
-        background: transparent;
-        pointer-events: auto;
-      }
+      /* No full-screen blocker; only a soft halo outline + tooltip */
 
       .spotlight-svg {
         position: absolute;
@@ -1473,9 +1495,11 @@
       .spotlight-tooltip {
         position: absolute;
         max-width: min(320px, calc(100vw - 28px));
-        background: rgba(12, 6, 28, 0.98);
+        background:
+          radial-gradient(circle at 10% 10%, rgba(255,255,255,0.24), transparent 45%),
+          linear-gradient(180deg, rgba(250, 237, 210, 0.98), rgba(220, 198, 150, 0.98));
         border-radius: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
+        border: 1px solid rgba(120, 85, 40, 0.65);
         padding: 10px 11px 8px;
         box-shadow: 0 20px 55px rgba(0, 0, 0, 0.9);
         pointer-events: none;
@@ -1483,8 +1507,81 @@
 
       .spotlight-text {
         font-size: 0.9rem;
-        color: var(--text-main);
+        color: #3c2a14;
         margin-bottom: 8px;
+      }
+
+      .wax-seal {
+        border: none;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #fff3ee;
+        background:
+          radial-gradient(circle at 30% 25%, rgba(255,255,255,0.25), transparent 55%),
+          radial-gradient(circle at 60% 70%, rgba(0,0,0,0.22), transparent 60%),
+          conic-gradient(from 30deg, #7c1021, #c01734, #7c1021);
+        box-shadow:
+          0 10px 20px rgba(0,0,0,0.65),
+          inset 0 2px 0 rgba(255,255,255,0.22),
+          inset 0 -10px 14px rgba(0,0,0,0.35);
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .wood-metal {
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.10), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 6px, rgba(0,0,0,0.10) 6px 16px),
+          linear-gradient(180deg, #5a2f12, #2a1206);
+        border: 1px solid rgba(230, 236, 255, 0.18);
+        box-shadow:
+          0 6px 0 rgba(10, 12, 18, 1),
+          0 14px 28px rgba(0, 0, 0, 0.85),
+          inset 0 1px 0 rgba(255,255,255,0.16),
+          inset 0 -10px 16px rgba(0,0,0,0.55);
+      }
+
+      .metal-btn {
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.18), transparent 60%),
+          linear-gradient(180deg, #3a4153, #161a24);
+        border: 1px solid rgba(220, 230, 255, 0.16);
+      }
+
+      .rune-btn {
+        min-width: 168px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        background:
+          radial-gradient(circle at 50% 20%, rgba(255,255,255,0.22), transparent 60%),
+          linear-gradient(180deg, #4b556a, #1a1f2b);
+        border: 1px solid rgba(255, 209, 102, 0.25);
+        box-shadow:
+          0 7px 0 rgba(12, 13, 20, 1),
+          0 16px 28px rgba(0, 0, 0, 0.85),
+          0 0 18px rgba(255, 209, 102, 0.10);
+        position: relative;
+      }
+
+      .rune-btn::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 56px;
+        height: 56px;
+        transform: translate(-50%, -50%);
+        border-radius: 999px;
+        background:
+          radial-gradient(circle at 30% 25%, rgba(255,255,255,0.20), transparent 60%),
+          conic-gradient(from 0deg, rgba(255,209,102,0.0), rgba(255,209,102,0.28), rgba(255,209,102,0.0));
+        opacity: 0.6;
+        pointer-events: none;
+        mix-blend-mode: screen;
       }
 
       .spotlight-actions {
@@ -1662,14 +1759,14 @@
         <div class="hud-bars">
           <div class="hud-bar">
             <div class="hud-bar-label">Energy</div>
-            <div class="hud-bar-track">
+            <div class="hud-bar-track hud-bar-track--energy">
               <div class="hud-bar-fill energy" id="energyFill" style="width: 100%"></div>
             </div>
             <div class="hud-bar-value"><span id="energyValue">10</span>/10</div>
           </div>
           <div class="hud-bar">
             <div class="hud-bar-label">Coins</div>
-            <div class="hud-bar-track">
+            <div class="hud-bar-track hud-bar-track--coins">
               <div class="hud-bar-fill coins" id="coinsFill" style="width: 0%"></div>
             </div>
             <div class="hud-bar-value"><span id="coinsValue">0</span></div>
@@ -1709,10 +1806,10 @@
           </div>
 
           <div class="village-actions" style="width: 100%; margin-top: 10px;">
-            <button id="upgradeBtn" type="button" class="secondary" style="width: 100%; margin-bottom: 6px;">
+            <button id="upgradeBtn" type="button" class="secondary wood-metal" style="width: 100%; margin-bottom: 6px;">
               Upgrade Castle (<span id="upgradeCostValue">0</span>)
             </button>
-            <button id="refillBtn" type="button" class="secondary" style="width: 100%;">Refill Energy</button>
+            <button id="refillBtn" type="button" class="secondary wood-metal" style="width: 100%;">Refill Energy</button>
           </div>
         </div>
       </section>
@@ -1725,7 +1822,7 @@
         <div class="modal-sheet panel-stone">
           <div class="modal-header">
             <div class="modal-title">Ancient Tablet</div>
-            <button id="closeSlotBtn" type="button" class="secondary">Close</button>
+            <button id="closeSlotBtn" type="button" class="secondary metal-btn">Close</button>
           </div>
           <div class="reels-modal">
             <div class="reels" id="reels">
@@ -1735,7 +1832,7 @@
             </div>
           </div>
           <div class="controls slot-controls" style="display:flex; justify-content:center; gap:10px;">
-            <button id="spinBtn" type="button">Spin</button>
+            <button id="spinBtn" type="button" class="rune-btn">Spin</button>
           </div>
         </div>
       </div>
@@ -1758,49 +1855,36 @@
           This island is part of a research prototype. You’ll spin an ancient tablet to earn coins and upgrade your castle.
         </div>
         <div class="scroll-actions">
-          <button id="scrollContinueBtn" type="button" class="secondary">Continue</button>
+          <button id="scrollContinueBtn" type="button" class="secondary metal-btn">Continue</button>
         </div>
       </div>
     </div>
 
-    <!-- Spotlight tutorial overlay -->
+    <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
-      <div class="spotlight-shield" aria-hidden="true">
-        <div class="spotlight-blocker" data-blocker="top"></div>
-        <div class="spotlight-blocker" data-blocker="left"></div>
-        <div class="spotlight-blocker" data-blocker="right"></div>
-        <div class="spotlight-blocker" data-blocker="bottom"></div>
-      </div>
       <svg class="spotlight-svg" width="100%" height="100%" aria-hidden="true">
         <defs>
-          <mask id="spotlightMask">
-            <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
-            <rect
-              id="spotlightHole"
-              x="0"
-              y="0"
-              width="1"
-              height="1"
-              rx="18"
-              ry="18"
-              fill="black"
-            ></rect>
-          </mask>
+          <filter id="haloGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="10" result="b"/>
+            <feColorMatrix in="b" type="matrix"
+              values="1 0 0 0 0   0 1 0 0 0   0 0 1 0 0   0 0 0 10 -3" result="g"/>
+            <feMerge>
+              <feMergeNode in="g"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
-        <rect
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="rgba(0,0,0,0.68)"
-          mask="url(#spotlightMask)"
+        <rect id="spotlightHole"
+          x="0" y="0" width="1" height="1" rx="18" ry="18"
+          fill="transparent" stroke="rgba(120, 240, 255, 0.78)" stroke-width="4"
+          filter="url(#haloGlow)"
         ></rect>
       </svg>
       <div class="spotlight-finger" id="tutorialFinger" aria-hidden="true">☝️</div>
       <div class="spotlight-tooltip" id="tutorialTooltip">
         <div class="spotlight-text" id="tutorialText">Tutorial</div>
         <div class="spotlight-actions">
-          <button id="skipTutorialBtn" type="button" class="secondary">Skip</button>
+          <button id="skipTutorialBtn" type="button" class="wax-seal">Skip</button>
         </div>
       </div>
     </div>
@@ -1917,10 +2001,11 @@
         let tutorialRiggedSpinUsed = false;
 
         const SYMBOLS = [
-          // Coin: 3D gold coin with lion emboss (single asset)
-          { name: "Coin", icon: "coin_lion", weight: 40, base: 40 },
-          { name: "Energy", icon: "energy", weight: 25, base: 25 },
-          { name: "Castle", icon: "castle", weight: 25, base: 30 },
+          // Two high-fidelity coin variants (compass + griffin)
+          { name: "Coin", icon: "coin_compass", weight: 22, base: 40 },
+          { name: "Coin", icon: "coin_griffin", weight: 22, base: 40 },
+          { name: "Energy", icon: "energy", weight: 24, base: 25 },
+          { name: "Castle", icon: "castle", weight: 22, base: 30 },
           { name: "Bomb", icon: "bomb", weight: 10, base: -25 },
         ];
 
@@ -1930,6 +2015,78 @@
         }
 
         const ICONS = {
+          coin_compass: svgDataUri(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+              <defs>
+                <radialGradient id="gold" cx="35%" cy="30%" r="70%">
+                  <stop offset="0" stop-color="#fff7cf"/>
+                  <stop offset="0.38" stop-color="#ffd166"/>
+                  <stop offset="0.74" stop-color="#d18a06"/>
+                  <stop offset="1" stop-color="#6b3c00"/>
+                </radialGradient>
+                <radialGradient id="rim" cx="40%" cy="35%" r="70%">
+                  <stop offset="0" stop-color="#fff6c7"/>
+                  <stop offset="0.55" stop-color="#ffb347"/>
+                  <stop offset="1" stop-color="#7a4700"/>
+                </radialGradient>
+                <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="20" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
+                </filter>
+              </defs>
+              <g filter="url(#shadow)">
+                <circle cx="128" cy="128" r="98" fill="url(#gold)" stroke="url(#rim)" stroke-width="16"/>
+                <circle cx="128" cy="128" r="72" fill="rgba(255,255,255,0.07)" stroke="rgba(0,0,0,0.25)" stroke-width="4"/>
+                <!-- compass rose -->
+                <g transform="translate(128 128)">
+                  <path d="M0-52L10-10L52 0L10 10L0 52L-10 10L-52 0L-10-10Z" fill="rgba(0,0,0,0.22)"/>
+                  <path d="M0-46L8-10L46 0L8 8L0 46L-8 8L-46 0L-8-10Z" fill="rgba(255,255,255,0.20)"/>
+                  <circle r="10" fill="rgba(0,0,0,0.18)"/>
+                  <circle r="5" fill="rgba(255,255,255,0.28)"/>
+                </g>
+                <!-- rim ticks -->
+                <g stroke="rgba(0,0,0,0.22)" stroke-width="4" opacity="0.55">
+                  <path d="M128 40v14"/>
+                  <path d="M128 202v14"/>
+                  <path d="M40 128h14"/>
+                  <path d="M202 128h14"/>
+                </g>
+              </g>
+            </svg>
+          `),
+          coin_griffin: svgDataUri(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+              <defs>
+                <radialGradient id="gold2" cx="35%" cy="30%" r="70%">
+                  <stop offset="0" stop-color="#fff7cf"/>
+                  <stop offset="0.36" stop-color="#ffd166"/>
+                  <stop offset="0.74" stop-color="#c77c00"/>
+                  <stop offset="1" stop-color="#5b3200"/>
+                </radialGradient>
+                <radialGradient id="rim2" cx="40%" cy="35%" r="70%">
+                  <stop offset="0" stop-color="#fff6c7"/>
+                  <stop offset="0.55" stop-color="#ffb347"/>
+                  <stop offset="1" stop-color="#6d3e00"/>
+                </radialGradient>
+                <filter id="shadow2" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="20" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
+                </filter>
+              </defs>
+              <g filter="url(#shadow2)">
+                <circle cx="128" cy="128" r="98" fill="url(#gold2)" stroke="url(#rim2)" stroke-width="16"/>
+                <circle cx="128" cy="128" r="70" fill="rgba(255,255,255,0.06)" stroke="rgba(0,0,0,0.25)" stroke-width="4"/>
+                <!-- griffin emboss (stylized) -->
+                <path d="M92 156c10-26 28-56 58-56 24 0 36 18 40 34 6 24-8 46-32 52"
+                      fill="none" stroke="rgba(0,0,0,0.26)" stroke-width="12" stroke-linecap="round"/>
+                <path d="M112 122c12-18 28-26 42-20 10 4 12 16 4 26"
+                      fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="8" stroke-linecap="round"/>
+                <path d="M140 150c12 0 20 10 20 22" fill="none" stroke="rgba(0,0,0,0.20)" stroke-width="10" stroke-linecap="round"/>
+                <path d="M126 138l10-8 18 8-10 8z" fill="rgba(0,0,0,0.18)"/>
+                <circle cx="156" cy="118" r="6" fill="rgba(0,0,0,0.24)"/>
+                <circle cx="154" cy="116" r="2" fill="rgba(255,255,255,0.45)"/>
+              </g>
+            </svg>
+          `),
+          /* legacy coin_lion kept for compatibility (unused) */
           coin_lion: svgDataUri(`
             <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
               <defs>
@@ -2284,46 +2441,6 @@
           spotlightHoleEl.setAttribute("rx", "18");
           spotlightHoleEl.setAttribute("ry", "18");
 
-          // Make the hole truly clickable by blocking around it with 4 regions.
-          const shield = document.querySelector(".spotlight-shield");
-          if (shield) {
-            const topB = shield.querySelector('[data-blocker="top"]');
-            const leftB = shield.querySelector('[data-blocker="left"]');
-            const rightB = shield.querySelector('[data-blocker="right"]');
-            const bottomB = shield.querySelector('[data-blocker="bottom"]');
-
-            const vw = window.innerWidth;
-            const vh = window.innerHeight;
-
-            if (topB) {
-              topB.style.left = "0px";
-              topB.style.top = "0px";
-              topB.style.width = vw + "px";
-              topB.style.height = Math.max(0, y) + "px";
-            }
-
-            if (bottomB) {
-              bottomB.style.left = "0px";
-              bottomB.style.top = Math.min(vh, y + h) + "px";
-              bottomB.style.width = vw + "px";
-              bottomB.style.height = Math.max(0, vh - (y + h)) + "px";
-            }
-
-            if (leftB) {
-              leftB.style.left = "0px";
-              leftB.style.top = Math.max(0, y) + "px";
-              leftB.style.width = Math.max(0, x) + "px";
-              leftB.style.height = Math.max(0, h) + "px";
-            }
-
-            if (rightB) {
-              rightB.style.left = Math.min(vw, x + w) + "px";
-              rightB.style.top = Math.max(0, y) + "px";
-              rightB.style.width = Math.max(0, vw - (x + w)) + "px";
-              rightB.style.height = Math.max(0, h) + "px";
-            }
-          }
-
           if (tutorialFingerEl) {
             const cx = rect.left + rect.width / 2;
             const cy = rect.top + rect.height / 2;
@@ -2368,6 +2485,7 @@
           scrollTitleEl.textContent = title;
           scrollBodyEl.textContent = body;
           scrollDialogEl.classList.add("scroll-visible");
+          // Keep halo hidden while scroll is visible (no dimming overlay).
           if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
         }
 
