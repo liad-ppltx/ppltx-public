@@ -123,7 +123,7 @@
 
       .phone-frame {
         position: relative;
-        width: min(420px, 100vw - 32px);
+        width: min(546px, 100vw - 32px);
         min-height: min(820px, 100vh - 32px);
         max-height: 840px;
         padding: 14px 12px 90px;
@@ -141,6 +141,27 @@
         gap: 10px;
         backdrop-filter: blur(14px);
         overflow: hidden;
+      }
+
+      .app-layout {
+        width: min(1180px, calc(100vw - 32px));
+        margin: 16px auto;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      #researchCapture {
+        width: min(360px, calc(100vw - 32px));
+        flex: 0 1 360px;
+        margin-top: 0;
+      }
+
+      @media (max-width: 980px) {
+        .phone-frame { width: min(520px, calc(100vw - 32px)); }
+        #researchCapture { width: min(520px, calc(100vw - 32px)); }
       }
 
       .phone-bezel-notch {
@@ -951,13 +972,29 @@
       }
 
       .world-status {
-        margin-top: 4px;
-        font-size: 0.82rem;
-        color: var(--text-subtle);
+        position: absolute;
+        left: 50%;
+        top: 12px;
+        transform: translateX(-50%);
+        width: min(420px, calc(100% - 24px));
+        text-align: center;
+        z-index: 20;
+        padding: 10px 12px;
+        border-radius: 16px;
+        color: #3c2a14;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        background:
+          radial-gradient(circle at 10% 10%, rgba(255,255,255,0.32), transparent 45%),
+          linear-gradient(180deg, rgba(250, 237, 210, 0.98), rgba(220, 198, 150, 0.98));
+        box-shadow:
+          0 18px 45px rgba(0, 0, 0, 0.75),
+          0 0 0 1px rgba(120, 85, 40, 0.7);
+        pointer-events: none;
       }
 
       .world-status span {
-        color: var(--success);
+        color: #2e7d32;
       }
 
       .floating-log {
@@ -969,6 +1006,121 @@
           0 16px 40px rgba(0, 0, 0, 0.85),
           inset 0 1px 0 rgba(255, 255, 255, 0.06);
         padding: 10px 12px;
+      }
+
+      .hidden { display: none !important; }
+
+      .entity-tag {
+        position: absolute;
+        border: none;
+        border-radius: 14px;
+        padding: 6px 10px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        color: rgba(255,255,255,0.9);
+        cursor: pointer;
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.16), transparent 60%),
+          linear-gradient(180deg, #2a2f3a, #12141c);
+        border: 1px solid rgba(220,230,255,0.12);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.75);
+        z-index: 12;
+      }
+
+      .entity-tag__label { color: var(--text-subtle); margin-right: 4px; }
+
+      .entity-tag--castle { left: 26px; top: 168px; }
+      .entity-tag--cannon { right: 18px; top: 226px; }
+      .entity-tag--wall { left: 26px; top: 214px; }
+
+      .wall {
+        position: absolute;
+        left: 50%;
+        top: 150px;
+        width: 220px;
+        height: 160px;
+        transform: translateX(-50%);
+        border-radius: 120px;
+        border: 2px solid rgba(220,230,255,0.10);
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.10), transparent 60%),
+          repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 8px, rgba(0,0,0,0.08) 8px 16px),
+          linear-gradient(180deg, rgba(70,78,98,0.38), rgba(10,10,14,0.25));
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.08),
+          0 24px 50px rgba(0,0,0,0.55);
+        z-index: 4;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      .wall.wall-lvl-1,
+      .wall.wall-lvl-2,
+      .wall.wall-lvl-3,
+      .wall.wall-lvl-4,
+      .wall.wall-lvl-5,
+      .wall.wall-lvl-6,
+      .wall.wall-lvl-7,
+      .wall.wall-lvl-8,
+      .wall.wall-lvl-9,
+      .wall.wall-lvl-10 { opacity: 1; }
+
+      .cannon.cannon2 {
+        right: auto;
+        left: 18px;
+        top: 232px;
+        transform: rotate(8deg);
+      }
+
+      .upgrade-grid { display: grid; gap: 10px; padding: 10px; }
+      .upgrade-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(0,0,0,0.22);
+        border: 1px solid rgba(255,255,255,0.08);
+      }
+
+      .shop-list { display: grid; gap: 10px; padding: 10px; }
+      .shop-item {
+        border-radius: 16px;
+        padding: 12px;
+        border: 1px solid rgba(255,255,255,0.10);
+        background: rgba(0,0,0,0.18);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+      }
+      .shop-title { font-weight: 1000; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
+      .shop-desc { color: var(--text-subtle); font-size: 0.86rem; margin-bottom: 10px; }
+
+      .hp-box { display: grid; gap: 4px; width: 100%; max-width: 140px; }
+      .hp-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-subtle); }
+      .hp-track {
+        height: 10px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(10,12,18,0.92), rgba(0,0,0,0.92));
+        border: 1px solid rgba(255,255,255,0.12);
+        overflow: hidden;
+      }
+      .hp-fill { height: 100%; width: 0%; transition: width 220ms var(--bezier-snap); }
+      .hp-fill.castle {
+        background: linear-gradient(90deg, #2a1203, #ffb347 22%, #ffe08a 52%, #ffb347 78%, #2a1203);
+        box-shadow: 0 0 14px rgba(255,177,60,0.35);
+      }
+      .hp-fill.wall {
+        background: linear-gradient(90deg, #0b1d3a, #2fe6ff 25%, #87f5ff 50%, #2fe6ff 75%, #0b1d3a);
+        box-shadow: 0 0 14px rgba(79,211,255,0.35);
+      }
+      .hp-text { font-variant-numeric: tabular-nums; font-weight: 900; font-size: 0.78rem; text-align: center; }
+
+      .dmg-float {
+        position: fixed;
+        z-index: 120;
+        font-weight: 1000;
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 10px 14px rgba(0,0,0,0.8);
+        pointer-events: none;
       }
 
       .floating-log-header {
@@ -1938,7 +2090,8 @@
   <body>
     <div class="ocean-waves" aria-hidden="true"></div>
 
-    <div class="phone-frame">
+    <div class="app-layout">
+      <div class="phone-frame">
       <div class="phone-bezel-notch" aria-hidden="true"></div>
 
       <header class="hud">
@@ -1947,6 +2100,7 @@
         <div class="hud-top">
           <div class="hud-title">Floating Island</div>
           <div class="hud-level">Stage <span id="levelValue">1</span>/10</div>
+          <button id="shopBtn" type="button" class="secondary metal-btn" style="padding: 7px 10px; font-size: 0.72rem;">SHOP</button>
         </div>
         <div class="hud-bars">
           <div class="hud-bar">
@@ -1990,7 +2144,19 @@
                 <div class="castle__particles" aria-hidden="true"></div>
               </div>
             </div>
+            <div id="wall" class="wall wall-lvl-0" aria-label="Wall"></div>
             <div id="cannon" class="cannon cannon-lvl-0" aria-label="Cannon"></div>
+            <div id="cannon2" class="cannon cannon2 cannon-lvl-0 hidden" aria-label="Second Cannon"></div>
+
+            <button id="castleTag" type="button" class="entity-tag entity-tag--castle">
+              <span class="entity-tag__label">Lv.</span> <span id="castleLevelTag">1</span>
+            </button>
+            <button id="cannonTag" type="button" class="entity-tag entity-tag--cannon">
+              <span class="entity-tag__label">Lv.</span> <span id="cannonLevelTag">0</span>
+            </button>
+            <button id="wallTag" type="button" class="entity-tag entity-tag--wall hidden">
+              <span class="entity-tag__label">Lv.</span> <span id="wallLevelTag">0</span>
+            </button>
             <div class="island-shadow" aria-hidden="true"></div>
           </div>
 
@@ -1999,10 +2165,10 @@
           </div>
 
           <div class="village-actions" style="width: 100%; margin-top: 10px;">
-            <button id="upgradeBtn" type="button" class="secondary wood-metal" style="width: 100%; margin-bottom: 6px;">
+            <button id="upgradeBtn" type="button" class="secondary wood-metal hidden" style="width: 100%; margin-bottom: 6px;">
               Upgrade Castle (<span id="upgradeCostValue">0</span>)
             </button>
-            <button id="upgradeCannonBtn" type="button" class="secondary wood-metal" style="width: 100%; margin-bottom: 6px;">
+            <button id="upgradeCannonBtn" type="button" class="secondary wood-metal hidden" style="width: 100%; margin-bottom: 6px;">
               Upgrade Cannon (<span id="cannonLevelValue">0</span>)
             </button>
             <button id="attackBtn" type="button" class="secondary wood-metal" style="width: 100%; margin-bottom: 6px;">
@@ -2046,15 +2212,29 @@
             <div class="battle-side">
               <div class="battle-label">You</div>
               <div class="battle-stat">Cannon Lv <span id="battlePlayerCannon">0</span></div>
+              <div class="hp-box">
+                <div class="hp-label">Wall</div>
+                <div class="hp-track"><div class="hp-fill wall" id="playerWallHpFill" style="width:0%"></div></div>
+                <div class="hp-text" id="playerWallHpText">0/0</div>
+              </div>
+              <div class="hp-box">
+                <div class="hp-label">Castle</div>
+                <div class="hp-track"><div class="hp-fill castle" id="playerCastleHpFill" style="width:100%"></div></div>
+                <div class="hp-text" id="playerCastleHpText">0/0</div>
+              </div>
               <div class="battle-cannon"></div>
             </div>
             <div class="battle-mid">
               <div class="battle-vs">VS</div>
-              <button id="fastForwardBtn" type="button" class="secondary metal-btn">Fast Forward</button>
             </div>
             <div class="battle-side">
               <div class="battle-label">Bot</div>
               <div class="battle-stat">Fortress Lv <span id="battleBotLevel">1</span></div>
+              <div class="hp-box">
+                <div class="hp-label">Castle</div>
+                <div class="hp-track"><div class="hp-fill castle" id="botCastleHpFill" style="width:100%"></div></div>
+                <div class="hp-text" id="botCastleHpText">0/0</div>
+              </div>
               <div class="battle-fortress"></div>
             </div>
           </div>
@@ -2064,19 +2244,56 @@
         </div>
       </div>
 
-      <div class="floating-log panel-stone">
+      <div id="upgradeModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Upgrade info">
+        <div class="modal-sheet panel-stone">
+          <div class="modal-header">
+            <div class="modal-title" id="upgradeModalTitle">Upgrade</div>
+            <button id="closeUpgradeBtn" type="button" class="secondary metal-btn">Close</button>
+          </div>
+          <div class="upgrade-grid">
+            <div class="upgrade-row"><span>Current</span><span id="upgradeCurrent">-</span></div>
+            <div class="upgrade-row"><span>Next</span><span id="upgradeNext">-</span></div>
+            <div class="upgrade-row"><span>Cost</span><span id="upgradeCost">-</span></div>
+          </div>
+          <div class="controls" style="display:flex; justify-content:center; gap:10px;">
+            <button id="confirmUpgradeBtn" type="button" class="rune-btn">UPGRADE</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="shopModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Shop">
+        <div class="modal-sheet panel-stone">
+          <div class="modal-header">
+            <div class="modal-title">Shop</div>
+            <button id="closeShopBtn" type="button" class="secondary metal-btn">Close</button>
+          </div>
+          <div class="shop-list">
+            <div class="shop-item">
+              <div class="shop-title">Second Cannon</div>
+              <div class="shop-desc">Requires Castle Stage 5. Adds a second cannon asset and contributes to damage.</div>
+              <button id="buySecondCannonBtn" type="button" class="secondary wood-metal">Buy (1500)</button>
+            </div>
+            <div class="shop-item">
+              <div class="shop-title">The Iron Wall</div>
+              <div class="shop-desc">Requires Castle Stage 3. Unlocks an Iron Wall that upgrades persistently.</div>
+              <button id="buyWallBtn" type="button" class="secondary wood-metal">Buy (900)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- legacy scroll dialog removed (tutorial uses tooltip popup below) -->
+      </div>
+      <!-- research capture now lives beside the phone -->
+      <aside id="researchCapture" class="floating-log panel-stone">
         <div class="floating-log-header">
           <div class="badge">
             <span class="badge-dot"></span>
             Research capture
           </div>
         </div>
-        <div class="log-preview log-preview-empty" id="logPreview">
-          No events yet.
-        </div>
-      </div>
-
-      <!-- legacy scroll dialog removed (tutorial uses tooltip popup below) -->
+        <div class="log-preview log-preview-empty" id="logPreview">No events yet.</div>
+      </aside>
     </div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
@@ -2172,6 +2389,15 @@
 
         const castleEl = document.getElementById("castle");
         const cannonEl = document.getElementById("cannon");
+        const cannon2El = document.getElementById("cannon2");
+        const wallEl = document.getElementById("wall");
+
+        const castleTagBtn = document.getElementById("castleTag");
+        const cannonTagBtn = document.getElementById("cannonTag");
+        const wallTagBtn = document.getElementById("wallTag");
+        const castleLevelTagEl = document.getElementById("castleLevelTag");
+        const cannonLevelTagEl = document.getElementById("cannonLevelTag");
+        const wallLevelTagEl = document.getElementById("wallLevelTag");
 
         const upgradeBtn = document.getElementById("upgradeBtn");
         const upgradeCostEl = document.getElementById("upgradeCostValue");
@@ -2179,6 +2405,7 @@
         const cannonLevelValueEl = document.getElementById("cannonLevelValue");
         const attackBtn = document.getElementById("attackBtn");
         const refillBtn = document.getElementById("refillBtn");
+        const shopBtn = document.getElementById("shopBtn");
 
         const openSlotBtn = document.getElementById("openSlotBtn");
         const slotModalEl = document.getElementById("slotModal");
@@ -2188,10 +2415,23 @@
         const battleModalEl = document.getElementById("battleModal");
         const closeBattleBtn = document.getElementById("closeBattleBtn");
         const startAttackBtn = document.getElementById("startAttackBtn");
-        const fastForwardBtn = document.getElementById("fastForwardBtn");
+        // fast-forward removed (battles must play out)
         const battlePlayerCannonEl = document.getElementById("battlePlayerCannon");
         const battleBotLevelEl = document.getElementById("battleBotLevel");
         const battleArenaEl = document.getElementById("battleArena");
+
+        const upgradeModalEl = document.getElementById("upgradeModal");
+        const closeUpgradeBtn = document.getElementById("closeUpgradeBtn");
+        const confirmUpgradeBtn = document.getElementById("confirmUpgradeBtn");
+        const upgradeModalTitleEl = document.getElementById("upgradeModalTitle");
+        const upgradeCurrentEl = document.getElementById("upgradeCurrent");
+        const upgradeNextEl = document.getElementById("upgradeNext");
+        const upgradeCostTextEl = document.getElementById("upgradeCost");
+
+        const shopModalEl = document.getElementById("shopModal");
+        const closeShopBtn = document.getElementById("closeShopBtn");
+        const buySecondCannonBtn = document.getElementById("buySecondCannonBtn");
+        const buyWallBtn = document.getElementById("buyWallBtn");
         const reelEls = [
           document.getElementById("reel0"),
           document.getElementById("reel1"),
@@ -2222,13 +2462,21 @@
         let coins = 0;
         let stage = 1;
         let cannonLevel = 0;
+        let wallLevel = 0;
+        let hasWall = false;
+        let hasSecondCannon = false;
         let spinIndex = 0;
         let lastSpinAtMs = null;
 
         let battleBotLevel = 1;
-        let battleWinProb = 0.5;
         let battleInProgress = false;
-        let battleAnimationSkipped = false;
+
+        let playerCastleHp = 0;
+        let playerCastleHpMax = 0;
+        let playerWallHp = 0;
+        let playerWallHpMax = 0;
+        let botCastleHp = 0;
+        let botCastleHpMax = 0;
 
         let tutorialStep = 0; // 1..6 per guided tour
         let tutorialStepShownAtMs = null;
@@ -2496,6 +2744,10 @@
           return 80 + lvl * 70;
         }
 
+        function wallUpgradeCostForLevel(lvl) {
+          return 120 + lvl * 90;
+        }
+
         function updateCastleStage() {
           if (!castleEl) return;
           for (let i = 1; i <= MAX_STAGE; i++) {
@@ -2508,7 +2760,16 @@
           try {
             localStorage.setItem(
               STORAGE_KEY_SAVE,
-              JSON.stringify({ energy, coins, stage, cannonLevel, spinIndex })
+              JSON.stringify({
+                energy,
+                coins,
+                stage,
+                cannonLevel,
+                wallLevel,
+                hasWall,
+                hasSecondCannon,
+                spinIndex,
+              })
             );
           } catch (e) {}
         }
@@ -2523,6 +2784,9 @@
             if (typeof s.coins === "number") coins = s.coins;
             if (typeof s.stage === "number") stage = s.stage;
             if (typeof s.cannonLevel === "number") cannonLevel = s.cannonLevel;
+            if (typeof s.wallLevel === "number") wallLevel = s.wallLevel;
+            if (typeof s.hasWall === "boolean") hasWall = s.hasWall;
+            if (typeof s.hasSecondCannon === "boolean") hasSecondCannon = s.hasSecondCannon;
             if (typeof s.spinIndex === "number") spinIndex = s.spinIndex;
           } catch (e) {}
         }
@@ -2532,6 +2796,9 @@
           if (coinsEl) coinsEl.textContent = String(coins);
           if (stageEl) stageEl.textContent = String(stage);
           if (cannonLevelValueEl) cannonLevelValueEl.textContent = String(cannonLevel);
+          if (castleLevelTagEl) castleLevelTagEl.textContent = String(stage);
+          if (cannonLevelTagEl) cannonLevelTagEl.textContent = String(cannonLevel);
+          if (wallLevelTagEl) wallLevelTagEl.textContent = String(wallLevel);
 
           if (energyFillEl) {
             energyFillEl.style.width = Math.round((energy / MAX_ENERGY) * 100) + "%";
@@ -2559,6 +2826,20 @@
             for (let i = 0; i <= 10; i++) cannonEl.classList.remove("cannon-lvl-" + i);
             cannonEl.classList.add("cannon-lvl-" + Math.min(10, Math.max(0, cannonLevel)));
           }
+
+          if (cannon2El) {
+            for (let i = 0; i <= 10; i++) cannon2El.classList.remove("cannon-lvl-" + i);
+            cannon2El.classList.add("cannon-lvl-" + Math.min(10, Math.max(0, cannonLevel)));
+            cannon2El.classList.toggle("hidden", !hasSecondCannon);
+          }
+
+          if (wallEl) {
+            for (let i = 0; i <= 10; i++) wallEl.classList.remove("wall-lvl-" + i);
+            wallEl.classList.add("wall-lvl-" + Math.min(10, Math.max(0, wallLevel)));
+            wallEl.style.opacity = hasWall ? "1" : "0";
+          }
+
+          if (wallTagBtn) wallTagBtn.classList.toggle("hidden", !hasWall);
 
           updateCastleStage();
         }
@@ -3038,38 +3319,155 @@
           updateUI();
         }
 
+        function handleWallUpgrade() {
+          const before = wallLevel;
+          const cost = wallUpgradeCostForLevel(wallLevel);
+
+          if (!hasWall) {
+            setStatus("Buy the Iron Wall in the Shop first.", true);
+            logEvent("wall_upgrade_attempt", {
+              levelBefore: before,
+              levelAfter: before,
+              success: false,
+              cost,
+            });
+            return;
+          }
+
+          if (wallLevel >= MAX_STAGE) {
+            logEvent("wall_upgrade_attempt", {
+              levelBefore: before,
+              levelAfter: before,
+              success: false,
+              cost,
+            });
+            return;
+          }
+
+          if (coins < cost) {
+            setStatus("Not enough coins to upgrade wall.", true);
+            logEvent("wall_upgrade_attempt", {
+              levelBefore: before,
+              levelAfter: before,
+              success: false,
+              cost,
+            });
+            return;
+          }
+
+          coins -= cost;
+          wallLevel += 1;
+          setStatus("Wall upgraded!", false);
+          logEvent("wall_upgrade_attempt", {
+            levelBefore: before,
+            levelAfter: wallLevel,
+            success: true,
+            cost,
+          });
+          persistState();
+          updateUI();
+        }
+
+        let upgradeContext = null; // "castle" | "cannon" | "wall"
+
+        function openUpgradeModal(kind) {
+          if (!upgradeModalEl) return;
+          upgradeContext = kind;
+
+          let title = "Upgrade";
+          let cur = "-";
+          let next = "-";
+          let cost = 0;
+          let canUpgrade = true;
+
+          if (kind === "castle") {
+            title = "Castle Upgrade";
+            cur = `Stage ${stage} (HP ${stage * 100})`;
+            const n = Math.min(MAX_STAGE, stage + 1);
+            next = stage >= MAX_STAGE ? "MAX" : `Stage ${n} (HP ${n * 100})`;
+            cost = upgradeCostForStage(stage);
+            canUpgrade = stage < MAX_STAGE && coins >= cost;
+          } else if (kind === "cannon") {
+            title = "Cannon Upgrade";
+            cur = `Lv ${cannonLevel} (DMG ${20 + cannonLevel * 5})`;
+            const n = cannonLevel + 1;
+            next = `Lv ${n} (DMG ${20 + n * 5})`;
+            cost = cannonUpgradeCostForLevel(cannonLevel);
+            canUpgrade = cannonLevel < stage && coins >= cost;
+          } else if (kind === "wall") {
+            title = "Iron Wall";
+            if (!hasWall) {
+              cur = "Locked (buy in Shop)";
+              next = "Unlock (Wall Lv 1)";
+              cost = 900;
+              canUpgrade = stage >= 3 && coins >= cost;
+            } else {
+              cur = `Lv ${wallLevel} (HP ${wallLevel * 50})`;
+              const n = wallLevel + 1;
+              next = wallLevel >= MAX_STAGE ? "MAX" : `Lv ${n} (HP ${n * 50})`;
+              cost = wallUpgradeCostForLevel(wallLevel);
+              canUpgrade = wallLevel < MAX_STAGE && coins >= cost;
+            }
+          }
+
+          if (upgradeModalTitleEl) upgradeModalTitleEl.textContent = title;
+          if (upgradeCurrentEl) upgradeCurrentEl.textContent = cur;
+          if (upgradeNextEl) upgradeNextEl.textContent = next;
+          if (upgradeCostTextEl) upgradeCostTextEl.textContent = String(cost);
+          if (confirmUpgradeBtn) {
+            confirmUpgradeBtn.textContent = `UPGRADE (${cost})`;
+            confirmUpgradeBtn.disabled = !canUpgrade;
+          }
+
+          upgradeModalEl.classList.remove("hidden");
+        }
+
+        function closeUpgradeModal() {
+          if (!upgradeModalEl) return;
+          upgradeModalEl.classList.add("hidden");
+          upgradeContext = null;
+        }
+
+        function openShopModal() {
+          if (!shopModalEl) return;
+          shopModalEl.classList.remove("hidden");
+        }
+
+        function closeShopModal() {
+          if (!shopModalEl) return;
+          shopModalEl.classList.add("hidden");
+        }
+
         function openBattleModal() {
           if (!battleModalEl) return;
           battleModalEl.classList.remove("hidden");
           if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(cannonLevel);
           if (battleBotLevelEl) battleBotLevelEl.textContent = String(stage);
           battleInProgress = false;
-          battleAnimationSkipped = false;
         }
 
         function closeBattleModal() {
           if (!battleModalEl) return;
           battleModalEl.classList.add("hidden");
           battleInProgress = false;
-          battleAnimationSkipped = false;
         }
 
-        function spawnBattleCannonball() {
+        function spawnBattleCannonball(fromLeft) {
           if (!battleArenaEl) return;
           const arenaRect = battleArenaEl.getBoundingClientRect();
           const ball = document.createElement("div");
           ball.className = "cannonball";
           document.body.appendChild(ball);
 
-          const startX = arenaRect.left + 120;
+          const startX = fromLeft ? arenaRect.left + 120 : arenaRect.right - 120;
           const startY = arenaRect.top + 78;
-          const endX = arenaRect.right - 120;
+          const endX = fromLeft ? arenaRect.right - 120 : arenaRect.left + 120;
           const endY = arenaRect.top + 78;
 
           ball.style.left = Math.round(startX) + "px";
           ball.style.top = Math.round(startY) + "px";
 
-          const dur = battleAnimationSkipped ? 220 : 560;
+          const dur = 560;
           ball.animate(
             [
               { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
@@ -3083,14 +3481,12 @@
         function beginAttack() {
           if (battleInProgress) return;
           battleInProgress = true;
-          battleAnimationSkipped = false;
 
           const playerCannon = cannonLevel;
           const playerCastle = stage;
           const delta = Math.random() > 0.5 ? 1 : -1;
           battleBotLevel = clamp(playerCastle + delta, 1, MAX_STAGE);
-
-          battleWinProb = clamp(0.5 + (playerCannon - battleBotLevel) * 0.1, 0.1, 0.9);
+          const totalCannons = 1 + (hasSecondCannon ? 1 : 0);
 
           if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(playerCannon);
           if (battleBotLevelEl) battleBotLevelEl.textContent = String(battleBotLevel);
@@ -3098,16 +3494,94 @@
           logEvent("attack_started", {
             botLevel: battleBotLevel,
             playerCannonLevel: playerCannon,
-            winProbability: battleWinProb,
+            botHp: battleBotLevel * 100,
+            playerHp: playerCastle * 100 + (hasWall ? wallLevel * 50 : 0),
+            totalCannons,
           });
 
-          spawnBattleCannonball();
-          setTimeout(spawnBattleCannonball, battleAnimationSkipped ? 80 : 260);
+          // HP-based combat setup
+          playerCastleHpMax = playerCastle * 100;
+          playerCastleHp = playerCastleHpMax;
+          playerWallHpMax = hasWall ? wallLevel * 50 : 0;
+          playerWallHp = playerWallHpMax;
 
-          const finish = () => {
-            const win = Math.random() < battleWinProb;
+          botCastleHpMax = battleBotLevel * 100;
+          botCastleHp = botCastleHpMax;
+
+          function setHp(fillEl, textEl, cur, max) {
+            const pct = max <= 0 ? 0 : Math.max(0, Math.min(100, Math.round((cur / max) * 100)));
+            if (fillEl) fillEl.style.width = pct + "%";
+            if (textEl) textEl.textContent = `${Math.max(0, Math.round(cur))}/${Math.max(0, Math.round(max))}`;
+          }
+
+          const playerWallFill = document.getElementById("playerWallHpFill");
+          const playerWallText = document.getElementById("playerWallHpText");
+          const playerCastleFill = document.getElementById("playerCastleHpFill");
+          const playerCastleText = document.getElementById("playerCastleHpText");
+          const botCastleFill = document.getElementById("botCastleHpFill");
+          const botCastleText = document.getElementById("botCastleHpText");
+
+          setHp(playerWallFill, playerWallText, playerWallHp, playerWallHpMax);
+          setHp(playerCastleFill, playerCastleText, playerCastleHp, playerCastleHpMax);
+          setHp(botCastleFill, botCastleText, botCastleHp, botCastleHpMax);
+
+          function floatDamage(x, y, text, isGood) {
+            const d = document.createElement("div");
+            d.className = "dmg-float";
+            d.textContent = text;
+            d.style.left = Math.round(x) + "px";
+            d.style.top = Math.round(y) + "px";
+            d.style.color = isGood ? "#ffe08a" : "#ff7a7a";
+            document.body.appendChild(d);
+            d.animate(
+              [
+                { transform: "translate(-50%, -50%) translateY(0)", opacity: 1 },
+                { transform: "translate(-50%, -50%) translateY(-26px)", opacity: 0 },
+              ],
+              { duration: 760, easing: "cubic-bezier(0.2,0.9,0.2,1)", fill: "forwards" }
+            ).onfinish = () => d.remove();
+          }
+
+          function applyToPlayer(dmg) {
+            const pre = playerWallHp;
+            if (playerWallHp > 0) {
+              const used = Math.min(playerWallHp, dmg);
+              playerWallHp -= used;
+              dmg -= used;
+            }
+            if (dmg > 0) playerCastleHp -= dmg;
+            setHp(playerWallFill, playerWallText, playerWallHp, playerWallHpMax);
+            setHp(playerCastleFill, playerCastleText, playerCastleHp, playerCastleHpMax);
+            return pre !== playerWallHp;
+          }
+
+          function applyToBot(dmg) {
+            botCastleHp -= dmg;
+            setHp(botCastleFill, botCastleText, botCastleHp, botCastleHpMax);
+          }
+
+          const arenaRect = battleArenaEl.getBoundingClientRect();
+          const playerDmg = (20 + playerCannon * 5) * totalCannons;
+          const botDmg = 20 + battleBotLevel * 5;
+
+          (async function combatLoop() {
+            while (playerCastleHp > 0 && botCastleHp > 0) {
+              // Player turn
+              spawnBattleCannonball(true);
+              floatDamage(arenaRect.left + arenaRect.width - 140, arenaRect.top + 78, `-${playerDmg}`, true);
+              applyToBot(playerDmg);
+              await new Promise((r) => setTimeout(r, 820));
+              if (botCastleHp <= 0) break;
+
+              // Bot turn
+              spawnBattleCannonball(false);
+              floatDamage(arenaRect.left + 140, arenaRect.top + 78, `-${botDmg}`, false);
+              applyToPlayer(botDmg);
+              await new Promise((r) => setTimeout(r, 820));
+            }
+
+            const win = botCastleHp <= 0 && playerCastleHp > 0;
             const botWealth = battleBotLevel * 500;
-
             let coinsLooted = 0;
             if (win) {
               coinsLooted = Math.floor(botWealth * 0.2);
@@ -3123,15 +3597,15 @@
             logEvent("attack_completed", {
               result: win ? "win" : "loss",
               coinsLooted,
-              animationSkipped: !!battleAnimationSkipped,
+              botHp: Math.max(0, Math.round(botCastleHp)),
+              playerHp: Math.max(0, Math.round(playerCastleHp + Math.max(0, playerWallHp))),
+              totalCannons,
             });
 
             persistState();
             updateUI();
             battleInProgress = false;
-          };
-
-          setTimeout(finish, battleAnimationSkipped ? 260 : 1400);
+          })();
         }
 
         openSlotBtn.addEventListener("click", function () {
@@ -3172,23 +3646,120 @@
           });
         }
 
+        if (shopBtn) {
+          shopBtn.addEventListener("click", function () {
+            openShopModal();
+          });
+        }
+
+        if (closeShopBtn) {
+          closeShopBtn.addEventListener("click", function () {
+            closeShopModal();
+          });
+        }
+
+        if (buySecondCannonBtn) {
+          buySecondCannonBtn.addEventListener("click", function () {
+            const cost = 1500;
+            if (hasSecondCannon) return;
+            if (stage < 5) {
+              setStatus("Reach Castle Stage 5 to buy this.", true);
+              return;
+            }
+            if (coins < cost) {
+              setStatus("Not enough coins.", true);
+              return;
+            }
+            coins -= cost;
+            hasSecondCannon = true;
+            logEvent("item_bought", { item: "second_cannon", cost });
+            persistState();
+            updateUI();
+            setStatus("Second cannon acquired!", false);
+          });
+        }
+
+        if (buyWallBtn) {
+          buyWallBtn.addEventListener("click", function () {
+            const cost = 900;
+            if (hasWall) return;
+            if (stage < 3) {
+              setStatus("Reach Castle Stage 3 to buy this.", true);
+              return;
+            }
+            if (coins < cost) {
+              setStatus("Not enough coins.", true);
+              return;
+            }
+            coins -= cost;
+            hasWall = true;
+            wallLevel = Math.max(1, wallLevel);
+            logEvent("item_bought", { item: "wall_start", cost });
+            persistState();
+            updateUI();
+            setStatus("Iron Wall constructed!", false);
+          });
+        }
+
         if (closeBattleBtn) {
           closeBattleBtn.addEventListener("click", function () {
             closeBattleModal();
           });
         }
 
-        if (fastForwardBtn) {
-          fastForwardBtn.addEventListener("click", function () {
-            battleAnimationSkipped = true;
-          });
-        }
+        // fast-forward removed
 
         if (startAttackBtn) {
           startAttackBtn.addEventListener("click", function () {
             beginAttack();
           });
         }
+
+        if (closeUpgradeBtn) {
+          closeUpgradeBtn.addEventListener("click", function () {
+            closeUpgradeModal();
+          });
+        }
+
+        if (confirmUpgradeBtn) {
+          confirmUpgradeBtn.addEventListener("click", function () {
+            if (!upgradeContext) return;
+            if (upgradeContext === "castle") handleUpgrade();
+            if (upgradeContext === "cannon") handleCannonUpgrade();
+            if (upgradeContext === "wall") {
+              if (!hasWall) {
+                // treat as purchase via upgrade modal
+                const cost = 900;
+                if (stage >= 3 && coins >= cost) {
+                  coins -= cost;
+                  hasWall = true;
+                  wallLevel = Math.max(1, wallLevel);
+                  logEvent("item_bought", { item: "wall_start", cost });
+                  persistState();
+                  updateUI();
+                }
+              } else {
+                handleWallUpgrade();
+              }
+            }
+            closeUpgradeModal();
+          });
+        }
+
+        function bindEntityUpgrade(btn, kind) {
+          if (!btn) return;
+          btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            openUpgradeModal(kind);
+          });
+        }
+
+        bindEntityUpgrade(castleTagBtn, "castle");
+        bindEntityUpgrade(cannonTagBtn, "cannon");
+        bindEntityUpgrade(wallTagBtn, "wall");
+        bindEntityUpgrade(castleEl, "castle");
+        bindEntityUpgrade(cannonEl, "cannon");
+        bindEntityUpgrade(wallEl, "wall");
 
         refillBtn.addEventListener("click", function () {
           handleRefill();
