@@ -156,10 +156,15 @@
       }
 
       .hud {
+        /* Carved dark wood + polished glass inlay */
         background:
           radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.10), transparent 55%),
-          radial-gradient(circle at 80% 10%, rgba(140, 200, 255, 0.08), transparent 60%),
-          linear-gradient(180deg, var(--metal-1), var(--metal-2));
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.05) 0 8px,
+            rgba(0, 0, 0, 0.10) 8px 18px
+          ),
+          linear-gradient(180deg, #2a160c, #120805);
         border-radius: 20px;
         padding: 10px 11px 10px;
         border: 1px solid rgba(255, 255, 255, 0.12);
@@ -176,9 +181,9 @@
         border-radius: 14px;
         background:
           radial-gradient(circle at 30% 20%, rgba(120, 210, 255, 0.18), transparent 60%),
-          radial-gradient(circle at 70% 30%, rgba(255, 209, 102, 0.10), transparent 65%),
-          linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.35));
-        border: 1px solid rgba(255, 255, 255, 0.08);
+          radial-gradient(circle at 70% 30%, rgba(255, 209, 102, 0.12), transparent 65%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(0, 0, 0, 0.38));
+        border: 1px solid rgba(160, 200, 255, 0.14);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.18),
           inset 0 -14px 20px rgba(0, 0, 0, 0.45);
@@ -207,7 +212,8 @@
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: var(--rivet);
+        background:
+          radial-gradient(circle at 30% 30%, #f7f9ff, #8a93a6 62%, #0b0d14 100%);
         box-shadow: 0 8px 16px rgba(0,0,0,0.75);
       }
 
@@ -1876,8 +1882,8 @@
         let tutorialRiggedSpinUsed = false;
 
         const SYMBOLS = [
-          // Coin uses 2 high-fidelity variants to match AAA look
-          { name: "Coin", icon: "coin_compass", weight: 40, base: 40, variants: ["coin_compass", "coin_griffin"] },
+          // Coin: 3D gold coin with lion emboss (single asset)
+          { name: "Coin", icon: "coin_lion", weight: 40, base: 40 },
           { name: "Energy", icon: "energy", weight: 25, base: 25 },
           { name: "Castle", icon: "castle", weight: 25, base: 30 },
           { name: "Bomb", icon: "bomb", weight: 10, base: -25 },
@@ -1889,7 +1895,7 @@
         }
 
         const ICONS = {
-          coin_compass: svgDataUri(`
+          coin_lion: svgDataUri(`
             <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
               <defs>
                 <radialGradient id="g" cx="35%" cy="30%" r="70%">
@@ -1910,44 +1916,15 @@
               <g filter="url(#shadow)">
                 <circle cx="128" cy="128" r="98" fill="url(#g)" stroke="url(#rim)" stroke-width="16"/>
                 <circle cx="128" cy="128" r="70" fill="rgba(255,255,255,0.08)" stroke="rgba(0,0,0,0.25)" stroke-width="4"/>
-                <!-- compass rose -->
-                <path d="M128 72l18 42-18 16-18-16z" fill="rgba(0,0,0,0.22)"/>
-                <path d="M128 184l-18-42 18-16 18 16z" fill="rgba(255,255,255,0.16)"/>
-                <path d="M72 128l42-18 16 18-16 18z" fill="rgba(0,0,0,0.18)"/>
-                <path d="M184 128l-42 18-16-18 16-18z" fill="rgba(255,255,255,0.12)"/>
-                <circle cx="128" cy="128" r="10" fill="rgba(0,0,0,0.25)"/>
-                <circle cx="124" cy="124" r="4" fill="rgba(255,255,255,0.38)"/>
-              </g>
-            </svg>
-          `),
-          coin_griffin: svgDataUri(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-              <defs>
-                <radialGradient id="g" cx="35%" cy="30%" r="70%">
-                  <stop offset="0" stop-color="#fff6cc"/>
-                  <stop offset="0.35" stop-color="#ffd166"/>
-                  <stop offset="0.7" stop-color="#c67c00"/>
-                  <stop offset="1" stop-color="#6b3f00"/>
-                </radialGradient>
-                <radialGradient id="rim" cx="40%" cy="35%" r="70%">
-                  <stop offset="0" stop-color="#fff6c7"/>
-                  <stop offset="0.5" stop-color="#ffb347"/>
-                  <stop offset="1" stop-color="#7a4200"/>
-                </radialGradient>
-                <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feDropShadow dx="0" dy="20" stdDeviation="10" flood-color="#000" flood-opacity="0.6"/>
-                </filter>
-              </defs>
-              <g filter="url(#shadow)">
-                <circle cx="128" cy="128" r="98" fill="url(#g)" stroke="url(#rim)" stroke-width="16"/>
-                <circle cx="128" cy="128" r="70" fill="rgba(255,255,255,0.08)" stroke="rgba(0,0,0,0.25)" stroke-width="4"/>
-                <!-- griffin-ish emboss -->
-                <path d="M92 150c18-38 54-58 78-42 16 10 14 34-4 48 10 4 18 10 24 18"
-                      fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="10" stroke-linecap="round"/>
-                <path d="M104 136c10-18 26-28 40-26 10 2 14 12 10 22"
-                      fill="none" stroke="rgba(255,255,255,0.20)" stroke-width="6" stroke-linecap="round"/>
-                <circle cx="146" cy="112" r="6" fill="rgba(0,0,0,0.25)"/>
-                <circle cx="144" cy="110" r="2" fill="rgba(255,255,255,0.45)"/>
+                <!-- lion emboss (stylized) -->
+                <path d="M92 154c14-34 30-54 48-60 18-6 34 10 44 30 10 20 10 40-4 56"
+                      fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="12" stroke-linecap="round"/>
+                <path d="M108 124c10-16 22-24 36-22 10 2 16 10 14 20"
+                      fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="7" stroke-linecap="round"/>
+                <path d="M126 150c2-10 8-16 16-16 8 0 14 6 16 16"
+                      fill="none" stroke="rgba(0,0,0,0.22)" stroke-width="9" stroke-linecap="round"/>
+                <circle cx="150" cy="112" r="6" fill="rgba(0,0,0,0.25)"/>
+                <circle cx="148" cy="110" r="2" fill="rgba(255,255,255,0.45)"/>
               </g>
             </svg>
           `),
@@ -2034,13 +2011,13 @@
 
         function setReelIcon(el, iconKey) {
           if (!el) return;
-          const src = ICONS[iconKey] || ICONS.coin;
+          const src = ICONS[iconKey] || ICONS.coin_lion;
           const extraClass = iconKey === "energy" ? "energy" : "";
           el.innerHTML = `<img class="reel-icon ${extraClass}" alt="${iconKey}" src="${src}" />`;
         }
 
         // Set initial reel visuals
-        setReelIcon(reelEls[0], "coin_compass");
+        setReelIcon(reelEls[0], "coin_lion");
         setReelIcon(reelEls[1], "energy");
         setReelIcon(reelEls[2], "castle");
 
