@@ -1091,9 +1091,9 @@
       .wall {
         position: absolute;
         left: 50%;
-        top: 158px;
-        width: 230px;
-        height: 120px;
+        top: 146px;
+        width: 310px;
+        height: 150px;
         /* Low-profile isometric fortification */
         transform: translateX(-50%) perspective(900px) rotateX(68deg) rotateZ(-2deg);
         z-index: 100;
@@ -1108,23 +1108,17 @@
         position: relative;
         width: 100%;
         height: 100%;
-        clip-path: polygon(
-          8% 60%, 16% 32%, 32% 20%, 50% 16%,
-          68% 20%, 84% 32%, 92% 60%,
-          84% 80%, 68% 90%, 50% 94%,
-          32% 90%, 16% 80%
-        );
-        background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.10), transparent 60%),
-          linear-gradient(180deg, rgba(125,110,84,0.55), rgba(36,22,14,0.78));
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,0.12),
-          0 22px 46px rgba(0,0,0,0.7);
+        clip-path: none;
+        background: transparent;
+        box-shadow: none;
       }
 
       .wall-seg {
         position: absolute;
-        bottom: 10%;
+        bottom: auto;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         width: 20px;
         height: 44px;
         border-radius: 4px;
@@ -1152,17 +1146,126 @@
         opacity: 0.9;
       }
 
-      .wall-seg--1 { left: 10%; }
-      .wall-seg--2 { left: 26%; }
-      .wall-seg--3 { left: 42%; }
-      .wall-seg--4 { left: 58%; }
-      .wall-seg--5 { left: 74%; }
+      /* Corner watch-posts (tiers 4-10) */
+      .wall-seg::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: -34px;
+        width: 10px;
+        height: 28px;
+        transform: translateX(-50%);
+        border-radius: 8px;
+        opacity: 0;
+        pointer-events: none;
+      }
 
-      .wall-seg--6 { left: 10%; top: 22%; bottom: auto; }
-      .wall-seg--7 { left: 26%; top: 6%; bottom: auto; }
-      .wall-seg--8 { left: 42%; top: 2%; bottom: auto; }
-      .wall-seg--9 { left: 58%; top: 6%; bottom: auto; }
-      .wall-seg--10 { left: 74%; top: 22%; bottom: auto; }
+      .wall.wall-lvl-4 .wall-seg--2::after,
+      .wall.wall-lvl-4 .wall-seg--4::after,
+      .wall.wall-lvl-4 .wall-seg--7::after,
+      .wall.wall-lvl-4 .wall-seg--9::after,
+      .wall.wall-lvl-5 .wall-seg--2::after,
+      .wall.wall-lvl-5 .wall-seg--4::after,
+      .wall.wall-lvl-5 .wall-seg--7::after,
+      .wall.wall-lvl-5 .wall-seg--9::after,
+      .wall.wall-lvl-6 .wall-seg--2::after,
+      .wall.wall-lvl-6 .wall-seg--4::after,
+      .wall.wall-lvl-6 .wall-seg--7::after,
+      .wall.wall-lvl-6 .wall-seg--9::after,
+      .wall.wall-lvl-7 .wall-seg--2::after,
+      .wall.wall-lvl-7 .wall-seg--4::after,
+      .wall.wall-lvl-7 .wall-seg--7::after,
+      .wall.wall-lvl-7 .wall-seg--9::after {
+        opacity: 1;
+        background: linear-gradient(180deg, #e5e8f2, #616775);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.22),
+          0 10px 18px rgba(0,0,0,0.35);
+      }
+
+      .wall.wall-lvl-8 .wall-seg--2::after,
+      .wall.wall-lvl-8 .wall-seg--4::after,
+      .wall.wall-lvl-8 .wall-seg--7::after,
+      .wall.wall-lvl-8 .wall-seg--9::after,
+      .wall.wall-lvl-9 .wall-seg--2::after,
+      .wall.wall-lvl-9 .wall-seg--4::after,
+      .wall.wall-lvl-9 .wall-seg--7::after,
+      .wall.wall-lvl-9 .wall-seg--9::after,
+      .wall.wall-lvl-10 .wall-seg--2::after,
+      .wall.wall-lvl-10 .wall-seg--4::after,
+      .wall.wall-lvl-10 .wall-seg--7::after,
+      .wall.wall-lvl-10 .wall-seg--9::after {
+        opacity: 1;
+        background:
+          radial-gradient(circle at 30% 20%, rgba(110,220,255,0.35), transparent 55%),
+          repeating-linear-gradient(0deg, rgba(110,220,255,0.22) 0 2px, transparent 2px 8px),
+          linear-gradient(180deg, #2a3a55, #0a111c);
+        box-shadow:
+          0 0 18px rgba(79, 211, 255, 0.25),
+          inset 0 1px 0 rgba(255,255,255,0.16);
+      }
+
+      /* Perimeter fence placement (low-profile ellipse) */
+      .wall-seg--1 {
+        left: 22%;
+        top: 28%;
+        transform: translate(-50%, -50%) rotate(-14deg);
+        z-index: 96;
+      }
+      .wall-seg--2 {
+        left: 36%;
+        top: 16%;
+        transform: translate(-50%, -50%) rotate(-6deg);
+        z-index: 96;
+      }
+      .wall-seg--3 {
+        left: 50%;
+        top: 10%;
+        transform: translate(-50%, -50%) rotate(0deg);
+        z-index: 98;
+      }
+      .wall-seg--4 {
+        left: 64%;
+        top: 16%;
+        transform: translate(-50%, -50%) rotate(6deg);
+        z-index: 96;
+      }
+      .wall-seg--5 {
+        left: 78%;
+        top: 28%;
+        transform: translate(-50%, -50%) rotate(14deg);
+        z-index: 96;
+      }
+      .wall-seg--6 {
+        left: 86%;
+        top: 50%;
+        transform: translate(-50%, -50%) rotate(18deg);
+        z-index: 104;
+      }
+      .wall-seg--7 {
+        left: 74%;
+        top: 72%;
+        transform: translate(-50%, -50%) rotate(12deg);
+        z-index: 104;
+      }
+      .wall-seg--8 {
+        left: 50%;
+        top: 86%;
+        transform: translate(-50%, -50%) rotate(0deg);
+        z-index: 104;
+      }
+      .wall-seg--9 {
+        left: 26%;
+        top: 72%;
+        transform: translate(-50%, -50%) rotate(-12deg);
+        z-index: 104;
+      }
+      .wall-seg--10 {
+        left: 14%;
+        top: 50%;
+        transform: translate(-50%, -50%) rotate(-18deg);
+        z-index: 104;
+      }
 
 
       .wall.wall-lvl-1,
@@ -1326,6 +1429,10 @@
         box-shadow: 0 0 14px rgba(255,177,60,0.35);
       }
       .hp-fill.wall {
+        width: 100%;
+        transform-origin: right center;
+        transform: scaleX(0);
+        transition: transform 220ms var(--bezier-snap);
         background: linear-gradient(90deg, #2a1203, #ff9a3d 22%, #ffe08a 50%, #ff9a3d 78%, #2a1203);
         box-shadow: 0 0 14px rgba(255,154,61,0.35);
       }
@@ -2897,7 +3004,8 @@
         const STORAGE_KEY_TUTORIAL = "tutorialCompleted";
 
         const MAX_ENERGY = 10;
-        const MAX_STAGE = 10;
+        const MAX_LEVEL = 10;
+        const MAX_STAGE = MAX_LEVEL;
         const STAGE_COST = [0, 60, 90, 130, 180, 240, 310, 390, 480, 580, 0];
 
         let energy = MAX_ENERGY;
@@ -3231,10 +3339,12 @@
             if (!s || typeof s !== "object") return;
             if (typeof s.energy === "number") energy = s.energy;
             if (typeof s.coins === "number") coins = s.coins;
-            if (typeof s.stage === "number") stage = s.stage;
-            if (typeof s.cannon1Level === "number") cannon1Level = s.cannon1Level;
-            if (typeof s.cannon2Level === "number") cannon2Level = s.cannon2Level;
-            if (typeof s.wallLevel === "number") wallLevel = s.wallLevel;
+            if (typeof s.stage === "number") stage = Math.max(1, Math.min(MAX_LEVEL, s.stage));
+            if (typeof s.cannon1Level === "number")
+              cannon1Level = Math.max(0, Math.min(MAX_LEVEL, s.cannon1Level));
+            if (typeof s.cannon2Level === "number")
+              cannon2Level = Math.max(0, Math.min(MAX_LEVEL, s.cannon2Level));
+            if (typeof s.wallLevel === "number") wallLevel = Math.max(0, Math.min(MAX_LEVEL, s.wallLevel));
             if (typeof s.hasWall === "boolean") hasWall = s.hasWall;
             if (typeof s.hasSecondCannon === "boolean") hasSecondCannon = s.hasSecondCannon;
             if (typeof s.spinIndex === "number") spinIndex = s.spinIndex;
@@ -3270,7 +3380,7 @@
           if (upgradeCannonBtn) {
             const cCost = cannonUpgradeCostForLevel(cannon1Level);
             upgradeCannonBtn.disabled =
-              cannon1Level >= stage || coins < cCost;
+              cannon1Level >= stage || cannon1Level >= MAX_LEVEL || coins < cCost;
           }
 
           if (castleEl) {
@@ -3723,6 +3833,9 @@
           const before = stage;
           coins -= cost;
           stage = Math.min(MAX_STAGE, stage + 1);
+          if (stage >= MAX_LEVEL && before < MAX_LEVEL) {
+            logEvent("max_level_reached", { entityType: "castle" });
+          }
 
           const wrap = castleEl ? castleEl.closest(".castle-wrap") : null;
           if (wrap) {
@@ -3753,8 +3866,12 @@
           updateUI();
         }
 
-        function handleCannonUpgrade(cannonIndex) {
+        function handleCannonUpgrade(cannonIndex = 1) {
           const before = cannonIndex === 2 ? cannon2Level : cannon1Level;
+          if (before >= MAX_LEVEL) {
+            setStatus("MAX LEVEL REACHED.", false);
+            return;
+          }
           const cost = cannonUpgradeCostForLevel(before);
 
           if (cannonIndex === 2 && !hasSecondCannon) {
@@ -3788,7 +3905,7 @@
           }
 
           coins -= cost;
-          const after = before + 1;
+          const after = Math.min(MAX_LEVEL, before + 1);
           if (cannonIndex === 2) cannon2Level = after;
           else cannon1Level = after;
 
@@ -3811,6 +3928,11 @@
             cost,
             coinsRemaining: coins,
           });
+
+          if (after === MAX_LEVEL) {
+            const entityType = cannonIndex === 2 ? "cannon2" : "cannon1";
+            logEvent("max_level_reached", { entityType });
+          }
 
           persistState();
           updateUI();
@@ -3844,13 +3966,14 @@
             return;
           }
 
-          if (wallLevel >= MAX_STAGE) {
+          if (wallLevel >= MAX_LEVEL) {
             logEvent("wall_upgrade_attempt", {
               levelBefore: before,
               levelAfter: before,
               success: false,
               cost,
             });
+            setStatus("MAX LEVEL REACHED.", false);
             return;
           }
 
@@ -3866,7 +3989,7 @@
           }
 
           coins -= cost;
-          wallLevel += 1;
+          wallLevel = Math.min(MAX_LEVEL, wallLevel + 1);
           setStatus("Wall upgraded!", false);
           logEvent("wall_upgrade_attempt", {
             levelBefore: before,
@@ -3874,6 +3997,10 @@
             success: true,
             cost,
           });
+
+          if (wallLevel === MAX_LEVEL) {
+            logEvent("max_level_reached", { entityType: "wall" });
+          }
           persistState();
           updateUI();
         }
@@ -3899,6 +4026,8 @@
           let nextStat = "-";
           let cost = 0;
           let canUpgrade = false;
+          let reachedMax = false;
+          let reachedEntityType = "";
 
           if (type === "castle") {
             title = "Castle Upgrade";
@@ -3908,29 +4037,39 @@
             currentStat = `HP: ${hpNow}`;
             nextStat = stage >= MAX_STAGE ? "HP: MAX" : `HP: ${hpNow} -> ${hpNext}`;
             cost = upgradeCostForStage(stage);
-            canUpgrade = stage < MAX_STAGE && coins >= cost;
+            reachedMax = stage >= MAX_LEVEL;
+            reachedEntityType = "castle";
+            canUpgrade = !reachedMax && stage < MAX_LEVEL && coins >= cost;
           } else if (type === "cannon") {
             title = index === 2 ? "Cannon 2 Upgrade" : "Cannon 1 Upgrade";
             const lvlNow = index === 2 ? cannon2Level : cannon1Level;
             const dmgNow = 20 + lvlNow * 5;
-            const lvlNext = lvlNow + 1;
+            const lvlNext = Math.min(MAX_LEVEL, lvlNow + 1);
             const dmgNext = 20 + lvlNext * 5;
             currentStat = `Damage: ${dmgNow}`;
-            nextStat = `Damage: ${dmgNow} -> ${dmgNext}`;
+            nextStat = reachedMax ? `Damage: ${dmgNow} -> MAX` : `Damage: ${dmgNow} -> ${dmgNext}`;
             cost = cannonUpgradeCostForLevel(lvlNow);
+            reachedMax = lvlNow >= MAX_LEVEL;
+            reachedEntityType = index === 2 ? "cannon2" : "cannon1";
             canUpgrade =
-              lvlNow < stage && lvlNow < MAX_STAGE && coins >= cost && (index !== 2 || hasSecondCannon);
+              !reachedMax &&
+              lvlNow < stage &&
+              lvlNow < MAX_LEVEL &&
+              coins >= cost &&
+              (index !== 2 || hasSecondCannon);
           } else if (type === "wall") {
             title = "Wall Upgrade";
             const lvlNow = hasWall ? wallLevel : 0;
             const hpNow = lvlNow * 50;
-            const lvlNext = lvlNow + 1;
+            const lvlNext = Math.min(MAX_LEVEL, lvlNow + 1);
             const hpNext = lvlNext * 50;
             currentStat = `HP: ${hpNow}`;
             nextStat = `HP: ${hpNow} -> ${hpNext}`;
             cost = hasWall ? wallUpgradeCostForLevel(lvlNow) : 900;
+            reachedMax = hasWall && wallLevel >= MAX_LEVEL;
+            reachedEntityType = "wall";
             canUpgrade = hasWall
-              ? wallLevel < stage && wallLevel < MAX_STAGE && coins >= cost
+              ? !reachedMax && wallLevel < stage && wallLevel < MAX_LEVEL && coins >= cost
               : stage >= 3 && coins >= cost;
           }
 
@@ -3939,8 +4078,19 @@
           if (upgradeNextEl) upgradeNextEl.textContent = nextStat;
           if (upgradeCostTextEl) upgradeCostTextEl.textContent = `${cost} Coins`;
           if (confirmUpgradeBtn) {
-            confirmUpgradeBtn.textContent = `UPGRADE (${cost})`;
-            confirmUpgradeBtn.disabled = !canUpgrade;
+            if (reachedMax) {
+              confirmUpgradeBtn.textContent = "MAX LEVEL REACHED";
+              confirmUpgradeBtn.disabled = true;
+              confirmUpgradeBtn.style.background = "linear-gradient(180deg, #ffd166, #b8860b)";
+              confirmUpgradeBtn.style.borderColor = "rgba(255, 209, 102, 0.65)";
+              confirmUpgradeBtn.style.boxShadow = "0 0 20px rgba(255, 209, 102, 0.22)";
+            } else {
+              confirmUpgradeBtn.textContent = `UPGRADE (${cost})`;
+              confirmUpgradeBtn.disabled = !canUpgrade;
+              confirmUpgradeBtn.style.background = "";
+              confirmUpgradeBtn.style.borderColor = "";
+              confirmUpgradeBtn.style.boxShadow = "";
+            }
           }
 
           upgradeModalEl.classList.remove("hidden");
@@ -4035,7 +4185,7 @@
         function closeBattleModal() {
           if (!battleModalEl) return;
           battleModalEl.classList.add("hidden");
-          battleInProgress = false;
+          safeResetBattleState();
         }
 
         function spawnBattleCannonball(fromLeft, variantIndex) {
@@ -4076,15 +4226,34 @@
         let battleSpeed = 1;
         let battleOpponent = null;
         let battleActiveAnimations = [];
+        let battleAbort = false;
 
         async function waitBattleMs(ms) {
           const start = performance.now();
           while (true) {
+            if (battleAbort) return false;
             const elapsed = performance.now() - start;
             const target = ms / battleSpeed;
             if (elapsed >= target) break;
             await new Promise((r) => setTimeout(r, 35));
           }
+          return !battleAbort;
+        }
+
+        function safeResetBattleState() {
+          battleAbort = true;
+          battleInProgress = false;
+          battleOpponent = null;
+          if (battleActiveAnimations && battleActiveAnimations.length) {
+            battleActiveAnimations.forEach((a) => {
+              try {
+                a.cancel();
+              } catch (e) {}
+            });
+          }
+          battleActiveAnimations = [];
+          battleSpeed = 1;
+          if (btnFastForward) btnFastForward.textContent = "1x";
         }
 
         function generateNewOpponent() {
@@ -4128,6 +4297,8 @@
         function beginAttack() {
           if (battleInProgress) return;
           battleInProgress = true;
+          battleAbort = false;
+          battleActiveAnimations = [];
 
           // Ensure an opponent exists for this attack click.
           if (!battleOpponent) battleOpponent = generateNewOpponent();
@@ -4202,7 +4373,17 @@
 
           function setHp(fillEl, textEl, cur, max) {
             const pct = max <= 0 ? 0 : Math.max(0, Math.min(100, (cur / max) * 100));
-            if (fillEl) fillEl.style.width = pct.toFixed(1) + "%";
+            if (fillEl) {
+              if (fillEl.classList.contains("wall")) {
+                // Wall bar must shrink from right to left.
+                fillEl.style.width = "100%";
+                fillEl.style.transformOrigin = "right center";
+                fillEl.style.transform = `scaleX(${(pct / 100).toFixed(4)})`;
+              } else {
+                fillEl.style.width = pct.toFixed(1) + "%";
+                fillEl.style.transform = "scaleX(1)";
+              }
+            }
             if (textEl) textEl.textContent = `${Math.max(0, Math.round(cur))}/${Math.max(0, Math.round(max))}`;
           }
 
@@ -4265,48 +4446,58 @@
             (20 + botCannon1Lvl * 5) + (botHasSecondCannon ? (20 + botCannon2Lvl * 5) : 0);
 
           (async function combatLoop() {
-            while (playerCastleHp > 0 && botCastleHp > 0) {
-              // Player turn (dual cannons fire together)
-              spawnBattleCannonball(true, 0);
-              if (hasSecondCannon) spawnBattleCannonball(true, 1);
-              floatDamage(arenaRect.left + arenaRect.width - 140, arenaRect.top + 78, `-${playerDmg}`, true);
-              applyToBot(playerDmg);
-              await waitBattleMs(820);
-              if (botCastleHp <= 0) break;
+            try {
+              while (playerCastleHp > 0 && botCastleHp > 0) {
+                if (battleAbort) break;
+                // Player turn (dual cannons fire together)
+                spawnBattleCannonball(true, 0);
+                if (hasSecondCannon) spawnBattleCannonball(true, 1);
+                floatDamage(arenaRect.left + arenaRect.width - 140, arenaRect.top + 78, `-${playerDmg}`, true);
+                applyToBot(playerDmg);
+                if (!(await waitBattleMs(820))) break;
+                if (botCastleHp <= 0) break;
 
-              // Bot turn
-              spawnBattleCannonball(false, 0);
-              if (botHasSecondCannon) spawnBattleCannonball(false, 1);
-              floatDamage(arenaRect.left + 140, arenaRect.top + 78, `-${botDmg}`, false);
-              applyToPlayer(botDmg);
-              await waitBattleMs(820);
+                // Bot turn
+                spawnBattleCannonball(false, 0);
+                if (botHasSecondCannon) spawnBattleCannonball(false, 1);
+                floatDamage(arenaRect.left + 140, arenaRect.top + 78, `-${botDmg}`, false);
+                applyToPlayer(botDmg);
+                if (!(await waitBattleMs(820))) break;
+              }
+
+              // If the modal was closed mid-battle, don't apply rewards/penalties.
+              if (battleAbort) return;
+
+              const win = botCastleHp <= 0 && playerCastleHp > 0;
+              const botWealth = battleBotLevel * 500;
+              let coinsLooted = 0;
+              if (win) {
+                coinsLooted = Math.floor(botWealth * 0.2);
+                coins += coinsLooted;
+                setStatus(`Raid success! +${coinsLooted} coins.`, false);
+                spawnFlyingCoins(18);
+              } else {
+                const lost = Math.floor(coins * 0.05);
+                coins -= lost;
+                setStatus(`Raid failed. -${lost} coins.`, true);
+              }
+
+              logEvent("attack_completed", {
+                result: win ? "win" : "loss",
+                coinsLooted,
+                botHp: Math.max(0, Math.round(botCastleHp)),
+                playerHp: Math.max(0, Math.round(playerCastleHp + Math.max(0, playerWallHp))),
+                totalCannons,
+              });
+
+              persistState();
+              updateUI();
+            } catch (e) {
+              console.error("Combat loop failed:", e);
+              setStatus("Battle interrupted. Try again.", true);
+            } finally {
+              battleInProgress = false;
             }
-
-            const win = botCastleHp <= 0 && playerCastleHp > 0;
-            const botWealth = battleBotLevel * 500;
-            let coinsLooted = 0;
-            if (win) {
-              coinsLooted = Math.floor(botWealth * 0.2);
-              coins += coinsLooted;
-              setStatus(`Raid success! +${coinsLooted} coins.`, false);
-              spawnFlyingCoins(18);
-            } else {
-              const lost = Math.floor(coins * 0.05);
-              coins -= lost;
-              setStatus(`Raid failed. -${lost} coins.`, true);
-            }
-
-            logEvent("attack_completed", {
-              result: win ? "win" : "loss",
-              coinsLooted,
-              botHp: Math.max(0, Math.round(botCastleHp)),
-              playerHp: Math.max(0, Math.round(playerCastleHp + Math.max(0, playerWallHp))),
-              totalCannons,
-            });
-
-            persistState();
-            updateUI();
-            battleInProgress = false;
           })();
         }
 
@@ -4421,9 +4612,10 @@
         // fast-forward removed
 
         if (startAttackBtn) {
-          startAttackBtn.addEventListener("click", function () {
+          // Permanent handler: prevents any accidental listener accumulation.
+          startAttackBtn.onclick = function () {
             beginAttack();
-          });
+          };
         }
 
         if (btnFastForward) {
