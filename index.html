@@ -1094,7 +1094,8 @@
         top: 158px;
         width: 230px;
         height: 120px;
-        transform: translateX(-50%);
+        /* Low-profile isometric fortification */
+        transform: translateX(-50%) perspective(900px) rotateX(68deg) rotateZ(-2deg);
         z-index: 100;
         pointer-events: auto;
         cursor: pointer;
@@ -1115,7 +1116,7 @@
         );
         background:
           radial-gradient(circle at 30% 20%, rgba(255,255,255,0.10), transparent 60%),
-          linear-gradient(180deg, #7d6e54, #3c2f22);
+          linear-gradient(180deg, rgba(125,110,84,0.55), rgba(36,22,14,0.78));
         box-shadow:
           inset 0 1px 0 rgba(255,255,255,0.12),
           0 22px 46px rgba(0,0,0,0.7);
@@ -1124,14 +1125,31 @@
       .wall-seg {
         position: absolute;
         bottom: 10%;
-        width: 24px;
-        height: 40px;
-        border-radius: 6px;
-        background: linear-gradient(180deg, #b9c0cf, #646d7f);
+        width: 20px;
+        height: 44px;
+        border-radius: 4px;
+        overflow: visible;
+        background: linear-gradient(180deg, #9b6b2f, #3c1f0b);
         box-shadow:
           0 10px 18px rgba(0,0,0,0.55),
           inset 0 1px 0 rgba(255,255,255,0.5),
           inset 0 -6px 8px rgba(0,0,0,0.6);
+      }
+
+      /* Top caps (stakes/merlons/tips) */
+      .wall-seg::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: -12px;
+        width: 14px;
+        height: 16px;
+        transform: translateX(-50%);
+        border-radius: 4px 4px 6px 6px;
+        background: linear-gradient(180deg, #b67b3a, #3a200e);
+        clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 16px rgba(0,0,0,0.35);
+        opacity: 0.9;
       }
 
       .wall-seg--1 { left: 10%; }
@@ -1158,23 +1176,75 @@
       .wall.wall-lvl-9,
       .wall.wall-lvl-10 { opacity: 1; }
 
-      /* Wall tier reinforcement (darker + more elite at higher levels) */
-      .wall.wall-lvl-1 .wall-seg {
-        background: linear-gradient(180deg, #c8c1b0, #6f6a5a);
+      /* 3D-perimeter Wall tiers (stakes -> battlements -> runed iron) */
+      .wall.wall-lvl-1 .wall-seg,
+      .wall.wall-lvl-2 .wall-seg,
+      .wall.wall-lvl-3 .wall-seg {
+        background: linear-gradient(180deg, #9b6a2f, #3a1c07);
       }
-      .wall.wall-lvl-5 .wall-seg {
-        background: linear-gradient(180deg, #9aa3b7, #3b4254);
+      .wall.wall-lvl-1 .wall-seg::before,
+      .wall.wall-lvl-2 .wall-seg::before,
+      .wall.wall-lvl-3 .wall-seg::before {
+        opacity: 1;
+        clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+        background: linear-gradient(180deg, #c08a3f, #4a250f);
+      }
+
+      .wall.wall-lvl-4 .wall-seg,
+      .wall.wall-lvl-5 .wall-seg,
+      .wall.wall-lvl-6 .wall-seg,
+      .wall.wall-lvl-7 .wall-seg {
+        background: linear-gradient(180deg, #b7beca, #5b6470);
         box-shadow:
-          0 12px 20px rgba(0,0,0,0.62),
-          inset 0 1px 0 rgba(255,255,255,0.25),
-          0 0 16px rgba(79, 211, 255, 0.10);
+          0 14px 22px rgba(0,0,0,0.55),
+          inset 0 1px 0 rgba(255,255,255,0.22);
       }
+      .wall.wall-lvl-4 .wall-seg::before,
+      .wall.wall-lvl-5 .wall-seg::before,
+      .wall.wall-lvl-6 .wall-seg::before,
+      .wall.wall-lvl-7 .wall-seg::before {
+        opacity: 0.95;
+        clip-path: polygon(0% 100%, 0% 10%, 22% 0%, 78% 0%, 100% 10%, 100% 100%);
+        background: linear-gradient(180deg, #e0e3ea, #7b828f);
+      }
+
+      .wall.wall-lvl-8 .wall-seg,
+      .wall.wall-lvl-9 .wall-seg,
       .wall.wall-lvl-10 .wall-seg {
-        background: linear-gradient(180deg, #b7d4ff, #2a3a55);
+        background: linear-gradient(180deg, #3f556f, #101826);
         box-shadow:
-          0 14px 24px rgba(0,0,0,0.72),
-          inset 0 1px 0 rgba(255,255,255,0.22),
-          0 0 24px rgba(79, 211, 255, 0.22);
+          0 18px 28px rgba(0,0,0,0.65),
+          inset 0 1px 0 rgba(255,255,255,0.20),
+          0 0 26px rgba(79, 211, 255, 0.22);
+      }
+      .wall.wall-lvl-8 .wall-seg::before,
+      .wall.wall-lvl-9 .wall-seg::before,
+      .wall.wall-lvl-10 .wall-seg::before {
+        opacity: 1;
+        clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+        background: linear-gradient(180deg, #7fdfff, #0b2b44);
+        box-shadow: 0 0 18px rgba(79, 211, 255, 0.35);
+      }
+
+      /* Iron runes overlay */
+      .wall-core::after {
+        content: "";
+        position: absolute;
+        inset: 8px 16px;
+        border-radius: 18px;
+        opacity: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 25% 30%, rgba(90,220,255,0.28), transparent 55%),
+          repeating-linear-gradient(90deg, rgba(120,240,255,0.18) 0 5px, rgba(0,0,0,0.14) 5px 11px);
+        box-shadow: 0 0 0 rgba(79, 211, 255, 0);
+        transition: opacity 180ms var(--bezier-snap);
+      }
+      .wall.wall-lvl-8 .wall-core::after,
+      .wall.wall-lvl-9 .wall-core::after,
+      .wall.wall-lvl-10 .wall-core::after {
+        opacity: 1;
+        animation: runes-flicker 1.25s ease-in-out infinite;
       }
 
       /* Clickable island entities + hover Lv tag */
@@ -1256,8 +1326,8 @@
         box-shadow: 0 0 14px rgba(255,177,60,0.35);
       }
       .hp-fill.wall {
-        background: linear-gradient(90deg, #0b1d3a, #2fe6ff 25%, #87f5ff 50%, #2fe6ff 75%, #0b1d3a);
-        box-shadow: 0 0 14px rgba(79,211,255,0.35);
+        background: linear-gradient(90deg, #2a1203, #ff9a3d 22%, #ffe08a 50%, #ff9a3d 78%, #2a1203);
+        box-shadow: 0 0 14px rgba(255,154,61,0.35);
       }
       .hp-text { font-variant-numeric: tabular-nums; font-weight: 900; font-size: 0.78rem; text-align: center; }
 
@@ -1933,7 +2003,7 @@
         background:
           radial-gradient(circle at 20% 10%, rgba(255,255,255,0.22), transparent 60%),
           repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 6px, rgba(0,0,0,0.12) 6px 14px),
-          linear-gradient(180deg, #3a2a18, #191108);
+          linear-gradient(180deg, #7b4a21, #2a1206);
         border: 1px solid rgba(0,0,0,0.7);
         box-shadow:
           inset 0 1px 0 rgba(255,255,255,0.10),
@@ -1949,6 +2019,9 @@
 
       .cannon.cannon-lvl-4::before,
       .cannon.cannon-lvl-5::before {
+        background:
+          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.22), transparent 60%),
+          linear-gradient(180deg, #c28a4a, #5b2d10);
         box-shadow:
           inset 0 2px 0 rgba(255,255,255,0.16),
           inset 0 -10px 14px rgba(0,0,0,0.55),
@@ -1957,6 +2030,9 @@
 
       .cannon.cannon-lvl-6::before,
       .cannon.cannon-lvl-7::before {
+        background:
+          radial-gradient(circle at 30% 30%, rgba(255,255,255,0.22), transparent 60%),
+          linear-gradient(180deg, #b0763a, #3f1e08);
         border-color: rgba(255, 209, 102, 0.18);
         box-shadow:
           inset 0 2px 0 rgba(255,255,255,0.18),
@@ -1974,6 +2050,36 @@
           inset 0 2px 0 rgba(255,255,255,0.20),
           inset 0 -10px 14px rgba(0,0,0,0.55),
           0 0 22px rgba(120, 240, 255, 0.12);
+      }
+
+      /* Carriage / wheels per cannon tier */
+      .cannon.cannon-lvl-4::after,
+      .cannon.cannon-lvl-5::after,
+      .cannon.cannon-lvl-6::after,
+      .cannon.cannon-lvl-7::after {
+        background:
+          radial-gradient(circle at 20% 10%, rgba(255,255,255,0.18), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 6px, rgba(0,0,0,0.12) 6px 14px),
+          linear-gradient(180deg, rgba(178,132,74,0.95), rgba(70,38,16,0.95));
+        border-color: rgba(255, 209, 102, 0.22);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.12),
+          0 10px 20px rgba(0,0,0,0.55),
+          0 0 18px rgba(255, 209, 102, 0.12);
+      }
+
+      .cannon.cannon-lvl-8::after,
+      .cannon.cannon-lvl-9::after,
+      .cannon.cannon-lvl-10::after {
+        background:
+          radial-gradient(circle at 20% 10%, rgba(255,255,255,0.22), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(140,240,255,0.16) 0 4px, rgba(0,0,0,0.12) 4px 10px),
+          linear-gradient(180deg, rgba(210,164,74,0.96), rgba(65,35,10,0.96));
+        border-color: rgba(79, 211, 255, 0.25);
+        box-shadow:
+          inset 0 1px 0 rgba(255,255,255,0.14),
+          0 10px 20px rgba(0,0,0,0.55),
+          0 0 26px rgba(79, 211, 255, 0.22);
       }
 
       /* Battle modal */
@@ -2027,6 +2133,141 @@
         border-radius: 14px;
         background: linear-gradient(180deg, #9aa5b8, #2a2f3a);
         box-shadow: inset 0 2px 0 rgba(255,255,255,0.16), inset 0 -12px 16px rgba(0,0,0,0.55);
+      }
+
+      /* Bot loadout mini-icons */
+      .battle-bot-cannons {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        margin-top: -2px;
+      }
+
+      /* Bot loadout visuals replace the bot-level text */
+      #battleBotStatText {
+        display: none;
+      }
+
+      .battle-mini-cannon {
+        width: 70px;
+        height: 54px;
+        border-radius: 16px;
+        position: relative;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.12), transparent 60%),
+          linear-gradient(180deg, rgba(62,40,22,0.55), rgba(20,14,10,0.7));
+        border: 1px solid rgba(255,255,255,0.10);
+        box-shadow: 0 14px 30px rgba(0,0,0,0.65);
+      }
+
+      .battle-mini-cannon::before {
+        content: "";
+        position: absolute;
+        left: 12px; top: 30px;
+        width: 46px; height: 14px;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #5a657f, #1a1f2b);
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.14), inset 0 -6px 10px rgba(0,0,0,0.55);
+      }
+
+      .battle-mini-cannon::after {
+        content: "";
+        position: absolute;
+        left: 8px; top: 38px;
+        width: 56px; height: 16px;
+        border-radius: 14px;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 6px, rgba(0,0,0,0.12) 6px 14px),
+          linear-gradient(180deg, rgba(58,42,24,0.95), rgba(25,17,8,0.95));
+        border: 1px solid rgba(0,0,0,0.65);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 18px rgba(0,0,0,0.55);
+      }
+
+      .battle-mini-cannon[data-cannon-tier="wood"] {
+        filter: saturate(0.9);
+      }
+
+      .battle-mini-cannon[data-cannon-tier="bronze"] {
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.16), transparent 60%),
+          linear-gradient(180deg, rgba(178,132,74,0.55), rgba(70,38,16,0.78));
+      }
+      .battle-mini-cannon[data-cannon-tier="bronze"]::before {
+        background: linear-gradient(180deg, #c28a4a, #5b2d10);
+      }
+      .battle-mini-cannon[data-cannon-tier="bronze"]::after {
+        background:
+          radial-gradient(circle at 20% 10%, rgba(255,255,255,0.22), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 6px, rgba(0,0,0,0.12) 6px 14px),
+          linear-gradient(180deg, rgba(140,86,22,0.95), rgba(55,26,7,0.95));
+      }
+
+      .battle-mini-cannon[data-cannon-tier="steel"] {
+        background:
+          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.18), transparent 60%),
+          linear-gradient(180deg, rgba(160,180,220,0.40), rgba(26,31,43,0.95));
+      }
+      .battle-mini-cannon[data-cannon-tier="steel"]::before {
+        background:
+          radial-gradient(circle at 30% 30%, rgba(80,220,255,0.40), transparent 60%),
+          linear-gradient(180deg, #7bd9ff, #1a4d6a);
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.16), 0 0 18px rgba(79,211,255,0.35);
+      }
+      .battle-mini-cannon[data-cannon-tier="steel"]::after {
+        background:
+          radial-gradient(circle at 20% 10%, rgba(255,255,255,0.18), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(140,240,255,0.16) 0 4px, rgba(0,0,0,0.12) 4px 10px),
+          linear-gradient(180deg, rgba(210,164,74,0.92), rgba(65,35,10,0.95));
+      }
+
+      /* Bot wall overlay on fortress */
+      #battleBotFortress {
+        position: relative;
+      }
+      #battleBotFortress::after {
+        content: "";
+        position: absolute;
+        left: 14px; top: 18px;
+        width: 92px; height: 70px;
+        border-radius: 14px;
+        opacity: 0;
+        transition: opacity 180ms var(--bezier-snap);
+        pointer-events: none;
+      }
+      #battleBotFortress[data-wall-owned="0"]::after {
+        opacity: 0;
+      }
+      #battleBotFortress[data-wall-tier="wood"]::after {
+        opacity: 1;
+        background:
+          repeating-linear-gradient(90deg, rgba(120,70,30,0.85) 0 10px, rgba(60,30,12,0.90) 10px 22px),
+          linear-gradient(180deg, rgba(120,70,30,0.55), rgba(35,18,8,0.70));
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.10);
+      }
+      #battleBotFortress[data-wall-tier="stone"]::after {
+        opacity: 1;
+        background:
+          repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0 2px, transparent 2px 8px),
+          linear-gradient(180deg, rgba(165,175,200,0.70), rgba(55,62,75,0.78));
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.12), 0 0 14px rgba(79,211,255,0.10);
+      }
+      #battleBotFortress[data-wall-tier="iron"]::after {
+        opacity: 1;
+        background:
+          radial-gradient(circle at 35% 25%, rgba(110,220,255,0.22), transparent 55%),
+          repeating-linear-gradient(90deg, rgba(120,240,255,0.18) 0 5px, rgba(0,0,0,0.12) 5px 12px),
+          linear-gradient(180deg, rgba(35,45,60,0.98), rgba(8,10,16,0.98));
+        box-shadow: inset 0 2px 0 rgba(255,255,255,0.14), 0 0 26px rgba(79,211,255,0.22);
+        animation: runes-flicker 1.3s ease-in-out infinite;
+      }
+
+      @keyframes runes-flicker {
+        0% { filter: brightness(0.95); opacity: 1; }
+        50% { filter: brightness(1.22); opacity: 0.95; }
+        100% { filter: brightness(0.98); opacity: 1; }
       }
 
       .cannonball {
@@ -2405,7 +2646,7 @@
             </div>
             <div class="battle-side">
               <div class="battle-label">Bot</div>
-              <div class="battle-stat">
+              <div class="battle-stat" id="battleBotStatText">
                 Castle Lv <span id="battleBotLevel">1</span> |
                 Cannon Lv <span id="battleBotCannon">0</span>
               </div>
@@ -2414,7 +2655,11 @@
                 <div class="hp-track"><div class="hp-fill castle" id="botCastleHpFill" style="width:100%"></div></div>
                 <div class="hp-text" id="botCastleHpText">0/0</div>
               </div>
-              <div class="battle-fortress"></div>
+              <div id="battleBotFortress" class="battle-fortress"></div>
+              <div class="battle-bot-cannons" aria-hidden="true">
+                <div id="battleBotCannonIcon1" class="battle-mini-cannon battle-mini-cannon--1" data-cannon-lvl="0"></div>
+                <div id="battleBotCannonIcon2" class="battle-mini-cannon battle-mini-cannon--2 hidden" data-cannon-lvl="0"></div>
+              </div>
             </div>
           </div>
           <div class="controls" style="display:flex; justify-content:center; gap:10px;">
@@ -2612,6 +2857,9 @@
         const battleBotLevelEl = document.getElementById("battleBotLevel");
         const battleBotCannonEl = document.getElementById("battleBotCannon");
         const battleArenaEl = document.getElementById("battleArena");
+        const battleBotFortressEl = document.getElementById("battleBotFortress");
+        const battleBotCannonIcon1El = document.getElementById("battleBotCannonIcon1");
+        const battleBotCannonIcon2El = document.getElementById("battleBotCannonIcon2");
 
         const upgradeModalEl = document.getElementById("upgradeModal");
         const closeUpgradeBtn = document.getElementById("closeUpgradeBtn");
@@ -2675,6 +2923,8 @@
         let playerWallHpMax = 0;
         let botCastleHp = 0;
         let botCastleHpMax = 0;
+        let botWallHp = 0;
+        let botWallHpMax = 0;
 
         let tutorialStep = 0; // 1..6 per guided tour
         let tutorialStepShownAtMs = null;
@@ -3744,11 +3994,41 @@
         function openBattleModal() {
           if (!battleModalEl) return;
           battleModalEl.classList.remove("hidden");
+          if (!battleOpponent) battleOpponent = generateNewOpponent();
           if (battlePlayerCastleEl) battlePlayerCastleEl.textContent = String(stage);
           if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(cannon1Level);
           if (battlePlayerWallEl) battlePlayerWallEl.textContent = String(hasWall ? wallLevel : 0);
-          if (battleBotLevelEl) battleBotLevelEl.textContent = String(stage);
-          if (battleBotCannonEl) battleBotCannonEl.textContent = String(stage);
+          if (battleBotLevelEl) battleBotLevelEl.textContent = String(battleOpponent.botCastleLevel);
+          if (battleBotCannonEl)
+            battleBotCannonEl.textContent = String(battleOpponent.botCannon1Level);
+          if (battleBotFortressEl) {
+            battleBotFortressEl.dataset.wallOwned = battleOpponent.botHasWall ? "1" : "0";
+            battleBotFortressEl.dataset.wallLvl = String(
+              battleOpponent.botHasWall ? battleOpponent.botWallLevel : 0
+            );
+            const wt = battleOpponent.botHasWall
+              ? battleOpponent.botWallLevel >= 8
+                ? "iron"
+                : battleOpponent.botWallLevel >= 4
+                  ? "stone"
+                  : "wood"
+              : "none";
+            battleBotFortressEl.dataset.wallTier = wt;
+          }
+          if (battleBotCannonIcon1El) {
+            battleBotCannonIcon1El.dataset.cannonLvl = String(battleOpponent.botCannon1Level);
+            const ct1 =
+              battleOpponent.botCannon1Level >= 8 ? "steel" : battleOpponent.botCannon1Level >= 4 ? "bronze" : "wood";
+            battleBotCannonIcon1El.dataset.cannonTier = ct1;
+            battleBotCannonIcon1El.classList.remove("hidden");
+          }
+          if (battleBotCannonIcon2El) {
+            battleBotCannonIcon2El.dataset.cannonLvl = String(battleOpponent.botCannon2Level);
+            const ct2 =
+              battleOpponent.botCannon2Level >= 8 ? "steel" : battleOpponent.botCannon2Level >= 4 ? "bronze" : "wood";
+            battleBotCannonIcon2El.dataset.cannonTier = ct2;
+            battleBotCannonIcon2El.classList.toggle("hidden", !battleOpponent.botHasSecondCannon);
+          }
           battleInProgress = false;
         }
 
@@ -3776,35 +4056,132 @@
           ball.style.left = Math.round(startX) + "px";
           ball.style.top = Math.round(startY) + "px";
 
-          const dur = 560 / battleSpeed;
-          ball.animate(
+          const baseDur = 560;
+          const anim = ball.animate(
             [
               { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
               { transform: `translate(${endX - startX}px, ${-18}px) translate(-50%, -50%) scale(1.05)`, opacity: 1 },
               { transform: `translate(${endX - startX}px, ${endY - startY}px) translate(-50%, -50%) scale(0.9)`, opacity: 0.0 },
             ],
-            { duration: dur, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
-          ).onfinish = () => ball.remove();
+            { duration: baseDur, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
+          );
+          anim.playbackRate = battleSpeed;
+          battleActiveAnimations.push(anim);
+          anim.onfinish = () => {
+            ball.remove();
+            battleActiveAnimations = battleActiveAnimations.filter((a) => a !== anim);
+          };
         }
 
         let battleSpeed = 1;
+        let battleOpponent = null;
+        let battleActiveAnimations = [];
+
+        async function waitBattleMs(ms) {
+          const start = performance.now();
+          while (true) {
+            const elapsed = performance.now() - start;
+            const target = ms / battleSpeed;
+            if (elapsed >= target) break;
+            await new Promise((r) => setTimeout(r, 35));
+          }
+        }
+
+        function generateNewOpponent() {
+          const playerCastle = stage;
+          const delta = Math.random() > 0.5 ? 1 : -1;
+          const botCastleLevel = clamp(playerCastle + delta, 1, MAX_STAGE);
+
+          const botHasWall = Math.random() < 0.5;
+          const botWallLevel = botHasWall ? botCastleLevel : 0;
+
+          const botHasSecondCannon = botCastleLevel > 5 && Math.random() < 0.3;
+
+          // Cannon levels are capped by their castle level.
+          const baseCannon = clamp(botCastleLevel - 1, 0, botCastleLevel);
+          const botCannon1Level = clamp(baseCannon + (Math.random() < 0.5 ? 1 : 0), 0, botCastleLevel);
+          const botCannon2Level = botHasSecondCannon
+            ? clamp(botCannon1Level - (Math.random() < 0.5 ? 1 : 0), 0, botCastleLevel)
+            : 0;
+
+          const opponent = {
+            botCastleLevel,
+            botHasWall,
+            botWallLevel,
+            botHasSecondCannon,
+            botCannon1Level,
+            botCannon2Level,
+          };
+
+          logEvent("battle_opponent_generated", {
+            botCastleLevel,
+            botHasWall,
+            botWallLevel,
+            botHasSecondCannon,
+            botCannon1Level,
+            botCannon2Level,
+          });
+
+          return opponent;
+        }
 
         function beginAttack() {
           if (battleInProgress) return;
           battleInProgress = true;
 
+          // Ensure an opponent exists for this attack click.
+          if (!battleOpponent) battleOpponent = generateNewOpponent();
+
+          const botCastleLevel = battleOpponent.botCastleLevel;
+          const botHasWall = battleOpponent.botHasWall;
+          const botWallLvl = botHasWall ? battleOpponent.botWallLevel : 0;
+          const botHasSecondCannon = battleOpponent.botHasSecondCannon;
+          const botCannon1Lvl = battleOpponent.botCannon1Level;
+          const botCannon2Lvl = botHasSecondCannon ? battleOpponent.botCannon2Level : 0;
+
           const playerCannon1 = cannon1Level;
           const playerCannon2 = hasSecondCannon ? cannon2Level : 0;
           const playerCastle = stage;
-          const delta = Math.random() > 0.5 ? 1 : -1;
-          battleBotLevel = clamp(playerCastle + delta, 1, MAX_STAGE);
+          battleBotLevel = botCastleLevel;
           const totalCannons = 1 + (hasSecondCannon ? 1 : 0);
 
           if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(playerCannon1);
-          if (battleBotLevelEl) battleBotLevelEl.textContent = String(battleBotLevel);
+          if (battleBotLevelEl) battleBotLevelEl.textContent = String(botCastleLevel);
+          if (battleBotCannonEl)
+            battleBotCannonEl.textContent = String(
+              botHasSecondCannon ? botCannon1Lvl + 1 : botCannon1Lvl
+            );
+
+          // Update bot mini-model loadout visuals (icons).
+          if (battleBotFortressEl) {
+            battleBotFortressEl.dataset.wallOwned = botHasWall ? "1" : "0";
+            battleBotFortressEl.dataset.wallLvl = String(botWallLvl);
+            const wt = botHasWall
+              ? botWallLvl >= 8
+                ? "iron"
+                : botWallLvl >= 4
+                  ? "stone"
+                  : "wood"
+              : "none";
+            battleBotFortressEl.dataset.wallTier = wt;
+          }
+          if (battleBotCannonIcon1El) {
+            battleBotCannonIcon1El.dataset.cannonLvl = String(botCannon1Lvl);
+            const ct1 =
+              botCannon1Lvl >= 8 ? "steel" : botCannon1Lvl >= 4 ? "bronze" : "wood";
+            battleBotCannonIcon1El.dataset.cannonTier = ct1;
+            battleBotCannonIcon1El.classList.remove("hidden");
+          }
+          if (battleBotCannonIcon2El) {
+            battleBotCannonIcon2El.dataset.cannonLvl = String(botCannon2Lvl);
+            const ct2 =
+              botCannon2Lvl >= 8 ? "steel" : botCannon2Lvl >= 4 ? "bronze" : "wood";
+            battleBotCannonIcon2El.dataset.cannonTier = ct2;
+            battleBotCannonIcon2El.classList.toggle("hidden", !botHasSecondCannon);
+          }
 
           logEvent("attack_started", {
-            botLevel: battleBotLevel,
+            botLevel: botCastleLevel,
             playerCannonLevel: playerCannon1,
             playerCannon2Level: playerCannon2,
             botHp: battleBotLevel * 100,
@@ -3818,12 +4195,14 @@
           playerWallHpMax = hasWall ? wallLevel * 50 : 0;
           playerWallHp = playerWallHpMax;
 
-          botCastleHpMax = battleBotLevel * 100;
+          botCastleHpMax = botCastleLevel * 100;
           botCastleHp = botCastleHpMax;
+          botWallHpMax = botHasWall ? botWallLvl * 50 : 0;
+          botWallHp = botWallHpMax;
 
           function setHp(fillEl, textEl, cur, max) {
-            const pct = max <= 0 ? 0 : Math.max(0, Math.min(100, Math.round((cur / max) * 100)));
-            if (fillEl) fillEl.style.width = pct + "%";
+            const pct = max <= 0 ? 0 : Math.max(0, Math.min(100, (cur / max) * 100));
+            if (fillEl) fillEl.style.width = pct.toFixed(1) + "%";
             if (textEl) textEl.textContent = `${Math.max(0, Math.round(cur))}/${Math.max(0, Math.round(max))}`;
           }
 
@@ -3869,14 +4248,21 @@
           }
 
           function applyToBot(dmg) {
-            botCastleHp -= dmg;
+            // Damage applies to bot wall first (if present), then bot castle.
+            if (botWallHp > 0) {
+              const used = Math.min(botWallHp, dmg);
+              botWallHp -= used;
+              dmg -= used;
+            }
+            if (dmg > 0) botCastleHp -= dmg;
             setHp(botCastleFill, botCastleText, botCastleHp, botCastleHpMax);
           }
 
           const arenaRect = battleArenaEl.getBoundingClientRect();
           const playerDmg =
             (20 + playerCannon1 * 5) + (hasSecondCannon ? (20 + playerCannon2 * 5) : 0);
-          const botDmg = 20 + battleBotLevel * 5;
+          const botDmg =
+            (20 + botCannon1Lvl * 5) + (botHasSecondCannon ? (20 + botCannon2Lvl * 5) : 0);
 
           (async function combatLoop() {
             while (playerCastleHp > 0 && botCastleHp > 0) {
@@ -3885,14 +4271,15 @@
               if (hasSecondCannon) spawnBattleCannonball(true, 1);
               floatDamage(arenaRect.left + arenaRect.width - 140, arenaRect.top + 78, `-${playerDmg}`, true);
               applyToBot(playerDmg);
-              await new Promise((r) => setTimeout(r, 820 / battleSpeed));
+              await waitBattleMs(820);
               if (botCastleHp <= 0) break;
 
               // Bot turn
               spawnBattleCannonball(false, 0);
+              if (botHasSecondCannon) spawnBattleCannonball(false, 1);
               floatDamage(arenaRect.left + 140, arenaRect.top + 78, `-${botDmg}`, false);
               applyToPlayer(botDmg);
-              await new Promise((r) => setTimeout(r, 820 / battleSpeed));
+              await waitBattleMs(820);
             }
 
             const win = botCastleHp <= 0 && playerCastleHp > 0;
@@ -3957,6 +4344,7 @@
 
         if (attackBtn) {
           attackBtn.addEventListener("click", function () {
+            battleOpponent = generateNewOpponent();
             openBattleModal();
           });
         }
@@ -4043,6 +4431,14 @@
           btnFastForward.addEventListener("click", function () {
             const next = battleSpeed === 1 ? 4 : 1;
             battleSpeed = next;
+            // Make already-running projectile animations speed up immediately.
+            if (battleActiveAnimations && battleActiveAnimations.length) {
+              battleActiveAnimations.forEach((a) => {
+                try {
+                  a.playbackRate = next;
+                } catch (e) {}
+              });
+            }
 
             btnFastForward.textContent = `${next}x`;
             const isFast = next === 4;
