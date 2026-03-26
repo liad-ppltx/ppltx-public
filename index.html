@@ -3121,30 +3121,123 @@
         const consentStartBtn = document.getElementById("consentStartBtn");
 
         const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0 };
-        function getGameConfig() {
-          if (gameState.condition === "B") {
-            return {
-              slotWeights: { hammer: 5, pig: 5, shield: 2, coin: 4, bag: 4, energy: 2 },
-              initialEnergy: 20,
-              maxEnergy: 20,
-            };
-          }
-          return {
-            slotWeights: { hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, energy: 2 },
+        const DEFAULT_ECONOMY_DATA = {
+          condition_A: {
             initialEnergy: 10,
             maxEnergy: 10,
+            refillMinutes: 5,
+            villageCompleteReward: { coins: 500000, energy: 20 },
+            slotWeights: { hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, energy: 2 },
+            payouts: {
+              coin_single: 1000,
+              bag_triple: 50000,
+              raid_base: 100000,
+              attack_hit: 700,
+              attack_blocked: 120,
+              energy_triple: 10,
+            },
+            buildings: {
+              Boat: { baseCost: 5000, multiplier: 1.5 },
+              Statue: { baseCost: 15000, multiplier: 1.6 },
+              Cannon: { baseCost: 40000, multiplier: 1.7 },
+              Farm: { baseCost: 100000, multiplier: 1.8 },
+              Castle: { baseCost: 250000, multiplier: 2.0 },
+            },
+          },
+          condition_B: {
+            initialEnergy: 20,
+            maxEnergy: 20,
+            refillMinutes: 3,
+            villageCompleteReward: { coins: 1000000, energy: 50 },
+            slotWeights: { hammer: 5, pig: 5, shield: 2, coin: 4, bag: 4, energy: 2 },
+            payouts: {
+              coin_single: 2500,
+              bag_triple: 150000,
+              raid_base: 300000,
+              attack_hit: 900,
+              attack_blocked: 200,
+              energy_triple: 10,
+            },
+            buildings: {
+              Boat: { baseCost: 3000, multiplier: 1.3 },
+              Statue: { baseCost: 10000, multiplier: 1.4 },
+              Cannon: { baseCost: 30000, multiplier: 1.5 },
+              Farm: { baseCost: 80000, multiplier: 1.6 },
+              Castle: { baseCost: 200000, multiplier: 1.7 },
+            },
+          },
+        };
+        window.ECONOMY_DATA = window.ECONOMY_DATA || null;
+        function getConditionKey() {
+          return gameState.condition === "B" ? "condition_B" : "condition_A";
+        }
+        function getConditionEconomy() {
+          const source = window.ECONOMY_DATA || DEFAULT_ECONOMY_DATA;
+          return source[getConditionKey()] || DEFAULT_ECONOMY_DATA.condition_A;
+        }
+        function getPayoutValue(key, fallback) {
+          const payouts = (getConditionEconomy() && getConditionEconomy().payouts) || {};
+          const v = Number(payouts[key]);
+          return Number.isFinite(v) ? v : fallback;
+        }
+        function getVillageCompleteReward() {
+          const reward = (getConditionEconomy() && getConditionEconomy().villageCompleteReward) || {};
+          return {
+            coins: Number.isFinite(Number(reward.coins)) ? Number(reward.coins) : 500000,
+            energy: Number.isFinite(Number(reward.energy)) ? Number(reward.energy) : 20,
+          };
+        }
+        function calculateUpgradeCost(buildingName, currentStars) {
+          const buildings = (getConditionEconomy() && getConditionEconomy().buildings) || {};
+          const model = buildings[buildingName];
+          const stars = Math.max(0, Number(currentStars) || 0);
+          const baseCost = model ? Number(model.baseCost) : 100;
+          const multiplier = model ? Number(model.multiplier) : 1.4;
+          if (!Number.isFinite(baseCost) || !Number.isFinite(multiplier)) {
+            return Math.max(1, Math.round(100 * Math.pow(1.4, stars)));
+          }
+          return Math.max(1, Math.round(baseCost * Math.pow(multiplier, stars)));
+        }
+        async function loadGameEconomy() {
+          try {
+            const res = await fetch("game-economy.json", { cache: "no-store" });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const parsed = await res.json();
+            if (!parsed || typeof parsed !== "object") throw new Error("invalid JSON");
+            window.ECONOMY_DATA = parsed;
+            logEvent("economy_config_loaded", { source: "remote_json", ok: true });
+          } catch (err) {
+            window.ECONOMY_DATA = DEFAULT_ECONOMY_DATA;
+            console.warn("Using fallback economy config:", err);
+            logEvent("economy_config_loaded", {
+              source: "fallback_default",
+              ok: false,
+              error: String((err && err.message) || err || "unknown"),
+            });
+          }
+        }
+        function getGameConfig() {
+          const economy = getConditionEconomy();
+          const slotWeights = Object.assign({ hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, energy: 2 }, economy.slotWeights || {});
+          const initialEnergy = Number(economy.initialEnergy);
+          const maxEnergy = Number(economy.maxEnergy);
+          const refillMinutes = Number(economy.refillMinutes);
+          return {
+            slotWeights,
+            initialEnergy: Number.isFinite(initialEnergy) ? initialEnergy : 10,
+            maxEnergy: Number.isFinite(maxEnergy) ? maxEnergy : 10,
+            refillMinutes: Number.isFinite(refillMinutes) ? refillMinutes : 5,
           };
         }
         let GAME_CONFIG = getGameConfig();
         let MAX_ENERGY = GAME_CONFIG.maxEnergy;
         const MAX_LEVEL = 10;
         const MAX_STAGE = MAX_LEVEL;
-        const STAGE_COST = [0, 60, 90, 130, 180, 240, 310, 390, 480, 580, 0];
 
         let energy = GAME_CONFIG.initialEnergy;
         gameState.energy = energy;
         let lastEnergyRefillAt = Date.now();
-        const ENERGY_REFILL_INTERVAL_MS = 5 * 60 * 1000;
+        let ENERGY_REFILL_INTERVAL_MS = Math.max(60000, GAME_CONFIG.refillMinutes * 60 * 1000);
         let nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
         let gameBooted = false;
         let coins = 0;
@@ -3434,6 +3527,7 @@
           window.__researchContext.condition = gameState.condition;
           GAME_CONFIG = getGameConfig();
           MAX_ENERGY = GAME_CONFIG.maxEnergy;
+          ENERGY_REFILL_INTERVAL_MS = Math.max(60000, GAME_CONFIG.refillMinutes * 60 * 1000);
           energy = GAME_CONFIG.initialEnergy;
           gameState.energy = energy;
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
@@ -3467,21 +3561,15 @@
 
         function upgradeCostForStage(s) {
           if (s >= MAX_STAGE) return 0;
-          const base = STAGE_COST[s] || 100;
-          if (gameState.condition === "B" && s <= 3) return Math.max(1, Math.floor(base * 0.85));
-          return base;
+          return calculateUpgradeCost("Castle", villageProgress.Castle || 0);
         }
 
         function cannonUpgradeCostForLevel(lvl) {
-          const base = 80 + lvl * 70;
-          if (gameState.condition === "B" && lvl <= 2) return Math.max(1, Math.floor(base * 0.85));
-          return base;
+          return calculateUpgradeCost("Cannon", villageProgress.Cannon || lvl || 0);
         }
 
         function wallUpgradeCostForLevel(lvl) {
-          const base = 120 + lvl * 90;
-          if (gameState.condition === "B" && lvl <= 2) return Math.max(1, Math.floor(base * 0.85));
-          return base;
+          return calculateUpgradeCost("Statue", villageProgress.Statue || lvl || 0);
         }
 
         function updateCastleStage() {
@@ -3663,7 +3751,7 @@
               costEl.classList.remove("poor");
               return;
             }
-            const cost = 120 + current * 80;
+            const cost = calculateUpgradeCost(item, current);
             const canAfford = coins >= cost;
             btn.disabled = !canAfford || isVillageCelebrating;
             btn.textContent = "Add Star";
@@ -3687,6 +3775,7 @@
             return Number(weights[key] || 1);
           };
           const total = SYMBOLS.reduce((sum, s) => sum + getWeight(s.name), 0);
+          if (total <= 0) return SYMBOLS[0];
           let roll = Math.random() * total;
           for (const s of SYMBOLS) {
             roll -= getWeight(s.name);
@@ -3710,8 +3799,9 @@
           const entries = Object.entries(counts).sort((x, y) => y[1] - x[1]);
           const [topName, topCount] = entries[0];
           if (topCount === 3 && topName === "Energy") return 0;
-          if (topCount === 3 && (topName === "Coin" || topName === "Bag")) return 1200;
-          return 120;
+          if (topCount === 3 && topName === "Coin") return getPayoutValue("coin_single", 1000);
+          if (topCount === 3 && topName === "Bag") return getPayoutValue("bag_triple", 50000);
+          return 0;
         }
         function getActionForTriple(symbols) {
           const names = symbols.map((s) => s.name);
@@ -3796,8 +3886,9 @@
           if (villageCelebrationEl) villageCelebrationEl.classList.remove("hidden");
           spawnConfettiBurst();
           await sleep(3000);
-          coins += 500000;
-          gameState.energy = clamp(gameState.energy + 20, 0, MAX_ENERGY);
+          const reward = getVillageCompleteReward();
+          coins += reward.coins;
+          gameState.energy = clamp(gameState.energy + reward.energy, 0, MAX_ENERGY);
           energy = gameState.energy;
           setStatus("Village complete! Bonus gift claimed.", false);
           await sleep(2000);
@@ -3844,10 +3935,11 @@
           let result = "hit";
           if (blocked) {
             result = "blocked";
-            reward = 120;
+            reward = getPayoutValue("attack_blocked", 120);
+            coins += reward;
             setStatus("Blocked by shield. Small reward.", false);
           } else {
-            reward = 700;
+            reward = getPayoutValue("attack_hit", 700);
             coins += reward;
             pulseScreenShake();
             setStatus("Hit! Large reward.", false);
@@ -3889,7 +3981,10 @@
               if (idx === emptyIdx) {
                 btn.textContent = "EMPTY";
               } else {
-                const amount = 260 + Math.floor(Math.random() * 180);
+                const raidBase = getPayoutValue("raid_base", 100000);
+                const minPerDig = Math.max(1, Math.round((raidBase / 3) * 0.85));
+                const range = Math.max(1, Math.round((raidBase / 3) * 0.3));
+                const amount = minPerDig + Math.floor(Math.random() * range);
                 totalStolen += amount;
                 coins += amount;
                 btn.textContent = `+${amount}`;
@@ -4315,12 +4410,13 @@
           coins += coinsWon;
           if (result.every((s) => s.name === "Energy")) {
             const beforeEnergy = gameState.energy;
-            gameState.energy = clamp(gameState.energy + 10, 0, MAX_ENERGY);
+            const energyReward = getPayoutValue("energy_triple", 10);
+            gameState.energy = clamp(gameState.energy + energyReward, 0, MAX_ENERGY);
             energy = gameState.energy;
             if (gameState.energy < MAX_ENERGY) {
               nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
             }
-            logEvent("energy_slot_reward", { energyBefore: beforeEnergy, energyAfter: gameState.energy, reward: 10 });
+            logEvent("energy_slot_reward", { energyBefore: beforeEnergy, energyAfter: gameState.energy, reward: energyReward });
           }
           setStatus(coinsWon > 0 ? `+${coinsWon} coins!` : "No payout.", coinsWon <= 0);
 
@@ -4656,7 +4752,7 @@
             setStatus(`${item} is already max stars.`, false);
             return;
           }
-          const cost = 120 + current * 80;
+          const cost = calculateUpgradeCost(item, current);
           if (coins < cost) {
             setStatus("Not enough coins.", true);
             return;
@@ -4684,7 +4780,7 @@
               handleCannonUpgrade(upgradeContext.index === 2 ? 2 : 1);
             } else if (upgradeContext.type === "wall") {
               if (!hasWall) {
-                const cost = 900;
+                const cost = calculateUpgradeCost("Statue", 0);
                 if (stage >= 3 && coins >= cost) {
                   coins -= cost;
                   hasWall = true;
@@ -4750,7 +4846,14 @@
             endTutorial();
             updateUI();
         }
-        document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener("DOMContentLoaded", async () => {
+          await loadGameEconomy();
+          GAME_CONFIG = getGameConfig();
+          MAX_ENERGY = GAME_CONFIG.maxEnergy;
+          ENERGY_REFILL_INTERVAL_MS = Math.max(60000, GAME_CONFIG.refillMinutes * 60 * 1000);
+          gameState.energy = clamp(gameState.energy, 0, MAX_ENERGY);
+          energy = gameState.energy;
+          nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
           const setupListener = (id, func) => {
             const el = document.getElementById(id);
             if (el) el.onclick = func;
