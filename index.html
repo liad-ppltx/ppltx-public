@@ -261,6 +261,11 @@
         align-items: center;
         margin-bottom: 8px;
       }
+      #shopBtn {
+        position: relative;
+        z-index: 1000;
+        pointer-events: auto !important;
+      }
 
       .hud-title {
         font-size: 0.92rem;
@@ -388,10 +393,56 @@
         color: #ffb347;
         text-shadow: 0 0 10px rgba(255, 140, 60, 0.45);
       }
+      .dev-refill-btn {
+        margin-left: 6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.08);
+        color: #eaf3ff;
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1;
+        cursor: pointer;
+      }
       @keyframes hud-timer-pulse {
         0% { opacity: 0.9; }
         50% { opacity: 1; text-shadow: 0 0 10px rgba(255, 209, 102, 0.45); }
         100% { opacity: 0.9; }
+      }
+      .village-progress-bar-container {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(560px, 92vw);
+        z-index: 210;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        background: rgba(12, 16, 30, 0.72);
+        padding: 5px 10px;
+        pointer-events: none;
+      }
+      .village-progress-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(255, 179, 71, 0.7), rgba(255, 224, 138, 0.86), rgba(255, 179, 71, 0.7));
+        box-shadow: 0 0 16px rgba(255, 209, 102, 0.45);
+        transition: width 420ms cubic-bezier(0.25, 0.8, 0.25, 1);
+      }
+      .village-progress-label {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        font-size: 0.76rem;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        color: #f2f6ff;
       }
       .hud-bar-fill.energy.energy-refill-flash {
         animation: energy-refill-flash 620ms ease-out;
@@ -2555,6 +2606,10 @@
     </div>
 
     <div id="appLayout" class="app-layout hidden">
+      <div id="villageProgressBarContainer" class="village-progress-bar-container">
+        <div id="villageProgressFill" class="village-progress-fill"></div>
+        <div id="villageProgressLabel" class="village-progress-label">Village 1 Progress: 0 / 25 Stars</div>
+      </div>
       <div class="phone-frame">
       <div class="phone-bezel-notch" aria-hidden="true"></div>
 
@@ -2575,6 +2630,7 @@
             <div class="hud-bar-value">
               <span id="energyValue">10</span>/<span id="energyMaxValue">10</span>
               <span id="hudEnergyTimer" class="hud-timer">Next: 05:00</span>
+              <button id="devRefillBtn" type="button" class="dev-refill-btn" title="Dev refill">+</button>
             </div>
           </div>
           <div class="hud-bar">
@@ -2719,19 +2775,34 @@
       <div id="shopModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Shop">
         <div class="modal-sheet panel-stone">
           <div class="modal-header">
-            <div class="modal-title">Shop</div>
+            <div class="modal-title">BUILD YOUR VILLAGE</div>
             <button id="closeShopBtn" type="button" class="secondary metal-btn">Close</button>
           </div>
           <div class="shop-list">
             <div class="shop-item">
-              <div class="shop-title">Second Cannon</div>
-              <div class="shop-desc">Requires Castle Stage 5. Adds a second cannon asset and increases village progress.</div>
-              <button id="buySecondCannonBtn" type="button" class="secondary wood-metal">Buy (1500)</button>
+              <div class="shop-title">Castle</div>
+              <div class="shop-desc">Stars: <span id="shopStarCastle">0</span>/5</div>
+              <button id="shopVillageCastleBtn" type="button" class="secondary wood-metal">Add Star</button>
             </div>
             <div class="shop-item">
-              <div class="shop-title">Statue Foundation</div>
-              <div class="shop-desc">Requires Castle Stage 3. Unlocks the Statue line for village star upgrades.</div>
-              <button id="buyWallBtn" type="button" class="secondary wood-metal">Buy (900)</button>
+              <div class="shop-title">Cannon</div>
+              <div class="shop-desc">Stars: <span id="shopStarCannon">0</span>/5</div>
+              <button id="shopVillageCannonBtn" type="button" class="secondary wood-metal">Add Star</button>
+            </div>
+            <div class="shop-item">
+              <div class="shop-title">Statue</div>
+              <div class="shop-desc">Stars: <span id="shopStarStatue">0</span>/5</div>
+              <button id="shopVillageStatueBtn" type="button" class="secondary wood-metal">Add Star</button>
+            </div>
+            <div class="shop-item">
+              <div class="shop-title">Farm</div>
+              <div class="shop-desc">Stars: <span id="shopStarFarm">0</span>/5</div>
+              <button id="shopVillageFarmBtn" type="button" class="secondary wood-metal">Add Star</button>
+            </div>
+            <div class="shop-item">
+              <div class="shop-title">Boat</div>
+              <div class="shop-desc">Stars: <span id="shopStarBoat">0</span>/5</div>
+              <button id="shopVillageBoatBtn" type="button" class="secondary wood-metal">Add Star</button>
             </div>
           </div>
         </div>
@@ -2903,8 +2974,19 @@
 
         const shopModalEl = document.getElementById("shopModal");
         const closeShopBtn = document.getElementById("closeShopBtn");
-        const buySecondCannonBtn = document.getElementById("buySecondCannonBtn");
-        const buyWallBtn = document.getElementById("buyWallBtn");
+        const shopVillageCastleBtn = document.getElementById("shopVillageCastleBtn");
+        const shopVillageCannonBtn = document.getElementById("shopVillageCannonBtn");
+        const shopVillageStatueBtn = document.getElementById("shopVillageStatueBtn");
+        const shopVillageFarmBtn = document.getElementById("shopVillageFarmBtn");
+        const shopVillageBoatBtn = document.getElementById("shopVillageBoatBtn");
+        const shopStarCastleEl = document.getElementById("shopStarCastle");
+        const shopStarCannonEl = document.getElementById("shopStarCannon");
+        const shopStarStatueEl = document.getElementById("shopStarStatue");
+        const shopStarFarmEl = document.getElementById("shopStarFarm");
+        const shopStarBoatEl = document.getElementById("shopStarBoat");
+        const villageProgressFillEl = document.getElementById("villageProgressFill");
+        const villageProgressLabelEl = document.getElementById("villageProgressLabel");
+        const devRefillBtn = document.getElementById("devRefillBtn");
         const raidModalEl = document.getElementById("raidModal");
         const collectRaidBtn = document.getElementById("collectRaidBtn");
         const energyModalEl = document.getElementById("energyModal");
@@ -3462,6 +3544,13 @@
           if (starStatueEl) starStatueEl.textContent = String(villageProgress.Statue);
           if (starFarmEl) starFarmEl.textContent = String(villageProgress.Farm);
           if (starBoatEl) starBoatEl.textContent = String(villageProgress.Boat);
+          if (shopStarCastleEl) shopStarCastleEl.textContent = String(villageProgress.Castle);
+          if (shopStarCannonEl) shopStarCannonEl.textContent = String(villageProgress.Cannon);
+          if (shopStarStatueEl) shopStarStatueEl.textContent = String(villageProgress.Statue);
+          if (shopStarFarmEl) shopStarFarmEl.textContent = String(villageProgress.Farm);
+          if (shopStarBoatEl) shopStarBoatEl.textContent = String(villageProgress.Boat);
+          if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
+          if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${villageId} Progress: ${totalStars} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
         }
 
@@ -4333,35 +4422,10 @@
         function openShopModal() {
           if (!shopModalEl) return;
           shopModalEl.classList.remove("hidden");
-
-          // If items are already owned, reflect that in the UI and log once.
-          if (buySecondCannonBtn) {
-            if (hasSecondCannon) {
-              buySecondCannonBtn.textContent = "OWNED";
-              buySecondCannonBtn.disabled = true;
-              if (!maxedLoggedSecondCannon) {
-                maxedLoggedSecondCannon = true;
-                logEvent("item_maxed_out", { item: "second_cannon", cost: 1500 });
-              }
-            } else {
-              buySecondCannonBtn.textContent = "Buy (1500)";
-              buySecondCannonBtn.disabled = false;
-            }
-          }
-
-          if (buyWallBtn) {
-            if (hasWall) {
-              buyWallBtn.textContent = "OWNED";
-              buyWallBtn.disabled = true;
-              if (!maxedLoggedWall) {
-                maxedLoggedWall = true;
-                logEvent("item_maxed_out", { item: "wall_start", cost: 900 });
-              }
-            } else {
-              buyWallBtn.textContent = "Buy (900)";
-              buyWallBtn.disabled = false;
-            }
-          }
+          updateUI();
+        }
+        function openShop() {
+          openShopModal();
         }
 
         function closeShopModal() {
@@ -4384,52 +4448,30 @@
             await runSpin(false);
           })();
         }
-        function onBuySecondCannonClick() {
-            const cost = 1500;
-            if (hasSecondCannon) {
-              logEvent("item_maxed_out", { item: "second_cannon", cost });
-              setStatus("Second Cannon already owned.", false);
-              return;
-            }
-            if (stage < 5) {
-              setStatus("Reach Castle Stage 5 to buy this.", true);
-              return;
-            }
-            if (coins < cost) {
-              setStatus("Not enough coins.", true);
-              return;
-            }
-            coins -= cost;
-            hasSecondCannon = true;
-            logEvent("item_bought", { item: "second_cannon", cost });
-            upgradeVillageItem("Boat", cost);
-            persistState();
-            updateUI();
-            setStatus("Second cannon acquired!", false);
+        function onShopVillageUpgrade(item) {
+          const current = villageProgress[item] || 0;
+          if (current >= 5) {
+            setStatus(`${item} is already max stars.`, false);
+            return;
+          }
+          const cost = 120 + current * 80;
+          if (coins < cost) {
+            setStatus("Not enough coins.", true);
+            return;
+          }
+          coins -= cost;
+          upgradeVillageItem(item, cost);
+          persistState();
+          updateUI();
+          setStatus(`${item} improved!`, false);
         }
-        function onBuyWallClick() {
-            const cost = 900;
-            if (hasWall) {
-              logEvent("item_maxed_out", { item: "wall_start", cost });
-              setStatus("Iron Wall already constructed.", false);
-              return;
-            }
-            if (stage < 3) {
-              setStatus("Reach Castle Stage 3 to buy this.", true);
-              return;
-            }
-            if (coins < cost) {
-              setStatus("Not enough coins.", true);
-              return;
-            }
-            coins -= cost;
-            hasWall = true;
-            wallLevel = Math.max(1, wallLevel);
-            logEvent("item_bought", { item: "wall_start", cost });
-            upgradeVillageItem("Statue", cost);
-            persistState();
-            updateUI();
-            setStatus("Iron Wall constructed!", false);
+        function onDevRefillClick() {
+          gameState.energy = GAME_CONFIG.maxEnergy;
+          energy = gameState.energy;
+          updateUI();
+          if (typeof window.saveToFirestore === "function") {
+            window.saveToFirestore("dev_refill", { energyAfter: gameState.energy, condition: gameState.condition });
+          }
         }
         function onConfirmUpgradeClick() {
             if (!upgradeContext) return;
@@ -4514,10 +4556,14 @@
           setupListener("spinBtn", onSpinClick);
           setupListener("upgradeBtn", handleUpgrade);
           setupListener("upgradeCannonBtn", () => handleCannonUpgrade());
-          setupListener("shopBtn", openShopModal);
+          setupListener("shopBtn", openShop);
           setupListener("closeShopBtn", closeShopModal);
-          setupListener("buySecondCannonBtn", onBuySecondCannonClick);
-          setupListener("buyWallBtn", onBuyWallClick);
+          setupListener("shopVillageCastleBtn", () => onShopVillageUpgrade("Castle"));
+          setupListener("shopVillageCannonBtn", () => onShopVillageUpgrade("Cannon"));
+          setupListener("shopVillageStatueBtn", () => onShopVillageUpgrade("Statue"));
+          setupListener("shopVillageFarmBtn", () => onShopVillageUpgrade("Farm"));
+          setupListener("shopVillageBoatBtn", () => onShopVillageUpgrade("Boat"));
+          setupListener("devRefillBtn", onDevRefillClick);
           setupListener("closeUpgradeBtn", closeUpgradeModal);
           setupListener("confirmUpgradeBtn", onConfirmUpgradeClick);
           setupListener("collectRaidBtn", () => {
