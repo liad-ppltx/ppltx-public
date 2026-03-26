@@ -798,25 +798,6 @@
         0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
         100% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
       }
-      .travel-cloud {
-        position: fixed;
-        inset: 0;
-        z-index: 16000;
-        pointer-events: none;
-        opacity: 0;
-        background:
-          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.42), transparent 48%),
-          radial-gradient(circle at 78% 34%, rgba(255, 255, 255, 0.35), transparent 52%),
-          linear-gradient(180deg, rgba(235, 245, 255, 0.42), rgba(184, 208, 240, 0.34));
-      }
-      .travel-cloud.active {
-        animation: travel-cloud-fade 1500ms ease-in-out forwards;
-      }
-      @keyframes travel-cloud-fade {
-        0% { opacity: 0; }
-        24% { opacity: 0.86; }
-        100% { opacity: 0; }
-      }
       #cloudOverlay {
         position: fixed;
         inset: 0;
@@ -853,6 +834,17 @@
       @keyframes cloud-layer-drift {
         from { transform: translateX(0); }
         to { transform: translateX(-220px); }
+      }
+      .screen-shake-juice {
+        animation: shake 70ms linear infinite;
+      }
+      @keyframes shake {
+        0% { transform: translate(0px, 0px) rotate(0deg); }
+        20% { transform: translate(-2px, 1px) rotate(-0.4deg); }
+        40% { transform: translate(2px, -1px) rotate(0.4deg); }
+        60% { transform: translate(-1px, 2px) rotate(-0.3deg); }
+        80% { transform: translate(1px, -2px) rotate(0.3deg); }
+        100% { transform: translate(0px, 0px) rotate(0deg); }
       }
       .hud-bar-track--energy.spins-charge {
         animation: spins-charge 720ms ease-in-out;
@@ -2684,6 +2676,10 @@
           0 0 18px rgba(255, 209, 102, 0.10);
         position: relative;
       }
+      .rune-btn.tap-press {
+        transform: scale(0.96);
+        transition: transform 120ms ease;
+      }
 
       .rune-btn::after {
         content: "";
@@ -2718,6 +2714,21 @@
         position: relative;
         z-index: 100;
         animation: tutorial-pulse 1100ms infinite var(--bezier-snap);
+      }
+      .mini-tutorial-target {
+        position: relative;
+        z-index: 120;
+        border-radius: 14px;
+        box-shadow:
+          0 0 0 2px rgba(255, 214, 120, 0.92),
+          0 0 18px rgba(255, 214, 120, 0.75),
+          0 0 34px rgba(255, 214, 120, 0.4);
+        animation: mini-gold-ring 950ms ease-in-out infinite;
+      }
+      @keyframes mini-gold-ring {
+        0% { box-shadow: 0 0 0 2px rgba(255, 214, 120, 0.88), 0 0 16px rgba(255, 214, 120, 0.62), 0 0 28px rgba(255, 214, 120, 0.32); }
+        50% { box-shadow: 0 0 0 4px rgba(255, 214, 120, 0.98), 0 0 22px rgba(255, 214, 120, 0.88), 0 0 42px rgba(255, 214, 120, 0.55); }
+        100% { box-shadow: 0 0 0 2px rgba(255, 214, 120, 0.88), 0 0 16px rgba(255, 214, 120, 0.62), 0 0 28px rgba(255, 214, 120, 0.32); }
       }
 
       @keyframes tutorial-pulse {
@@ -3143,7 +3154,6 @@
       <div class="cloud-layer layer-2"></div>
       <div class="cloud-layer layer-3"></div>
     </div>
-    <div id="travelCloudOverlay" class="travel-cloud" aria-hidden="true"></div>
     <div id="rivalVillageContainer" class="hidden" aria-hidden="true">
       <div class="rival-village">
         <div class="rival-title" id="rivalVillageTitle">Ghost Village</div>
@@ -3309,7 +3319,6 @@
         const rivalVillageContainerEl = document.getElementById("rivalVillageContainer");
         const rivalTargetsEl = document.getElementById("rivalTargets");
         const rivalVillageTitleEl = document.getElementById("rivalVillageTitle");
-        const travelCloudOverlayEl = document.getElementById("travelCloudOverlay");
         const raidModalEl = document.getElementById("raidModal");
         const collectRaidBtn = document.getElementById("collectRaidBtn");
         const energyModalEl = document.getElementById("energyModal");
@@ -3348,6 +3357,7 @@
 
         const STORAGE_KEY_SAVE = "coinIslandState_v1";
         const STORAGE_KEY_TUTORIAL = "tutorialCompleted";
+        const STORAGE_KEY_MINI_TUTORIAL = "miniTutorialCompleted";
         const cfgLabelEl = document.getElementById("cfgLabel");
         const landingPageEl = document.getElementById("landingPage");
         const appLayoutEl = document.getElementById("appLayout");
@@ -3499,6 +3509,7 @@
         let tutorialStep = 0; // 1..6 per guided tour
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
+        const miniTutorial = { active: false, step: 0 };
 
         const SYMBOLS = [
           { name: "Hammer", icon: "hammer", weight: 16, base: 0 },
@@ -3764,34 +3775,13 @@
           logEvent("island_travel_ended", { targetBotName, toRival });
           if (!toRival) gameState.currentRivalName = "";
         }
-        async function animateIslandTravel(toRival, callback) {
-          const durationMs = toRival ? 1500 : 1000;
-          if (travelCloudOverlayEl) {
-            travelCloudOverlayEl.classList.remove("active");
-            void travelCloudOverlayEl.offsetWidth;
-            travelCloudOverlayEl.classList.add("active");
-          }
-          if (worldInnerEl) {
-            worldInnerEl.style.transition = "transform 260ms ease, filter 260ms ease";
-            worldInnerEl.style.transform = "scale(1.04)";
-            worldInnerEl.style.filter = "brightness(1.08)";
-          }
-          pulseScreenShake();
-          await sleep(Math.min(520, durationMs / 2));
-          if (toRival) {
-            if (worldInnerEl) worldInnerEl.classList.add("travel-hidden");
-            if (rivalVillageContainerEl) rivalVillageContainerEl.classList.remove("hidden");
-          } else {
-            if (rivalVillageContainerEl) rivalVillageContainerEl.classList.add("hidden");
-            if (worldInnerEl) worldInnerEl.classList.remove("travel-hidden");
-          }
-          await sleep(Math.max(300, durationMs - Math.min(520, durationMs / 2)));
-          if (worldInnerEl) {
-            worldInnerEl.style.transform = "";
-            worldInnerEl.style.filter = "";
-          }
-          if (travelCloudOverlayEl) travelCloudOverlayEl.classList.remove("active");
-          if (typeof callback === "function") callback();
+        function triggerScreenShake(durationMs) {
+          const root = document.querySelector(".phone-frame");
+          if (!root) return;
+          root.classList.remove("screen-shake-juice");
+          void root.offsetWidth;
+          root.classList.add("screen-shake-juice");
+          setTimeout(() => root.classList.remove("screen-shake-juice"), Math.max(100, Number(durationMs) || 500));
         }
         function animateShieldGain() {
           playShieldGainSound();
@@ -4189,14 +4179,6 @@
           if (names.every((n) => n === "Shield")) return "shield";
           return null;
         }
-        function pulseScreenShake() {
-          const root = document.querySelector(".phone-frame");
-          if (!root) return;
-          root.classList.remove("screen-shake");
-          void root.offsetWidth;
-          root.classList.add("screen-shake");
-          setTimeout(() => root.classList.remove("screen-shake"), 380);
-        }
         function refreshShieldOrbitVisuals() {
           document.querySelectorAll(".shield-orbit").forEach((n) => n.remove());
           if (!castleEl) return;
@@ -4338,7 +4320,7 @@
           spawnImpactEffect(chosen, blocked);
           playAttackSound();
           coins += reward;
-          if (!blocked) pulseScreenShake();
+          if (!blocked) triggerScreenShake(500);
           const detailedResult = blocked
             ? `BLOCKED! ${rivalName} used a Shield. Still got ${reward} Coins.`
             : `BOOM! Direct Hit on ${rivalName} for ${reward} Coins!`;
@@ -4400,6 +4382,9 @@
                 coins += amount;
                 btn.textContent = `+${amount}`;
                 spawnFlyingCoins(8);
+                if (amount >= Math.round(raidBase / 3)) {
+                  triggerScreenShake(500);
+                }
               }
               btn.disabled = true;
               if (raidInfoEl) raidInfoEl.textContent = `Shovels: ${shovels}`;
@@ -4586,6 +4571,72 @@
           [openSlotBtn, spinBtn, upgradeBtn, closeSlotBtn].forEach((el) => {
             if (el) el.classList.remove("tutorial-target");
           });
+          [spinBtn, document.getElementById("villageProgressBarContainer"), shopBtn].forEach((el) => {
+            if (el) el.classList.remove("mini-tutorial-target");
+          });
+        }
+        function miniTutorialSeen() {
+          try {
+            return localStorage.getItem(STORAGE_KEY_MINI_TUTORIAL) === "1";
+          } catch (e) {
+            return false;
+          }
+        }
+        function setMiniTutorialSeen() {
+          try {
+            localStorage.setItem(STORAGE_KEY_MINI_TUTORIAL, "1");
+          } catch (e) {}
+        }
+        function stopMiniTutorial() {
+          miniTutorial.active = false;
+          miniTutorial.step = 0;
+          clearTutorialHighlight();
+          if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+          hideTutorialPopup();
+          if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Continue";
+          if (skipTutorialBtn) skipTutorialBtn.style.display = "";
+          setMiniTutorialSeen();
+        }
+        function renderMiniTutorialStep(stepNumber) {
+          if (!tutorialTextEl || !tutorialTooltipEl) return;
+          const progressTarget = document.getElementById("villageProgressBarContainer");
+          let target = null;
+          let msg = "";
+          let placement = "above";
+          clearTutorialHighlight();
+          if (stepNumber === 1) {
+            target = spinBtn;
+            msg = "Spin to win coins and actions!";
+            placement = "above";
+          } else if (stepNumber === 2) {
+            target = progressTarget;
+            msg = "Build your village to earn stars and unlock new worlds!";
+            placement = "below";
+          } else if (stepNumber === 3) {
+            target = shopBtn;
+            msg = "Use your coins here to upgrade your buildings!";
+            placement = "below";
+          }
+          if (!target) return;
+          target.classList.add("mini-tutorial-target");
+          tutorialTextEl.textContent = msg;
+          showTutorialPopup();
+          if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Got it!";
+          if (skipTutorialBtn) skipTutorialBtn.style.display = "none";
+          setHaloTarget(target);
+          positionTutorialPopup(target, placement);
+        }
+        function startMiniTutorial() {
+          miniTutorial.active = true;
+          miniTutorial.step = 1;
+          renderMiniTutorialStep(1);
+        }
+        function maybeAdvanceMiniTutorialBySpins() {
+          if (!miniTutorial.active) return;
+          if (miniTutorial.step === 1 && totalSpinsToComplete >= 3) {
+            miniTutorial.step = 2;
+            renderMiniTutorialStep(2);
+          }
         }
 
         function positionSpotlightOn(targetEl) {
@@ -4756,15 +4807,13 @@
         }
 
         function initTutorial() {
-          // Required: tutorial must start if tutorialCompleted is not set.
-          if (!tutorialSeen()) {
-            // Ensure popup/overlay are not stuck hidden.
+          if (totalSpinsToComplete < 5 && !miniTutorialSeen()) {
             if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
             if (tutorialTooltipEl) tutorialTooltipEl.style.display = "block";
-            enterTutorialStep(1);
-          } else {
-            endTutorial();
+            startMiniTutorial();
+            return;
           }
+          endTutorial();
         }
 
         function completeTutorialStep(stepNumber) {
@@ -4799,6 +4848,7 @@
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
           spinIndex += 1;
           totalSpinsToComplete += 1;
+          maybeAdvanceMiniTutorialBySpins();
           updateUI();
           if (gameState.energy === 0) {
             setTimeout(() => showOutOfSpinsModal(), 1000);
@@ -5177,6 +5227,12 @@
 
         function onSpinClick() {
           return (async function () {
+            if (spinBtn) {
+              spinBtn.classList.remove("tap-press");
+              void spinBtn.offsetWidth;
+              spinBtn.classList.add("tap-press");
+              setTimeout(() => spinBtn.classList.remove("tap-press"), 130);
+            }
             if (gameState.energy <= 0) {
               showOutOfSpinsModal();
               return;
@@ -5266,6 +5322,15 @@
           }
         }
         function onTutorialContinueClick() {
+            if (miniTutorial.active) {
+              if (miniTutorial.step === 2) {
+                miniTutorial.step = 3;
+                renderMiniTutorialStep(3);
+                return;
+              }
+              stopMiniTutorial();
+              return;
+            }
             if (tutorialStep <= 0) return;
             logTutorialAction("continue_click");
 
@@ -5284,6 +5349,10 @@
             enterTutorialStep(tutorialStep + 1);
         }
         function onSkipTutorialClick() {
+            if (miniTutorial.active) {
+              stopMiniTutorial();
+              return;
+            }
             if (tutorialStep > 0) {
               logTutorialAction("skip_click");
               completeTutorialStep(tutorialStep);
