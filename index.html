@@ -373,6 +373,27 @@
         font-variant-numeric: tabular-nums;
         font-weight: 700;
       }
+      .shield-slots { margin-top: 8px; display:flex; justify-content:center; gap:8px; }
+      .shield-slot { width:24px; height:24px; border-radius:50%; border:2px solid rgba(210,225,255,.42); background: rgba(22,30,50,.7); }
+      .shield-slot.active { background: radial-gradient(circle at 30% 28%, #d9f7ff 0%, #76d6ff 45%, #1f7eff 100%); box-shadow: 0 0 16px rgba(118,214,255,.55); }
+      .shield-orbit { position:absolute; width:18px; height:18px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #eaffff, #74d7ff 55%, #1e66e8 100%); box-shadow:0 0 14px rgba(96,215,255,.6); animation: orbit-float 2400ms linear infinite; pointer-events:none; }
+      @keyframes orbit-float { 0% { transform: translate(0px, 0px); } 25% { transform: translate(14px, -8px); } 50% { transform: translate(0px, -16px); } 75% { transform: translate(-14px, -8px); } 100% { transform: translate(0px, 0px); } }
+      .screen-shake { animation: screen-shake 360ms cubic-bezier(.2,.9,.3,1); }
+      @keyframes screen-shake { 0% { transform: translate(0, 0); } 20% { transform: translate(-4px, 2px); } 40% { transform: translate(4px, -2px); } 60% { transform: translate(-3px, 1px); } 80% { transform: translate(3px, -1px); } 100% { transform: translate(0, 0); } }
+      .cfg-label {
+        position: fixed;
+        right: 10px;
+        bottom: 8px;
+        z-index: 200;
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        color: rgba(230, 238, 255, 0.75);
+        background: rgba(5, 8, 20, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 8px;
+        padding: 3px 6px;
+        pointer-events: none;
+      }
 
       .world {
         flex: 1;
@@ -1414,38 +1435,6 @@
       .shop-title { font-weight: 1000; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
       .shop-desc { color: var(--text-subtle); font-size: 0.86rem; margin-bottom: 10px; }
 
-      .hp-box { display: grid; gap: 4px; width: 100%; max-width: 140px; }
-      .hp-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-subtle); }
-      .hp-track {
-        height: 10px;
-        border-radius: 999px;
-        background: linear-gradient(180deg, rgba(10,12,18,0.92), rgba(0,0,0,0.92));
-        border: 1px solid rgba(255,255,255,0.12);
-        overflow: hidden;
-      }
-      .hp-fill { height: 100%; width: 0%; transition: width 220ms var(--bezier-snap); }
-      .hp-fill.castle {
-        background: linear-gradient(90deg, #2a1203, #ffb347 22%, #ffe08a 52%, #ffb347 78%, #2a1203);
-        box-shadow: 0 0 14px rgba(255,177,60,0.35);
-      }
-      .hp-fill.wall {
-        width: 100%;
-        transform-origin: right center;
-        transform: scaleX(0);
-        transition: transform 220ms var(--bezier-snap);
-        background: linear-gradient(90deg, #2a1203, #ff9a3d 22%, #ffe08a 50%, #ff9a3d 78%, #2a1203);
-        box-shadow: 0 0 14px rgba(255,154,61,0.35);
-      }
-      .hp-text { font-variant-numeric: tabular-nums; font-weight: 900; font-size: 0.78rem; text-align: center; }
-
-      .dmg-float {
-        position: fixed;
-        z-index: 120;
-        font-weight: 1000;
-        font-variant-numeric: tabular-nums;
-        text-shadow: 0 10px 14px rgba(0,0,0,0.8);
-        pointer-events: none;
-      }
 
       .floating-log-header {
         display: flex;
@@ -2189,203 +2178,6 @@
           0 0 26px rgba(79, 211, 255, 0.22);
       }
 
-      /* Battle modal */
-      .battle-sheet { max-height: min(70vh, 610px); }
-      .battle-arena {
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        gap: 10px;
-        align-items: center;
-        padding: 10px;
-        border-radius: 18px;
-        background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.10), transparent 60%),
-          repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 8px, rgba(0,0,0,0.06) 8px 16px),
-          linear-gradient(180deg, #171a22, #07070b);
-        box-shadow:
-          inset 0 1px 0 rgba(255,255,255,0.08),
-          inset 0 -12px 18px rgba(0,0,0,0.65);
-        margin-bottom: 10px;
-      }
-
-      .battle-side { display: grid; gap: 6px; justify-items: center; }
-      .battle-label { font-weight: 900; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-subtle); font-size: 0.78rem; }
-      .battle-stat { font-weight: 800; }
-      .battle-mid { display: grid; gap: 8px; justify-items: center; }
-      .battle-vs { font-weight: 1000; font-size: 1.2rem; letter-spacing: 0.16em; color: rgba(255,255,255,0.85); }
-      .battle-cannon, .battle-fortress {
-        width: 120px; height: 96px; border-radius: 18px;
-        background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.12), transparent 60%),
-          linear-gradient(180deg, rgba(62,40,22,0.55), rgba(20,14,10,0.7));
-        border: 1px solid rgba(255,255,255,0.10);
-        box-shadow: 0 18px 40px rgba(0,0,0,0.7);
-        position: relative;
-        overflow: hidden;
-      }
-      .battle-cannon::before {
-        content:"";
-        position:absolute;
-        left: 18px; top: 44px;
-        width: 80px; height: 22px;
-        border-radius: 18px;
-        background: linear-gradient(180deg, #5a657f, #1a1f2b);
-        box-shadow: inset 0 2px 0 rgba(255,255,255,0.14), inset 0 -8px 10px rgba(0,0,0,0.55);
-      }
-      .battle-fortress::before {
-        content:"";
-        position:absolute;
-        left: 16px; top: 22px;
-        width: 88px; height: 64px;
-        border-radius: 14px;
-        background: linear-gradient(180deg, #9aa5b8, #2a2f3a);
-        box-shadow: inset 0 2px 0 rgba(255,255,255,0.16), inset 0 -12px 16px rgba(0,0,0,0.55);
-      }
-
-      /* Bot loadout mini-icons */
-      .battle-bot-cannons {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        justify-content: center;
-        margin-top: -2px;
-      }
-
-      /* Bot loadout visuals replace the bot-level text */
-      #battleBotStatText {
-        display: none;
-      }
-
-      .battle-mini-cannon {
-        width: 70px;
-        height: 54px;
-        border-radius: 16px;
-        position: relative;
-        overflow: hidden;
-        background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.12), transparent 60%),
-          linear-gradient(180deg, rgba(62,40,22,0.55), rgba(20,14,10,0.7));
-        border: 1px solid rgba(255,255,255,0.10);
-        box-shadow: 0 14px 30px rgba(0,0,0,0.65);
-      }
-
-      .battle-mini-cannon::before {
-        content: "";
-        position: absolute;
-        left: 12px; top: 30px;
-        width: 46px; height: 14px;
-        border-radius: 14px;
-        background: linear-gradient(180deg, #5a657f, #1a1f2b);
-        box-shadow: inset 0 2px 0 rgba(255,255,255,0.14), inset 0 -6px 10px rgba(0,0,0,0.55);
-      }
-
-      .battle-mini-cannon::after {
-        content: "";
-        position: absolute;
-        left: 8px; top: 38px;
-        width: 56px; height: 16px;
-        border-radius: 14px;
-        background:
-          radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 60%),
-          repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 6px, rgba(0,0,0,0.12) 6px 14px),
-          linear-gradient(180deg, rgba(58,42,24,0.95), rgba(25,17,8,0.95));
-        border: 1px solid rgba(0,0,0,0.65);
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 8px 18px rgba(0,0,0,0.55);
-      }
-
-      .battle-mini-cannon[data-cannon-tier="wood"] {
-        filter: saturate(0.9);
-      }
-
-      .battle-mini-cannon[data-cannon-tier="bronze"] {
-        background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.16), transparent 60%),
-          linear-gradient(180deg, rgba(178,132,74,0.55), rgba(70,38,16,0.78));
-      }
-      .battle-mini-cannon[data-cannon-tier="bronze"]::before {
-        background: linear-gradient(180deg, #c28a4a, #5b2d10);
-      }
-      .battle-mini-cannon[data-cannon-tier="bronze"]::after {
-        background:
-          radial-gradient(circle at 20% 10%, rgba(255,255,255,0.22), transparent 60%),
-          repeating-linear-gradient(90deg, rgba(255,255,255,0.07) 0 6px, rgba(0,0,0,0.12) 6px 14px),
-          linear-gradient(180deg, rgba(140,86,22,0.95), rgba(55,26,7,0.95));
-      }
-
-      .battle-mini-cannon[data-cannon-tier="steel"] {
-        background:
-          radial-gradient(circle at 30% 20%, rgba(255,255,255,0.18), transparent 60%),
-          linear-gradient(180deg, rgba(160,180,220,0.40), rgba(26,31,43,0.95));
-      }
-      .battle-mini-cannon[data-cannon-tier="steel"]::before {
-        background:
-          radial-gradient(circle at 30% 30%, rgba(80,220,255,0.40), transparent 60%),
-          linear-gradient(180deg, #7bd9ff, #1a4d6a);
-        box-shadow: inset 0 2px 0 rgba(255,255,255,0.16), 0 0 18px rgba(79,211,255,0.35);
-      }
-      .battle-mini-cannon[data-cannon-tier="steel"]::after {
-        background:
-          radial-gradient(circle at 20% 10%, rgba(255,255,255,0.18), transparent 60%),
-          repeating-linear-gradient(90deg, rgba(140,240,255,0.16) 0 4px, rgba(0,0,0,0.12) 4px 10px),
-          linear-gradient(180deg, rgba(210,164,74,0.92), rgba(65,35,10,0.95));
-      }
-
-      /* Bot wall overlay on fortress */
-      #battleBotFortress {
-        position: relative;
-      }
-      #battleBotFortress::after {
-        content: "";
-        position: absolute;
-        left: 14px; top: 18px;
-        width: 92px; height: 70px;
-        border-radius: 14px;
-        opacity: 0;
-        transition: opacity 180ms var(--bezier-snap);
-        pointer-events: none;
-      }
-      #battleBotFortress[data-wall-owned="0"]::after {
-        opacity: 0;
-      }
-      #battleBotFortress[data-wall-tier="wood"]::after {
-        opacity: 1;
-        background:
-          repeating-linear-gradient(90deg, rgba(120,70,30,0.85) 0 10px, rgba(60,30,12,0.90) 10px 22px),
-          linear-gradient(180deg, rgba(120,70,30,0.55), rgba(35,18,8,0.70));
-        box-shadow: inset 0 2px 0 rgba(255,255,255,0.10);
-      }
-      #battleBotFortress[data-wall-tier="stone"]::after {
-        opacity: 1;
-        background:
-          repeating-linear-gradient(0deg, rgba(255,255,255,0.08) 0 2px, transparent 2px 8px),
-          linear-gradient(180deg, rgba(165,175,200,0.70), rgba(55,62,75,0.78));
-        box-shadow: inset 0 2px 0 rgba(255,255,255,0.12), 0 0 14px rgba(79,211,255,0.10);
-      }
-      #battleBotFortress[data-wall-tier="iron"]::after {
-        opacity: 1;
-        background:
-          radial-gradient(circle at 35% 25%, rgba(110,220,255,0.22), transparent 55%),
-          repeating-linear-gradient(90deg, rgba(120,240,255,0.18) 0 5px, rgba(0,0,0,0.12) 5px 12px),
-          linear-gradient(180deg, rgba(35,45,60,0.98), rgba(8,10,16,0.98));
-        box-shadow: inset 0 2px 0 rgba(255,255,255,0.14), 0 0 26px rgba(79,211,255,0.22);
-        animation: runes-flicker 1.3s ease-in-out infinite;
-      }
-
-      @keyframes runes-flicker {
-        0% { filter: brightness(0.95); opacity: 1; }
-        50% { filter: brightness(1.22); opacity: 0.95; }
-        100% { filter: brightness(0.98); opacity: 1; }
-      }
-
-      .cannonball {
-        position: absolute;
-        width: 12px; height: 12px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 30% 30%, #6b6b6b, #1a1a1a 70%, #000);
-        box-shadow: 0 10px 18px rgba(0,0,0,0.65);
-        pointer-events: none;
-        z-index: 90;
-      }
 
       .metal-btn {
         background:
@@ -2618,6 +2410,11 @@
             <div class="hud-bar-value"><span id="coinsValue">0</span></div>
           </div>
         </div>
+        <div class="shield-slots" aria-label="Shield slots">
+          <div id="shieldSlot0" class="shield-slot"></div>
+          <div id="shieldSlot1" class="shield-slot"></div>
+          <div id="shieldSlot2" class="shield-slot"></div>
+        </div>
       </header>
 
       <section class="world">
@@ -2679,34 +2476,24 @@
           </div>
 
           <div class="village-actions" style="width: 100%; margin-top: 10px; position: relative; min-height: 60px;">
-            <button id="upgradeBtn" type="button" class="secondary wood-metal hidden" style="width: 100%; margin-bottom: 6px;">
-              Upgrade Castle (<span id="upgradeCostValue">0</span>)
-            </button>
-            <button id="upgradeCannonBtn" type="button" class="secondary wood-metal hidden" style="width: 100%; margin-bottom: 6px;">
-              Upgrade Cannon (<span id="cannonLevelValue">0</span>)
-            </button>
+            <div id="villageStars" style="width:100%; border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:8px; background:rgba(0,0,0,.18); font-size:.78rem;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span>Village <span id="villageIdValue">1</span></span><span>Stars <span id="villageTotalStars">0</span>/25</span></div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
+                <div>Castle: <span id="starCastle">0</span>/5</div>
+                <div>Cannon: <span id="starCannon">0</span>/5</div>
+                <div>Statue: <span id="starStatue">0</span>/5</div>
+                <div>Farm: <span id="starFarm">0</span>/5</div>
+                <div>Boat: <span id="starBoat">0</span>/5</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <button id="attackBtn" type="button" class="secondary wood-metal"
-        style="position:absolute; bottom:100px; left:50%; transform:translateX(-50%); width: 70%; max-width: 260px; margin-bottom:6px; z-index:12;">
-        ATTACK
-      </button>
-      <button id="refillBtn" type="button" class="secondary wood-metal"
-        style="position:absolute; bottom:60px; left:50%; transform:translateX(-50%); width: 60%; max-width: 220px; z-index:12;">
-        Refill Energy
-      </button>
-
-      <button id="openSlotBtn" type="button" class="cta-compass" aria-label="Open slot machine">
-        <div class="cta-compass-inner"></div>
-      </button>
-
-      <div id="slotModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Slot machine">
+      <div id="slotModal" class="modal" role="dialog" aria-modal="false" aria-label="Slot machine">
         <div class="modal-sheet panel-stone">
           <div class="modal-header">
             <div class="modal-title">Ancient Tablet</div>
-            <button id="closeSlotBtn" type="button" class="secondary metal-btn">Close</button>
           </div>
           <div class="reels-modal">
             <div class="reels" id="reels">
@@ -2720,60 +2507,22 @@
           </div>
         </div>
       </div>
-
-      <div id="battleModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Battle arena">
-        <div class="modal-sheet panel-stone battle-sheet">
+      <div id="raidModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Raid mode">
+        <div class="modal-sheet panel-stone">
           <div class="modal-header">
-            <div class="modal-title">Stone Arena</div>
-            <button id="closeBattleBtn" type="button" class="secondary metal-btn">Close</button>
+            <div class="modal-title">Raid: Coin Master Bot</div>
+            <button id="closeRaidBtn" type="button" class="secondary metal-btn">Close</button>
           </div>
-          <div class="battle-arena" id="battleArena">
-            <div class="battle-side">
-              <div class="battle-label">You</div>
-              <div class="battle-stat">
-                Castle Lv <span id="battlePlayerCastle">1</span> |
-                Cannon Lv <span id="battlePlayerCannon">0</span> |
-                Wall Lv <span id="battlePlayerWall">0</span>
-              </div>
-              <div class="hp-box">
-                <div class="hp-label">Wall</div>
-                <div class="hp-track"><div class="hp-fill wall" id="playerWallHpFill" style="width:0%"></div></div>
-                <div class="hp-text" id="playerWallHpText">0/0</div>
-              </div>
-              <div class="hp-box">
-                <div class="hp-label">Castle</div>
-                <div class="hp-track"><div class="hp-fill castle" id="playerCastleHpFill" style="width:100%"></div></div>
-                <div class="hp-text" id="playerCastleHpText">0/0</div>
-              </div>
-              <div class="battle-cannon"></div>
-            </div>
-            <div class="battle-mid">
-              <div class="battle-vs">VS</div>
-              <button id="btnFastForward" type="button" class="secondary metal-btn">1x</button>
-            </div>
-            <div class="battle-side">
-              <div class="battle-label">Bot</div>
-              <div class="battle-stat" id="battleBotStatText">
-                Castle Lv <span id="battleBotLevel">1</span> |
-                Cannon Lv <span id="battleBotCannon">0</span>
-              </div>
-              <div class="hp-box">
-                <div class="hp-label">Castle</div>
-                <div class="hp-track"><div class="hp-fill castle" id="botCastleHpFill" style="width:100%"></div></div>
-                <div class="hp-text" id="botCastleHpText">0/0</div>
-              </div>
-              <div id="battleBotFortress" class="battle-fortress"></div>
-              <div class="battle-bot-cannons" aria-hidden="true">
-                <div id="battleBotCannonIcon1" class="battle-mini-cannon battle-mini-cannon--1" data-cannon-lvl="0"></div>
-                <div id="battleBotCannonIcon2" class="battle-mini-cannon battle-mini-cannon--2 hidden" data-cannon-lvl="0"></div>
-              </div>
-            </div>
+          <div id="raidBoard" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin:14px 0;">
+            <button class="secondary wood-metal raid-x" data-idx="0">X</button>
+            <button class="secondary wood-metal raid-x" data-idx="1">X</button>
+            <button class="secondary wood-metal raid-x" data-idx="2">X</button>
+            <button class="secondary wood-metal raid-x" data-idx="3">X</button>
           </div>
-          <div class="controls" style="display:flex; justify-content:center; gap:10px;">
-            <button id="startAttackBtn" type="button" class="rune-btn">Fire!</button>
-          </div>
+          <div id="raidInfo" style="text-align:center; color:#dce7ff;">Shovels: 3</div>
         </div>
       </div>
+
 
       <div id="upgradeModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Upgrade info">
         <div class="modal-sheet panel-stone">
@@ -2782,12 +2531,12 @@
             <button id="closeUpgradeBtn" type="button" class="secondary metal-btn">Close</button>
           </div>
           <div class="upgrade-grid">
-            <div class="upgrade-row"><span>Current</span><span id="upgradeCurrent">-</span></div>
-            <div class="upgrade-row"><span>Next</span><span id="upgradeNext">-</span></div>
+            <div class="upgrade-row"><span>Progress</span><span id="upgradeCurrent">-</span></div>
+            <div class="upgrade-row"><span>Item</span><span id="upgradeNext">-</span></div>
             <div class="upgrade-row"><span>Cost</span><span id="upgradeCost">-</span></div>
           </div>
           <div class="controls" style="display:flex; justify-content:center; gap:10px;">
-            <button id="confirmUpgradeBtn" type="button" class="rune-btn">UPGRADE</button>
+            <button id="confirmUpgradeBtn" type="button" class="rune-btn">Add Star</button>
           </div>
         </div>
       </div>
@@ -2801,12 +2550,12 @@
           <div class="shop-list">
             <div class="shop-item">
               <div class="shop-title">Second Cannon</div>
-              <div class="shop-desc">Requires Castle Stage 5. Adds a second cannon asset and contributes to damage.</div>
+              <div class="shop-desc">Requires Castle Stage 5. Adds a second cannon asset and increases village progress.</div>
               <button id="buySecondCannonBtn" type="button" class="secondary wood-metal">Buy (1500)</button>
             </div>
             <div class="shop-item">
-              <div class="shop-title">The Iron Wall</div>
-              <div class="shop-desc">Requires Castle Stage 3. Unlocks an Iron Wall that upgrades persistently.</div>
+              <div class="shop-title">Statue Foundation</div>
+              <div class="shop-desc">Requires Castle Stage 3. Unlocks the Statue line for village star upgrades.</div>
               <button id="buyWallBtn" type="button" class="secondary wood-metal">Buy (900)</button>
             </div>
           </div>
@@ -2834,6 +2583,7 @@
         </div>
       </div>
     </div>
+    <div id="cfgLabel" class="cfg-label">CFG: -</div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
@@ -2945,28 +2695,13 @@
         const upgradeCostEl = document.getElementById("upgradeCostValue");
         const upgradeCannonBtn = document.getElementById("upgradeCannonBtn");
         const cannonLevelValueEl = document.getElementById("cannonLevelValue");
-        const attackBtn = document.getElementById("attackBtn");
-        const refillBtn = document.getElementById("refillBtn");
+        const openSlotBtn = null;
+        const closeSlotBtn = null;
+        const attackBtn = null;
         const shopBtn = document.getElementById("shopBtn");
 
-        const openSlotBtn = document.getElementById("openSlotBtn");
         const slotModalEl = document.getElementById("slotModal");
-        const closeSlotBtn = document.getElementById("closeSlotBtn");
         const spinBtn = document.getElementById("spinBtn");
-
-        const battleModalEl = document.getElementById("battleModal");
-        const closeBattleBtn = document.getElementById("closeBattleBtn");
-        const startAttackBtn = document.getElementById("startAttackBtn");
-        // fast-forward removed (battles must play out)
-        const battlePlayerCastleEl = document.getElementById("battlePlayerCastle");
-        const battlePlayerCannonEl = document.getElementById("battlePlayerCannon");
-        const battlePlayerWallEl = document.getElementById("battlePlayerWall");
-        const battleBotLevelEl = document.getElementById("battleBotLevel");
-        const battleBotCannonEl = document.getElementById("battleBotCannon");
-        const battleArenaEl = document.getElementById("battleArena");
-        const battleBotFortressEl = document.getElementById("battleBotFortress");
-        const battleBotCannonIcon1El = document.getElementById("battleBotCannonIcon1");
-        const battleBotCannonIcon2El = document.getElementById("battleBotCannonIcon2");
 
         const upgradeModalEl = document.getElementById("upgradeModal");
         const closeUpgradeBtn = document.getElementById("closeUpgradeBtn");
@@ -2980,7 +2715,18 @@
         const closeShopBtn = document.getElementById("closeShopBtn");
         const buySecondCannonBtn = document.getElementById("buySecondCannonBtn");
         const buyWallBtn = document.getElementById("buyWallBtn");
-        const btnFastForward = document.getElementById("btnFastForward");
+        const raidModalEl = document.getElementById("raidModal");
+        const closeRaidBtn = document.getElementById("closeRaidBtn");
+        const raidBoardEl = document.getElementById("raidBoard");
+        const raidInfoEl = document.getElementById("raidInfo");
+        const shieldSlotEls = [document.getElementById("shieldSlot0"), document.getElementById("shieldSlot1"), document.getElementById("shieldSlot2")];
+        const villageIdValueEl = document.getElementById("villageIdValue");
+        const villageTotalStarsEl = document.getElementById("villageTotalStars");
+        const starCastleEl = document.getElementById("starCastle");
+        const starCannonEl = document.getElementById("starCannon");
+        const starStatueEl = document.getElementById("starStatue");
+        const starFarmEl = document.getElementById("starFarm");
+        const starBoatEl = document.getElementById("starBoat");
         const reelEls = [
           document.getElementById("reel0"),
           document.getElementById("reel1"),
@@ -3002,8 +2748,23 @@
 
         const STORAGE_KEY_SAVE = "coinIslandState_v1";
         const STORAGE_KEY_TUTORIAL = "tutorialCompleted";
+        const cfgLabelEl = document.getElementById("cfgLabel");
 
-        const MAX_ENERGY = 10;
+        const gameState = { shields: 0, condition: EXPERIMENT_CONDITION };
+        function getGameConfig() {
+          if (gameState.condition === "B") {
+            return {
+              slotWeights: { hammer: 5, pig: 5, shield: 2, coin: 4, bag: 4 },
+              initialEnergy: 20,
+            };
+          }
+          return {
+            slotWeights: { hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6 },
+            initialEnergy: 10,
+          };
+        }
+        const GAME_CONFIG = getGameConfig();
+        let MAX_ENERGY = GAME_CONFIG.initialEnergy;
         const MAX_LEVEL = 10;
         const MAX_STAGE = MAX_LEVEL;
         const STAGE_COST = [0, 60, 90, 130, 180, 240, 310, 390, 480, 580, 0];
@@ -3018,33 +2779,25 @@
         let hasSecondCannon = false;
         let spinIndex = 0;
         let lastSpinAtMs = null;
-
-        let battleBotLevel = 1;
-        let battleInProgress = false;
+        let shields = 0;
+        let villageId = 1;
+        let totalSpinsToComplete = 0;
+        const VILLAGE_ITEMS = ["Castle", "Cannon", "Statue", "Farm", "Boat"];
+        let villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
 
         let maxedLoggedSecondCannon = false;
         let maxedLoggedWall = false;
-
-        let playerCastleHp = 0;
-        let playerCastleHpMax = 0;
-        let playerWallHp = 0;
-        let playerWallHpMax = 0;
-        let botCastleHp = 0;
-        let botCastleHpMax = 0;
-        let botWallHp = 0;
-        let botWallHpMax = 0;
 
         let tutorialStep = 0; // 1..6 per guided tour
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
 
         const SYMBOLS = [
-          // Two high-fidelity coin variants (compass + griffin)
-          { name: "Coin", icon: "coin_compass", weight: 22, base: 40 },
-          { name: "Coin", icon: "coin_griffin", weight: 22, base: 40 },
-          { name: "Energy", icon: "energy", weight: 24, base: 25 },
-          { name: "Castle", icon: "castle", weight: 22, base: 30 },
-          { name: "Bomb", icon: "bomb", weight: 10, base: -25 },
+          { name: "Hammer", icon: "hammer", weight: 16, base: 0 },
+          { name: "Pig", icon: "pig", weight: 16, base: 0 },
+          { name: "Shield", icon: "shield", weight: 15, base: 0 },
+          { name: "Coin", icon: "coin_compass", weight: 26, base: 180 },
+          { name: "Bag", icon: "coin_griffin", weight: 27, base: 180 },
         ];
 
         // High-fidelity rendered icon assets (SVG data-URIs)
@@ -3237,6 +2990,9 @@
               </g>
             </svg>
           `),
+          hammer: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><rect x="110" y="70" width="34" height="150" rx="12" fill="#8b5a2b"/><rect x="64" y="38" width="128" height="56" rx="12" fill="#6f7d95"/><rect x="82" y="50" width="92" height="18" rx="8" fill="#d9e1ef"/></svg>`),
+          pig: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><ellipse cx="128" cy="140" rx="84" ry="62" fill="#ff89b3"/><circle cx="188" cy="126" r="22" fill="#ff89b3"/><ellipse cx="193" cy="129" rx="14" ry="10" fill="#ffb6cf"/><circle cx="94" cy="128" r="7" fill="#532f40"/><polygon points="72,88 98,84 86,108" fill="#ff89b3"/><rect x="84" y="188" width="20" height="22" rx="6" fill="#d66a95"/><rect x="148" y="188" width="20" height="22" rx="6" fill="#d66a95"/></svg>`),
+          shield: svgDataUri(`<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256"><path d="M128 24l74 28v64c0 54-31 96-74 116-43-20-74-62-74-116V52z" fill="#4fb8ff" stroke="#dff6ff" stroke-width="10"/><path d="M128 48v156" stroke="#dff6ff" stroke-width="8"/><path d="M64 96h128" stroke="#dff6ff" stroke-width="8"/></svg>`),
         };
 
         function setReelIcon(el, iconKey) {
@@ -3247,9 +3003,9 @@
         }
 
         // Set initial reel visuals
-        setReelIcon(reelEls[0], "coin_lion");
-        setReelIcon(reelEls[1], "energy");
-        setReelIcon(reelEls[2], "castle");
+        setReelIcon(reelEls[0], "hammer");
+        setReelIcon(reelEls[1], "pig");
+        setReelIcon(reelEls[2], "shield");
 
         function setStatus(message, isError) {
           if (!statusLineEl) return;
@@ -3281,7 +3037,7 @@
         window.__researchContext = {
           userId: USER_ID,
           sessionId: SESSION_ID,
-          condition: EXPERIMENT_CONDITION,
+          condition: gameState.condition,
         };
 
         function logEvent(eventType, params) {
@@ -3289,19 +3045,25 @@
             window.saveToFirestore(eventType, params || {});
           }
         }
+        window.logEvent = logEvent;
 
         function upgradeCostForStage(s) {
           if (s >= MAX_STAGE) return 0;
-          return STAGE_COST[s] || 100;
+          const base = STAGE_COST[s] || 100;
+          if (gameState.condition === "B" && s <= 3) return Math.max(1, Math.floor(base * 0.85));
+          return base;
         }
 
         function cannonUpgradeCostForLevel(lvl) {
-          // simple escalating curve
-          return 80 + lvl * 70;
+          const base = 80 + lvl * 70;
+          if (gameState.condition === "B" && lvl <= 2) return Math.max(1, Math.floor(base * 0.85));
+          return base;
         }
 
         function wallUpgradeCostForLevel(lvl) {
-          return 120 + lvl * 90;
+          const base = 120 + lvl * 90;
+          if (gameState.condition === "B" && lvl <= 2) return Math.max(1, Math.floor(base * 0.85));
+          return base;
         }
 
         function updateCastleStage() {
@@ -3326,6 +3088,10 @@
                 hasWall,
                 hasSecondCannon,
                 spinIndex,
+                shields: gameState.shields,
+                villageId,
+                totalSpinsToComplete,
+                villageProgress,
               })
             );
           } catch (e) {}
@@ -3348,10 +3114,23 @@
             if (typeof s.hasWall === "boolean") hasWall = s.hasWall;
             if (typeof s.hasSecondCannon === "boolean") hasSecondCannon = s.hasSecondCannon;
             if (typeof s.spinIndex === "number") spinIndex = s.spinIndex;
+            if (typeof s.shields === "number") {
+              shields = clamp(s.shields, 0, 3);
+              gameState.shields = shields;
+            }
+            if (typeof s.villageId === "number") villageId = Math.max(1, s.villageId);
+            if (typeof s.totalSpinsToComplete === "number") totalSpinsToComplete = Math.max(0, s.totalSpinsToComplete);
+            if (s.villageProgress && typeof s.villageProgress === "object") {
+              VILLAGE_ITEMS.forEach((item) => {
+                villageProgress[item] = clamp(Number(s.villageProgress[item] || 0), 0, 5);
+              });
+            }
           } catch (e) {}
         }
 
         function updateUI() {
+          gameState.shields = clamp(gameState.shields, 0, 3);
+          shields = gameState.shields;
           if (energyEl) energyEl.textContent = String(energy);
           if (coinsEl) coinsEl.textContent = String(coins);
           if (stageEl) stageEl.textContent = String(stage);
@@ -3375,7 +3154,6 @@
           if (upgradeCostEl) upgradeCostEl.textContent = String(cost);
 
           if (spinBtn) spinBtn.disabled = energy <= 0;
-          if (openSlotBtn) openSlotBtn.disabled = energy <= 0;
           if (upgradeBtn) upgradeBtn.disabled = stage >= MAX_STAGE || coins < cost;
           if (upgradeCannonBtn) {
             const cCost = cannonUpgradeCostForLevel(cannon1Level);
@@ -3430,13 +3208,31 @@
           if (wallTagBtn) wallTagBtn.classList.toggle("hidden", !hasWall);
 
           updateCastleStage();
+          shieldSlotEls.forEach((slot, idx) => {
+            if (!slot) return;
+            slot.classList.toggle("active", idx < shields);
+          });
+          const totalStars = VILLAGE_ITEMS.reduce((sum, item) => sum + villageProgress[item], 0);
+          if (villageIdValueEl) villageIdValueEl.textContent = String(villageId);
+          if (villageTotalStarsEl) villageTotalStarsEl.textContent = String(totalStars);
+          if (starCastleEl) starCastleEl.textContent = String(villageProgress.Castle);
+          if (starCannonEl) starCannonEl.textContent = String(villageProgress.Cannon);
+          if (starStatueEl) starStatueEl.textContent = String(villageProgress.Statue);
+          if (starFarmEl) starFarmEl.textContent = String(villageProgress.Farm);
+          if (starBoatEl) starBoatEl.textContent = String(villageProgress.Boat);
+          if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
         }
 
-        function weightedPickSymbol() {
-          const total = SYMBOLS.reduce((sum, s) => sum + s.weight, 0);
+        function getRandomSymbol() {
+          const weights = (GAME_CONFIG && GAME_CONFIG.slotWeights) || {};
+          const getWeight = (name) => {
+            const key = String(name || "").toLowerCase();
+            return Number(weights[key] || 1);
+          };
+          const total = SYMBOLS.reduce((sum, s) => sum + getWeight(s.name), 0);
           let roll = Math.random() * total;
           for (const s of SYMBOLS) {
-            roll -= s.weight;
+            roll -= getWeight(s.name);
             if (roll <= 0) {
               if (s.variants && s.variants.length) {
                 const v = s.variants[Math.floor(Math.random() * s.variants.length)];
@@ -3456,15 +3252,127 @@
           }, {});
           const entries = Object.entries(counts).sort((x, y) => y[1] - x[1]);
           const [topName, topCount] = entries[0];
-          if (topCount === 3) {
-            const sym = SYMBOLS.find((s) => s.name === topName) || symbols[0];
-            return Math.max(0, sym.base * 6);
+          if (topCount === 3 && (topName === "Coin" || topName === "Bag")) return 1200;
+          return 120;
+        }
+        function getActionForTriple(symbols) {
+          const names = symbols.map((s) => s.name);
+          if (names.every((n) => n === "Hammer")) return "attack";
+          if (names.every((n) => n === "Pig")) return "raid";
+          if (names.every((n) => n === "Shield")) return "shield";
+          return null;
+        }
+        function pulseScreenShake() {
+          const root = document.querySelector(".phone-frame");
+          if (!root) return;
+          root.classList.remove("screen-shake");
+          void root.offsetWidth;
+          root.classList.add("screen-shake");
+          setTimeout(() => root.classList.remove("screen-shake"), 380);
+        }
+        function refreshShieldOrbitVisuals() {
+          document.querySelectorAll(".shield-orbit").forEach((n) => n.remove());
+          if (!castleEl) return;
+          for (let i = 0; i < gameState.shields; i++) {
+            const el = document.createElement("div");
+            el.className = "shield-orbit";
+            el.style.left = `${36 + i * 18}%`;
+            el.style.top = `${22 + i * 6}%`;
+            el.style.animationDelay = `${i * 220}ms`;
+            castleEl.appendChild(el);
           }
-          if (topCount === 2) {
-            const sym = SYMBOLS.find((s) => s.name === topName) || symbols[0];
-            return Math.max(0, sym.base * 2);
+        }
+        function finalizeVillageProgress() {
+          const stars = VILLAGE_ITEMS.reduce((sum, item) => sum + villageProgress[item], 0);
+          stage = clamp(Math.ceil((stars / 25) * MAX_STAGE), 1, MAX_STAGE);
+          if (stars >= 25) {
+            logEvent("village_complete", { villageId, totalSpinsToComplete });
+            setStatus(`VILLAGE_COMPLETE! Sailing to island ${villageId + 1}.`, false);
+            villageId += 1;
+            totalSpinsToComplete = 0;
+            villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
           }
-          return names.includes("Bomb") ? 0 : 5;
+        }
+        function upgradeVillageItem(item, cost) {
+          if (!VILLAGE_ITEMS.includes(item)) return;
+          if (villageProgress[item] >= 5) return;
+          villageProgress[item] += 1;
+          logEvent("village_upgrade", { item, levelAfter: villageProgress[item], cost: Math.max(0, Number(cost || 0)) });
+          finalizeVillageProgress();
+        }
+        function applyVillageUpgradeFromSpin() {
+          const target = VILLAGE_ITEMS.find((item) => villageProgress[item] < 5);
+          if (!target) return;
+          upgradeVillageItem(target, 0);
+        }
+        function resolveAttackMode() {
+          const targetUserId = "bot";
+          const blocked = Math.random() < 0.35;
+          let reward = 0;
+          let result = "hit";
+          if (blocked) {
+            result = "blocked";
+            reward = 120;
+            setStatus("Blocked by shield. Small reward.", false);
+          } else {
+            reward = 700;
+            coins += reward;
+            pulseScreenShake();
+            setStatus("Hit! Large reward.", false);
+          }
+          spawnFlyingCoins(blocked ? 8 : 18);
+          logEvent("action_attack", { targetUserId, result, reward });
+          refreshShieldOrbitVisuals();
+        }
+        function maybeBotCounterAttack() {
+          if (Math.random() >= 0.2) return;
+          if (gameState.shields > 0) {
+            gameState.shields -= 1;
+            setStatus("Enemy attack blocked. Shield consumed.", false);
+            refreshShieldOrbitVisuals();
+            return;
+          }
+          if (wallLevel > 0) {
+            wallLevel -= 1;
+            setStatus("Enemy attack hit your island. Building level dropped.", true);
+          } else {
+            setStatus("Enemy attack damaged your island.", true);
+          }
+        }
+        function openRaidMode() {
+          if (!raidModalEl || !raidBoardEl) return;
+          raidModalEl.classList.remove("hidden");
+          const emptyIdx = Math.floor(Math.random() * 4);
+          let shovels = 3;
+          let totalStolen = 0;
+          raidBoardEl.querySelectorAll(".raid-x").forEach((btn) => {
+            btn.disabled = false;
+            btn.textContent = "X";
+            btn.onclick = function () {
+              if (shovels <= 0 || btn.disabled) return;
+              const idx = Number(btn.dataset.idx);
+              shovels -= 1;
+              if (idx === emptyIdx) {
+                btn.textContent = "EMPTY";
+              } else {
+                const amount = 260 + Math.floor(Math.random() * 180);
+                totalStolen += amount;
+                coins += amount;
+                btn.textContent = `+${amount}`;
+                spawnFlyingCoins(8);
+              }
+              btn.disabled = true;
+              if (raidInfoEl) raidInfoEl.textContent = `Shovels: ${shovels}`;
+              if (shovels === 0) {
+                const perfectRaid = totalStolen >= 780;
+                logEvent("action_raid", { totalStolen, perfectRaid });
+                setStatus(`Raid complete: +${totalStolen} coins`, false);
+                updateUI();
+                persistState();
+              }
+            };
+          });
+          if (raidInfoEl) raidInfoEl.textContent = "Shovels: 3";
         }
 
         function animateReelsFast() {
@@ -3684,7 +3592,7 @@
             target = castleEl;
             placement = "right";
           } else if (stepNumber === 7) {
-            msg = "Upgrade your Cannon to win battles. Level is capped by your Castle!";
+            msg = "Upgrade your Cannon to improve village progress. Level is capped by your Castle!";
             target = cannonEl || upgradeCannonBtn;
             placement = "right";
           } else if (stepNumber === 8) {
@@ -3742,18 +3650,6 @@
           setTutorialSeen();
         }
 
-        function openSlotModal() {
-          if (!slotModalEl) return;
-          slotModalEl.classList.remove("hidden");
-          logEvent("ui_navigation", { action: "open_slot" });
-        }
-
-        function closeSlotModal() {
-          if (!slotModalEl) return;
-          slotModalEl.classList.add("hidden");
-          logEvent("ui_navigation", { action: "close_slot" });
-        }
-
         async function runSpin(triggeredByTutorial) {
           if (energy <= 0) {
             setStatus("Out of energy. Refill to spin.", true);
@@ -3768,13 +3664,14 @@
           const energyBefore = energy;
           energy -= 1;
           spinIndex += 1;
+          totalSpinsToComplete += 1;
 
           animateReelsFast();
           // Wait slightly longer than reel animation (520ms)
           await new Promise((r) => setTimeout(r, 560));
 
           let tutorialRigged = false;
-          let result = [weightedPickSymbol(), weightedPickSymbol(), weightedPickSymbol()];
+          let result = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
 
           if (triggeredByTutorial && !tutorialRiggedSpinUsed) {
             tutorialRiggedSpinUsed = true;
@@ -3788,6 +3685,7 @@
           });
 
           let coinsWon = computePayout(result);
+          const actionTriggered = getActionForTriple(result);
           if (triggeredByTutorial && tutorialRigged) {
             const cost = upgradeCostForStage(stage);
             const needed = Math.max(0, cost - coins);
@@ -3797,20 +3695,27 @@
           coins += coinsWon;
           setStatus(coinsWon > 0 ? `+${coinsWon} coins!` : "No payout.", coinsWon <= 0);
 
-          logEvent("spin_result", {
-            spinIndex,
-            energyBefore,
-            resultReels: result.map((s) => s.name),
-            // Keep field name for compatibility; now logs icon ids (strings)
-            resultReelsEmoji: result.map((s) => s.icon),
-            coinsWon,
-            reactionTimeMs,
-            tutorialRigged,
+          logEvent("slot_spin_result", {
+            symbols: result.map((s) => s.name),
+            payout: coinsWon,
+            actionTriggered,
+            condition: gameState.condition,
           });
 
           if (coinsWon > 0) {
             spawnFlyingCoins(15);
           }
+          if (actionTriggered === "shield" && gameState.shields < 3) {
+            gameState.shields += 1;
+            setStatus("Shield added.", false);
+            refreshShieldOrbitVisuals();
+          } else if (actionTriggered === "attack") {
+            resolveAttackMode();
+          } else if (actionTriggered === "raid") {
+            openRaidMode();
+          }
+          applyVillageUpgradeFromSpin();
+          maybeBotCounterAttack();
 
           persistState();
           updateUI();
@@ -3845,25 +3750,12 @@
             setTimeout(() => wrap.classList.remove("castle-upgraded"), 520);
           }
 
-          logEvent("village_upgrade", {
-            stageBefore: before,
-            stageAfter: stage,
-            cost,
-            coinsRemaining: coins,
-          });
+          upgradeVillageItem("Castle", cost);
 
           persistState();
           updateUI();
 
           // Tutorial no longer ends on upgrade; step 6 explains the castle then ends on Continue.
-        }
-
-        function handleRefill() {
-          const before = energy;
-          energy = MAX_ENERGY;
-          logEvent("energy_refill", { energyBefore: before, energyAfter: energy });
-          persistState();
-          updateUI();
         }
 
         function handleCannonUpgrade(cannonIndex = 1) {
@@ -3920,14 +3812,7 @@
             cannonIndex,
           });
 
-          // Request: include which specific cannon was upgraded inside village_upgrade.
-          logEvent("village_upgrade", {
-            cannonIndex,
-            levelBefore: before,
-            levelAfter: after,
-            cost,
-            coinsRemaining: coins,
-          });
+          upgradeVillageItem("Cannon", cost);
 
           if (after === MAX_LEVEL) {
             const entityType = cannonIndex === 2 ? "cannon2" : "cannon1";
@@ -3997,6 +3882,7 @@
             success: true,
             cost,
           });
+          upgradeVillageItem("Farm", cost);
 
           if (wallLevel === MAX_LEVEL) {
             logEvent("max_level_reached", { entityType: "wall" });
@@ -4021,36 +3907,30 @@
             hasSecondCannon,
           });
 
-          let title = "Upgrade";
-          let currentStat = "-";
-          let nextStat = "-";
+          let title = "Improve Village";
+          let currentStat = "0 Stars";
+          let nextStat = "1 Star";
           let cost = 0;
           let canUpgrade = false;
           let reachedMax = false;
-          let reachedEntityType = "";
+          let itemName = "Castle";
+          let currentStars = 0;
+          let nextStars = 1;
 
           if (type === "castle") {
-            title = "Castle Upgrade";
-            const hpNow = stage * 100;
-            const nextStage = Math.min(MAX_STAGE, stage + 1);
-            const hpNext = nextStage * 100;
-            currentStat = `HP: ${hpNow}`;
-            nextStat = stage >= MAX_STAGE ? "HP: MAX" : `HP: ${hpNow} -> ${hpNext}`;
+            itemName = "Castle";
+            title = "Improve Village: Castle";
             cost = upgradeCostForStage(stage);
             reachedMax = stage >= MAX_LEVEL;
-            reachedEntityType = "castle";
+            currentStars = villageProgress.Castle;
             canUpgrade = !reachedMax && stage < MAX_LEVEL && coins >= cost;
           } else if (type === "cannon") {
-            title = index === 2 ? "Cannon 2 Upgrade" : "Cannon 1 Upgrade";
+            itemName = "Cannon";
+            title = "Improve Village: Cannon";
             const lvlNow = index === 2 ? cannon2Level : cannon1Level;
-            const dmgNow = 20 + lvlNow * 5;
-            const lvlNext = Math.min(MAX_LEVEL, lvlNow + 1);
-            const dmgNext = 20 + lvlNext * 5;
-            currentStat = `Damage: ${dmgNow}`;
-            nextStat = reachedMax ? `Damage: ${dmgNow} -> MAX` : `Damage: ${dmgNow} -> ${dmgNext}`;
             cost = cannonUpgradeCostForLevel(lvlNow);
             reachedMax = lvlNow >= MAX_LEVEL;
-            reachedEntityType = index === 2 ? "cannon2" : "cannon1";
+            currentStars = villageProgress.Cannon;
             canUpgrade =
               !reachedMax &&
               lvlNow < stage &&
@@ -4058,34 +3938,35 @@
               coins >= cost &&
               (index !== 2 || hasSecondCannon);
           } else if (type === "wall") {
-            title = "Wall Upgrade";
+            itemName = "Statue";
+            title = "Improve Village: Statue";
             const lvlNow = hasWall ? wallLevel : 0;
-            const hpNow = lvlNow * 50;
-            const lvlNext = Math.min(MAX_LEVEL, lvlNow + 1);
-            const hpNext = lvlNext * 50;
-            currentStat = `HP: ${hpNow}`;
-            nextStat = `HP: ${hpNow} -> ${hpNext}`;
             cost = hasWall ? wallUpgradeCostForLevel(lvlNow) : 900;
             reachedMax = hasWall && wallLevel >= MAX_LEVEL;
-            reachedEntityType = "wall";
+            currentStars = villageProgress.Statue;
             canUpgrade = hasWall
               ? !reachedMax && wallLevel < stage && wallLevel < MAX_LEVEL && coins >= cost
               : stage >= 3 && coins >= cost;
           }
+          nextStars = Math.min(5, currentStars + 1);
+          currentStat = `${currentStars} ${currentStars === 1 ? "Star" : "Stars"}`;
+          nextStat = reachedMax
+            ? `${currentStars} ${currentStars === 1 ? "Star" : "Stars"}`
+            : `${nextStars} ${nextStars === 1 ? "Star" : "Stars"}`;
 
           if (upgradeModalTitleEl) upgradeModalTitleEl.textContent = title;
-          if (upgradeCurrentEl) upgradeCurrentEl.textContent = currentStat;
-          if (upgradeNextEl) upgradeNextEl.textContent = nextStat;
+          if (upgradeCurrentEl) upgradeCurrentEl.textContent = `Current: ${currentStat} | Next: ${nextStat}`;
+          if (upgradeNextEl) upgradeNextEl.textContent = itemName;
           if (upgradeCostTextEl) upgradeCostTextEl.textContent = `${cost} Coins`;
           if (confirmUpgradeBtn) {
             if (reachedMax) {
-              confirmUpgradeBtn.textContent = "MAX LEVEL REACHED";
+              confirmUpgradeBtn.textContent = `${itemName}: MAX STARS`;
               confirmUpgradeBtn.disabled = true;
               confirmUpgradeBtn.style.background = "linear-gradient(180deg, #ffd166, #b8860b)";
               confirmUpgradeBtn.style.borderColor = "rgba(255, 209, 102, 0.65)";
               confirmUpgradeBtn.style.boxShadow = "0 0 20px rgba(255, 209, 102, 0.22)";
             } else {
-              confirmUpgradeBtn.textContent = `UPGRADE (${cost})`;
+              confirmUpgradeBtn.textContent = canUpgrade ? `Add Star (${cost})` : "Improve Village";
               confirmUpgradeBtn.disabled = !canUpgrade;
               confirmUpgradeBtn.style.background = "";
               confirmUpgradeBtn.style.borderColor = "";
@@ -4141,378 +4022,6 @@
           shopModalEl.classList.add("hidden");
         }
 
-        function openBattleModal() {
-          if (!battleModalEl) return;
-          battleModalEl.classList.remove("hidden");
-          if (!battleOpponent) battleOpponent = generateNewOpponent();
-          if (battlePlayerCastleEl) battlePlayerCastleEl.textContent = String(stage);
-          if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(cannon1Level);
-          if (battlePlayerWallEl) battlePlayerWallEl.textContent = String(hasWall ? wallLevel : 0);
-          if (battleBotLevelEl) battleBotLevelEl.textContent = String(battleOpponent.botCastleLevel);
-          if (battleBotCannonEl)
-            battleBotCannonEl.textContent = String(battleOpponent.botCannon1Level);
-          if (battleBotFortressEl) {
-            battleBotFortressEl.dataset.wallOwned = battleOpponent.botHasWall ? "1" : "0";
-            battleBotFortressEl.dataset.wallLvl = String(
-              battleOpponent.botHasWall ? battleOpponent.botWallLevel : 0
-            );
-            const wt = battleOpponent.botHasWall
-              ? battleOpponent.botWallLevel >= 8
-                ? "iron"
-                : battleOpponent.botWallLevel >= 4
-                  ? "stone"
-                  : "wood"
-              : "none";
-            battleBotFortressEl.dataset.wallTier = wt;
-          }
-          if (battleBotCannonIcon1El) {
-            battleBotCannonIcon1El.dataset.cannonLvl = String(battleOpponent.botCannon1Level);
-            const ct1 =
-              battleOpponent.botCannon1Level >= 8 ? "steel" : battleOpponent.botCannon1Level >= 4 ? "bronze" : "wood";
-            battleBotCannonIcon1El.dataset.cannonTier = ct1;
-            battleBotCannonIcon1El.classList.remove("hidden");
-          }
-          if (battleBotCannonIcon2El) {
-            battleBotCannonIcon2El.dataset.cannonLvl = String(battleOpponent.botCannon2Level);
-            const ct2 =
-              battleOpponent.botCannon2Level >= 8 ? "steel" : battleOpponent.botCannon2Level >= 4 ? "bronze" : "wood";
-            battleBotCannonIcon2El.dataset.cannonTier = ct2;
-            battleBotCannonIcon2El.classList.toggle("hidden", !battleOpponent.botHasSecondCannon);
-          }
-          battleInProgress = false;
-        }
-
-        function closeBattleModal() {
-          if (!battleModalEl) return;
-          battleModalEl.classList.add("hidden");
-          safeResetBattleState();
-        }
-
-        function spawnBattleCannonball(fromLeft, variantIndex) {
-          if (!battleArenaEl) return;
-          const arenaRect = battleArenaEl.getBoundingClientRect();
-          const ball = document.createElement("div");
-          ball.className = "cannonball";
-          document.body.appendChild(ball);
-
-          const v = variantIndex === 1;
-          const startX = fromLeft
-            ? arenaRect.left + (v ? 160 : 120)
-            : arenaRect.right - (v ? 160 : 120);
-          const startY = arenaRect.top + 78 + (v ? 18 : 0);
-          const endX = fromLeft ? arenaRect.right - 120 : arenaRect.left + 120;
-          const endY = arenaRect.top + 78;
-
-          ball.style.left = Math.round(startX) + "px";
-          ball.style.top = Math.round(startY) + "px";
-
-          const baseDur = 560;
-          const anim = ball.animate(
-            [
-              { transform: "translate(-50%, -50%) scale(1)", opacity: 1 },
-              { transform: `translate(${endX - startX}px, ${-18}px) translate(-50%, -50%) scale(1.05)`, opacity: 1 },
-              { transform: `translate(${endX - startX}px, ${endY - startY}px) translate(-50%, -50%) scale(0.9)`, opacity: 0.0 },
-            ],
-            { duration: baseDur, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
-          );
-          anim.playbackRate = battleSpeed;
-          battleActiveAnimations.push(anim);
-          anim.onfinish = () => {
-            ball.remove();
-            battleActiveAnimations = battleActiveAnimations.filter((a) => a !== anim);
-          };
-        }
-
-        let battleSpeed = 1;
-        let battleOpponent = null;
-        let battleActiveAnimations = [];
-        let battleAbort = false;
-
-        async function waitBattleMs(ms) {
-          const start = performance.now();
-          while (true) {
-            if (battleAbort) return false;
-            const elapsed = performance.now() - start;
-            const target = ms / battleSpeed;
-            if (elapsed >= target) break;
-            await new Promise((r) => setTimeout(r, 35));
-          }
-          return !battleAbort;
-        }
-
-        function safeResetBattleState() {
-          battleAbort = true;
-          battleInProgress = false;
-          battleOpponent = null;
-          if (battleActiveAnimations && battleActiveAnimations.length) {
-            battleActiveAnimations.forEach((a) => {
-              try {
-                a.cancel();
-              } catch (e) {}
-            });
-          }
-          battleActiveAnimations = [];
-          battleSpeed = 1;
-          if (btnFastForward) btnFastForward.textContent = "1x";
-        }
-
-        function generateNewOpponent() {
-          const playerCastle = stage;
-          const delta = Math.random() > 0.5 ? 1 : -1;
-          const botCastleLevel = clamp(playerCastle + delta, 1, MAX_STAGE);
-
-          const botHasWall = Math.random() < 0.5;
-          const botWallLevel = botHasWall ? botCastleLevel : 0;
-
-          const botHasSecondCannon = botCastleLevel > 5 && Math.random() < 0.3;
-
-          // Cannon levels are capped by their castle level.
-          const baseCannon = clamp(botCastleLevel - 1, 0, botCastleLevel);
-          const botCannon1Level = clamp(baseCannon + (Math.random() < 0.5 ? 1 : 0), 0, botCastleLevel);
-          const botCannon2Level = botHasSecondCannon
-            ? clamp(botCannon1Level - (Math.random() < 0.5 ? 1 : 0), 0, botCastleLevel)
-            : 0;
-
-          const opponent = {
-            botCastleLevel,
-            botHasWall,
-            botWallLevel,
-            botHasSecondCannon,
-            botCannon1Level,
-            botCannon2Level,
-          };
-
-          logEvent("battle_opponent_generated", {
-            botCastleLevel,
-            botHasWall,
-            botWallLevel,
-            botHasSecondCannon,
-            botCannon1Level,
-            botCannon2Level,
-          });
-
-          return opponent;
-        }
-
-        function beginAttack() {
-          if (battleInProgress) return;
-          battleInProgress = true;
-          battleAbort = false;
-          battleActiveAnimations = [];
-
-          // Ensure an opponent exists for this attack click.
-          if (!battleOpponent) battleOpponent = generateNewOpponent();
-
-          const botCastleLevel = battleOpponent.botCastleLevel;
-          const botHasWall = battleOpponent.botHasWall;
-          const botWallLvl = botHasWall ? battleOpponent.botWallLevel : 0;
-          const botHasSecondCannon = battleOpponent.botHasSecondCannon;
-          const botCannon1Lvl = battleOpponent.botCannon1Level;
-          const botCannon2Lvl = botHasSecondCannon ? battleOpponent.botCannon2Level : 0;
-
-          const playerCannon1 = cannon1Level;
-          const playerCannon2 = hasSecondCannon ? cannon2Level : 0;
-          const playerCastle = stage;
-          battleBotLevel = botCastleLevel;
-          const totalCannons = 1 + (hasSecondCannon ? 1 : 0);
-
-          if (battlePlayerCannonEl) battlePlayerCannonEl.textContent = String(playerCannon1);
-          if (battleBotLevelEl) battleBotLevelEl.textContent = String(botCastleLevel);
-          if (battleBotCannonEl)
-            battleBotCannonEl.textContent = String(
-              botHasSecondCannon ? botCannon1Lvl + 1 : botCannon1Lvl
-            );
-
-          // Update bot mini-model loadout visuals (icons).
-          if (battleBotFortressEl) {
-            battleBotFortressEl.dataset.wallOwned = botHasWall ? "1" : "0";
-            battleBotFortressEl.dataset.wallLvl = String(botWallLvl);
-            const wt = botHasWall
-              ? botWallLvl >= 8
-                ? "iron"
-                : botWallLvl >= 4
-                  ? "stone"
-                  : "wood"
-              : "none";
-            battleBotFortressEl.dataset.wallTier = wt;
-          }
-          if (battleBotCannonIcon1El) {
-            battleBotCannonIcon1El.dataset.cannonLvl = String(botCannon1Lvl);
-            const ct1 =
-              botCannon1Lvl >= 8 ? "steel" : botCannon1Lvl >= 4 ? "bronze" : "wood";
-            battleBotCannonIcon1El.dataset.cannonTier = ct1;
-            battleBotCannonIcon1El.classList.remove("hidden");
-          }
-          if (battleBotCannonIcon2El) {
-            battleBotCannonIcon2El.dataset.cannonLvl = String(botCannon2Lvl);
-            const ct2 =
-              botCannon2Lvl >= 8 ? "steel" : botCannon2Lvl >= 4 ? "bronze" : "wood";
-            battleBotCannonIcon2El.dataset.cannonTier = ct2;
-            battleBotCannonIcon2El.classList.toggle("hidden", !botHasSecondCannon);
-          }
-
-          logEvent("attack_started", {
-            botLevel: botCastleLevel,
-            playerCannonLevel: playerCannon1,
-            playerCannon2Level: playerCannon2,
-            botHp: battleBotLevel * 100,
-            playerHp: playerCastle * 100 + (hasWall ? wallLevel * 50 : 0),
-            totalCannons,
-          });
-
-          // HP-based combat setup
-          playerCastleHpMax = playerCastle * 100;
-          playerCastleHp = playerCastleHpMax;
-          playerWallHpMax = hasWall ? wallLevel * 50 : 0;
-          playerWallHp = playerWallHpMax;
-
-          botCastleHpMax = botCastleLevel * 100;
-          botCastleHp = botCastleHpMax;
-          botWallHpMax = botHasWall ? botWallLvl * 50 : 0;
-          botWallHp = botWallHpMax;
-
-          function setHp(fillEl, textEl, cur, max) {
-            const pct = max <= 0 ? 0 : Math.max(0, Math.min(100, (cur / max) * 100));
-            if (fillEl) {
-              if (fillEl.classList.contains("wall")) {
-                // Wall bar must shrink from right to left.
-                fillEl.style.width = "100%";
-                fillEl.style.transformOrigin = "right center";
-                fillEl.style.transform = `scaleX(${(pct / 100).toFixed(4)})`;
-              } else {
-                fillEl.style.width = pct.toFixed(1) + "%";
-                fillEl.style.transform = "scaleX(1)";
-              }
-            }
-            if (textEl) textEl.textContent = `${Math.max(0, Math.round(cur))}/${Math.max(0, Math.round(max))}`;
-          }
-
-          const playerWallFill = document.getElementById("playerWallHpFill");
-          const playerWallText = document.getElementById("playerWallHpText");
-          const playerCastleFill = document.getElementById("playerCastleHpFill");
-          const playerCastleText = document.getElementById("playerCastleHpText");
-          const botCastleFill = document.getElementById("botCastleHpFill");
-          const botCastleText = document.getElementById("botCastleHpText");
-
-          setHp(playerWallFill, playerWallText, playerWallHp, playerWallHpMax);
-          setHp(playerCastleFill, playerCastleText, playerCastleHp, playerCastleHpMax);
-          setHp(botCastleFill, botCastleText, botCastleHp, botCastleHpMax);
-
-          function floatDamage(x, y, text, isGood) {
-            const d = document.createElement("div");
-            d.className = "dmg-float";
-            d.textContent = text;
-            d.style.left = Math.round(x) + "px";
-            d.style.top = Math.round(y) + "px";
-            d.style.color = isGood ? "#ffe08a" : "#ff7a7a";
-            document.body.appendChild(d);
-            d.animate(
-              [
-                { transform: "translate(-50%, -50%) translateY(0)", opacity: 1 },
-                { transform: "translate(-50%, -50%) translateY(-26px)", opacity: 0 },
-              ],
-              { duration: 760, easing: "cubic-bezier(0.2,0.9,0.2,1)", fill: "forwards" }
-            ).onfinish = () => d.remove();
-          }
-
-          function applyToPlayer(dmg) {
-            const pre = playerWallHp;
-            if (playerWallHp > 0) {
-              const used = Math.min(playerWallHp, dmg);
-              playerWallHp -= used;
-              dmg -= used;
-            }
-            if (dmg > 0) playerCastleHp -= dmg;
-            setHp(playerWallFill, playerWallText, playerWallHp, playerWallHpMax);
-            setHp(playerCastleFill, playerCastleText, playerCastleHp, playerCastleHpMax);
-            return pre !== playerWallHp;
-          }
-
-          function applyToBot(dmg) {
-            // Damage applies to bot wall first (if present), then bot castle.
-            if (botWallHp > 0) {
-              const used = Math.min(botWallHp, dmg);
-              botWallHp -= used;
-              dmg -= used;
-            }
-            if (dmg > 0) botCastleHp -= dmg;
-            setHp(botCastleFill, botCastleText, botCastleHp, botCastleHpMax);
-          }
-
-          const arenaRect = battleArenaEl.getBoundingClientRect();
-          const playerDmg =
-            (20 + playerCannon1 * 5) + (hasSecondCannon ? (20 + playerCannon2 * 5) : 0);
-          const botDmg =
-            (20 + botCannon1Lvl * 5) + (botHasSecondCannon ? (20 + botCannon2Lvl * 5) : 0);
-
-          (async function combatLoop() {
-            try {
-              while (playerCastleHp > 0 && botCastleHp > 0) {
-                if (battleAbort) break;
-                // Player turn (dual cannons fire together)
-                spawnBattleCannonball(true, 0);
-                if (hasSecondCannon) spawnBattleCannonball(true, 1);
-                floatDamage(arenaRect.left + arenaRect.width - 140, arenaRect.top + 78, `-${playerDmg}`, true);
-                applyToBot(playerDmg);
-                if (!(await waitBattleMs(820))) break;
-                if (botCastleHp <= 0) break;
-
-                // Bot turn
-                spawnBattleCannonball(false, 0);
-                if (botHasSecondCannon) spawnBattleCannonball(false, 1);
-                floatDamage(arenaRect.left + 140, arenaRect.top + 78, `-${botDmg}`, false);
-                applyToPlayer(botDmg);
-                if (!(await waitBattleMs(820))) break;
-              }
-
-              // If the modal was closed mid-battle, don't apply rewards/penalties.
-              if (battleAbort) return;
-
-              const win = botCastleHp <= 0 && playerCastleHp > 0;
-              const botWealth = battleBotLevel * 500;
-              let coinsLooted = 0;
-              if (win) {
-                coinsLooted = Math.floor(botWealth * 0.2);
-                coins += coinsLooted;
-                setStatus(`Raid success! +${coinsLooted} coins.`, false);
-                spawnFlyingCoins(18);
-              } else {
-                const lost = Math.floor(coins * 0.05);
-                coins -= lost;
-                setStatus(`Raid failed. -${lost} coins.`, true);
-              }
-
-              logEvent("attack_completed", {
-                result: win ? "win" : "loss",
-                coinsLooted,
-                botHp: Math.max(0, Math.round(botCastleHp)),
-                playerHp: Math.max(0, Math.round(playerCastleHp + Math.max(0, playerWallHp))),
-                totalCannons,
-              });
-
-              persistState();
-              updateUI();
-            } catch (e) {
-              console.error("Combat loop failed:", e);
-              setStatus("Battle interrupted. Try again.", true);
-            } finally {
-              battleInProgress = false;
-            }
-          })();
-        }
-
-        openSlotBtn.addEventListener("click", function () {
-          openSlotModal();
-          if (tutorialStep === 2) {
-            completeTutorialStep(2);
-            enterTutorialStep(3);
-          }
-        });
-
-        closeSlotBtn.addEventListener("click", function () {
-          closeSlotModal();
-        });
-
         spinBtn.addEventListener("click", async function () {
           if (tutorialStep === 3) {
             await runSpin(true); // rigged first tutorial spin
@@ -4530,13 +4039,6 @@
         if (upgradeCannonBtn) {
           upgradeCannonBtn.addEventListener("click", function () {
             handleCannonUpgrade();
-          });
-        }
-
-        if (attackBtn) {
-          attackBtn.addEventListener("click", function () {
-            battleOpponent = generateNewOpponent();
-            openBattleModal();
           });
         }
 
@@ -4571,6 +4073,7 @@
             coins -= cost;
             hasSecondCannon = true;
             logEvent("item_bought", { item: "second_cannon", cost });
+            upgradeVillageItem("Boat", cost);
             persistState();
             updateUI();
             setStatus("Second cannon acquired!", false);
@@ -4597,63 +4100,13 @@
             hasWall = true;
             wallLevel = Math.max(1, wallLevel);
             logEvent("item_bought", { item: "wall_start", cost });
+            upgradeVillageItem("Statue", cost);
             persistState();
             updateUI();
             setStatus("Iron Wall constructed!", false);
           });
         }
 
-        if (closeBattleBtn) {
-          closeBattleBtn.addEventListener("click", function () {
-            closeBattleModal();
-          });
-        }
-
-        // fast-forward removed
-
-        if (startAttackBtn) {
-          // Permanent handler: prevents any accidental listener accumulation.
-          startAttackBtn.onclick = function () {
-            beginAttack();
-          };
-        }
-
-        if (btnFastForward) {
-          // Toggle between normal (1x) and fast (4x) battle speeds.
-          btnFastForward.addEventListener("click", function () {
-            const next = battleSpeed === 1 ? 4 : 1;
-            battleSpeed = next;
-            // Make already-running projectile animations speed up immediately.
-            if (battleActiveAnimations && battleActiveAnimations.length) {
-              battleActiveAnimations.forEach((a) => {
-                try {
-                  a.playbackRate = next;
-                } catch (e) {}
-              });
-            }
-
-            btnFastForward.textContent = `${next}x`;
-            const isFast = next === 4;
-            btnFastForward.style.borderColor = isFast
-              ? "rgba(79, 211, 255, 0.45)"
-              : "rgba(220, 230, 255, 0.16)";
-            btnFastForward.style.background = isFast
-              ? "linear-gradient(180deg, #17d57a, #0f5a3a)"
-              : "";
-            btnFastForward.style.boxShadow = isFast
-              ? "0 0 20px rgba(79, 211, 255, 0.22)"
-              : "";
-
-            logEvent("battle_speed_toggled", {
-              speed: next,
-              playerCastleLevel: stage,
-              playerCannonLevel: cannon1Level,
-              playerCannon2Level: cannon2Level,
-              hasSecondCannon,
-              wallLevel: hasWall ? wallLevel : 0,
-            });
-          });
-        }
 
         if (closeUpgradeBtn) {
           closeUpgradeBtn.addEventListener("click", function () {
@@ -4676,6 +4129,7 @@
                   hasWall = true;
                   wallLevel = Math.max(1, wallLevel);
                   logEvent("item_bought", { item: "wall_start", cost });
+                  upgradeVillageItem("Statue", cost);
                   persistState();
                   updateUI();
                 }
@@ -4705,9 +4159,11 @@
         bindUpgradeClick(cannon2TagBtn, "cannon", 2);
         bindUpgradeClick(wallTagBtn, "wall", 3);
 
-        refillBtn.addEventListener("click", function () {
-          handleRefill();
-        });
+        if (closeRaidBtn) {
+          closeRaidBtn.addEventListener("click", function () {
+            if (raidModalEl) raidModalEl.classList.add("hidden");
+          });
+        }
 
         function logTutorialAction(action) {
           if (tutorialStep > 0) {
@@ -4753,7 +4209,8 @@
 
         loadState();
         updateUI();
-        logEvent("game_start", { initialEnergy: energy, initialCoins: coins });
+        refreshShieldOrbitVisuals();
+        logEvent("game_start", { initialEnergy: energy, initialCoins: coins, condition: gameState.condition });
 
         initTutorial();
       })();
