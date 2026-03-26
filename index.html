@@ -373,6 +373,34 @@
         font-variant-numeric: tabular-nums;
         font-weight: 700;
       }
+      .hud-timer {
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #ffe08a;
+        opacity: 0.95;
+      }
+      .hud-timer.pulse {
+        animation: hud-timer-pulse 900ms ease-in-out infinite;
+      }
+      .hud-timer.zero {
+        color: #ffb347;
+        text-shadow: 0 0 10px rgba(255, 140, 60, 0.45);
+      }
+      @keyframes hud-timer-pulse {
+        0% { opacity: 0.9; }
+        50% { opacity: 1; text-shadow: 0 0 10px rgba(255, 209, 102, 0.45); }
+        100% { opacity: 0.9; }
+      }
+      .hud-bar-fill.energy.energy-refill-flash {
+        animation: energy-refill-flash 620ms ease-out;
+      }
+      @keyframes energy-refill-flash {
+        0% { box-shadow: 0 0 0 rgba(120, 240, 255, 0); }
+        40% { box-shadow: 0 0 20px rgba(120, 240, 255, 0.75); }
+        100% { box-shadow: 0 0 0 rgba(120, 240, 255, 0); }
+      }
       .shield-slots { margin-top: 8px; display:flex; justify-content:center; gap:8px; }
       .shield-slot { width:24px; height:24px; border-radius:50%; border:2px solid rgba(210,225,255,.42); background: rgba(22,30,50,.7); }
       .shield-slot.active { background: radial-gradient(circle at 30% 28%, #d9f7ff 0%, #76d6ff 45%, #1f7eff 100%); box-shadow: 0 0 16px rgba(118,214,255,.55); }
@@ -2488,10 +2516,23 @@
             },
             body: JSON.stringify(formattedData),
           });
-          const result = await response.json();
-          console.log("✅ Data saved via REST API:", result.name || result);
+          let result = null;
+          try {
+            result = await response.json();
+          } catch (e) {
+            result = null;
+          }
+          if (!response.ok) {
+            if (response.status === 403) {
+              console.warn("Firestore access denied - please check Security Rules.");
+            } else {
+              console.warn("Firestore write skipped:", response.status, result || "");
+            }
+            return;
+          }
+          console.log("✅ Data saved via REST API:", (result && (result.name || result)) || "ok");
         } catch (error) {
-          console.error("❌ REST API Save failed:", error);
+          console.warn("Firestore write failed (network/error). Continuing local gameplay.", error);
         }
       };
     </script>
@@ -2531,7 +2572,10 @@
             <div class="hud-bar-track hud-bar-track--energy">
               <div class="hud-bar-fill energy" id="energyFill" style="width: 100%"></div>
             </div>
-            <div class="hud-bar-value"><span id="energyValue">10</span>/<span id="energyMaxValue">10</span></div>
+            <div class="hud-bar-value">
+              <span id="energyValue">10</span>/<span id="energyMaxValue">10</span>
+              <span id="hudEnergyTimer" class="hud-timer">Next: 05:00</span>
+            </div>
           </div>
           <div class="hud-bar">
             <div class="hud-bar-label">Coins</div>
@@ -2866,6 +2910,7 @@
         const energyModalEl = document.getElementById("energyModal");
         const closeEnergyBtn = document.getElementById("closeEnergyBtn");
         const energyTimerDisplayEl = document.getElementById("energyTimerDisplay");
+        const hudEnergyTimerEl = document.getElementById("hudEnergyTimer");
         const raidBoardEl = document.getElementById("raidBoard");
         const raidInfoEl = document.getElementById("raidInfo");
         const shieldSlotEls = [document.getElementById("shieldSlot0"), document.getElementById("shieldSlot1"), document.getElementById("shieldSlot2")];
@@ -3644,14 +3689,32 @@
             energy = gameState.energy;
             nextRefillTime = now + ENERGY_REFILL_INTERVAL_MS;
             logEvent("energy_refill_completed", { energyBefore: before, energyAfter: gameState.energy });
+            logEvent("energy_refill_applied", { energyBefore: before, energyAfter: gameState.energy });
+            logEvent("energy_timer_sync_applied", { nextRefillTime, energyAfter: gameState.energy });
+            if (energyFillEl) {
+              energyFillEl.classList.remove("energy-refill-flash");
+              void energyFillEl.offsetWidth;
+              energyFillEl.classList.add("energy-refill-flash");
+              setTimeout(() => energyFillEl.classList.remove("energy-refill-flash"), 700);
+            }
             updateUI();
             persistState();
             if (energyModalEl && !energyModalEl.classList.contains("hidden")) closeEnergyModal();
           }
           const remaining = Math.max(0, nextRefillTime - now);
+          const timerText = gameState.energy >= MAX_ENERGY ? "MAX" : `Next: ${formatCountdown(remaining)}`;
           if (energyTimerDisplayEl) {
-            energyTimerDisplayEl.textContent = `Next Energy in: ${formatCountdown(remaining)}`;
-            energyTimerDisplayEl.classList.toggle("pulse", remaining <= 10000);
+            energyTimerDisplayEl.textContent = gameState.energy >= MAX_ENERGY
+              ? "Next Energy in: MAX"
+              : `Next Energy in: ${formatCountdown(remaining)}`;
+            energyTimerDisplayEl.classList.toggle("pulse", gameState.energy < MAX_ENERGY && remaining <= 10000);
+          }
+          if (hudEnergyTimerEl) {
+            hudEnergyTimerEl.textContent = timerText;
+            const isLowCountdown = gameState.energy < MAX_ENERGY && remaining <= 10000;
+            const isZeroEnergy = gameState.energy <= 0;
+            hudEnergyTimerEl.classList.toggle("pulse", isLowCountdown || isZeroEnergy);
+            hudEnergyTimerEl.classList.toggle("zero", isZeroEnergy);
           }
         }
 
