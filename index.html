@@ -519,6 +519,16 @@
       .shield-slots { margin-top: 8px; display:flex; justify-content:center; gap:8px; }
       .shield-slot { width:24px; height:24px; border-radius:50%; border:2px solid rgba(210,225,255,.42); background: rgba(22,30,50,.7); }
       .shield-slot.active { background: radial-gradient(circle at 30% 28%, #d9f7ff 0%, #76d6ff 45%, #1f7eff 100%); box-shadow: 0 0 16px rgba(118,214,255,.55); }
+      .shield-slot.shield-juice {
+        animation: shield-squash-pop 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
+        box-shadow: 0 0 24px rgba(255, 210, 90, 0.9), 0 0 40px rgba(255, 210, 90, 0.42);
+        border-color: rgba(255, 220, 120, 0.95);
+      }
+      @keyframes shield-squash-pop {
+        0% { transform: scale(0.65, 1.35); filter: brightness(1.15); }
+        45% { transform: scale(1.22, 0.78); filter: brightness(1.45); }
+        100% { transform: scale(1, 1); filter: brightness(1); }
+      }
       .shield-orbit { position:absolute; width:18px; height:18px; border-radius:50%; background: radial-gradient(circle at 30% 30%, #eaffff, #74d7ff 55%, #1e66e8 100%); box-shadow:0 0 14px rgba(96,215,255,.6); animation: orbit-float 2400ms linear infinite; pointer-events:none; }
       @keyframes orbit-float { 0% { transform: translate(0px, 0px); } 25% { transform: translate(14px, -8px); } 50% { transform: translate(0px, -16px); } 75% { transform: translate(-14px, -8px); } 100% { transform: translate(0px, 0px); } }
       .screen-shake { animation: screen-shake 360ms cubic-bezier(.2,.9,.3,1); }
@@ -669,6 +679,193 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+      }
+      body.rival-mode .world-inner {
+        filter: hue-rotate(180deg) brightness(0.8);
+        transition: filter 1s ease;
+      }
+      body.rival-mode #shopBtn,
+      body.rival-mode #villageProgressBarContainer {
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      .world-inner.travel-hidden {
+        opacity: 0;
+        transform: scale(0.96);
+        transition: opacity 240ms ease, transform 240ms ease;
+        pointer-events: none;
+      }
+
+      #rivalVillageContainer {
+        position: fixed;
+        inset: 0;
+        z-index: 15000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background:
+          radial-gradient(circle at 50% 8%, rgba(150, 180, 255, 0.16), transparent 58%),
+          linear-gradient(180deg, rgba(8, 14, 28, 0.97), rgba(4, 6, 16, 0.98));
+        backdrop-filter: blur(3px);
+      }
+      #rivalVillageContainer.hidden {
+        display: none !important;
+        pointer-events: none !important;
+      }
+      .rival-village {
+        position: relative;
+        width: min(720px, calc(100vw - 30px));
+        height: min(430px, calc(100vh - 64px));
+        border-radius: 26px;
+        border: 1px solid rgba(180, 210, 255, 0.16);
+        overflow: hidden;
+        box-shadow: 0 28px 70px rgba(0, 0, 0, 0.72);
+        background:
+          radial-gradient(circle at 20% 20%, rgba(148, 96, 255, 0.18), transparent 52%),
+          radial-gradient(circle at 80% 26%, rgba(90, 180, 255, 0.12), transparent 58%),
+          linear-gradient(180deg, #1a1f39 0%, #0f1226 44%, #0a0f1f 100%);
+      }
+      .rival-village::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 50% 60%, rgba(170, 190, 255, 0.16), transparent 56%),
+          repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.03) 0 2px, transparent 2px 14px);
+        opacity: 0.56;
+        pointer-events: none;
+      }
+      .rival-title {
+        position: absolute;
+        top: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-weight: 900;
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        color: #dfe8ff;
+        background: rgba(8, 14, 30, 0.75);
+        border: 1px solid rgba(180, 205, 255, 0.24);
+      }
+      .rival-targets {
+        position: absolute;
+        inset: 0;
+      }
+      .rival-target {
+        position: absolute;
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        border: 2px dashed rgba(255, 215, 105, 0.75);
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.28), rgba(255, 150, 40, 0.10));
+        color: #ffeab9;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+      }
+      .rival-target:hover {
+        transform: scale(1.08);
+        box-shadow: 0 0 28px rgba(255, 204, 88, 0.52);
+        filter: brightness(1.14);
+      }
+      .rival-target[data-building="Castle"] { top: 26%; left: 44%; }
+      .rival-target[data-building="Cannon"] { top: 50%; left: 26%; }
+      .rival-target[data-building="Statue"] { top: 54%; left: 62%; }
+      .impact-burst {
+        position: absolute;
+        width: 112px;
+        height: 112px;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+      .impact-burst.hit {
+        background: radial-gradient(circle, rgba(255, 250, 210, 0.95) 0%, rgba(255, 140, 45, 0.8) 35%, rgba(75, 10, 10, 0) 72%);
+        animation: hit-burst 700ms ease-out forwards;
+      }
+      .impact-burst.block {
+        background: radial-gradient(circle, rgba(210, 244, 255, 0.95) 0%, rgba(90, 160, 255, 0.88) 35%, rgba(30, 70, 160, 0) 72%);
+        border: 2px solid rgba(215, 245, 255, 0.95);
+        animation: block-burst 700ms ease-out forwards;
+      }
+      @keyframes hit-burst {
+        0% { transform: translate(-50%, -50%) scale(0.2); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1.45); opacity: 0; }
+      }
+      @keyframes block-burst {
+        0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(1.35); opacity: 0; }
+      }
+      .travel-cloud {
+        position: fixed;
+        inset: 0;
+        z-index: 16000;
+        pointer-events: none;
+        opacity: 0;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.42), transparent 48%),
+          radial-gradient(circle at 78% 34%, rgba(255, 255, 255, 0.35), transparent 52%),
+          linear-gradient(180deg, rgba(235, 245, 255, 0.42), rgba(184, 208, 240, 0.34));
+      }
+      .travel-cloud.active {
+        animation: travel-cloud-fade 1500ms ease-in-out forwards;
+      }
+      @keyframes travel-cloud-fade {
+        0% { opacity: 0; }
+        24% { opacity: 0.86; }
+        100% { opacity: 0; }
+      }
+      #cloudOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        pointer-events: none;
+        overflow: hidden;
+        opacity: 0;
+      }
+      #cloudOverlay.active {
+        opacity: 1;
+      }
+      .cloud-layer {
+        position: absolute;
+        inset: -10%;
+        background-repeat: repeat-x;
+        background-size: 420px 220px;
+        opacity: 0.45;
+        animation: cloud-layer-drift 8s linear infinite;
+      }
+      .cloud-layer.layer-1 {
+        background-image: radial-gradient(circle at 10% 40%, rgba(255,255,255,0.75) 0 14%, transparent 18%), radial-gradient(circle at 40% 50%, rgba(255,255,255,0.6) 0 16%, transparent 21%), radial-gradient(circle at 72% 44%, rgba(255,255,255,0.68) 0 15%, transparent 20%);
+      }
+      .cloud-layer.layer-2 {
+        background-image: radial-gradient(circle at 18% 55%, rgba(255,255,255,0.6) 0 16%, transparent 21%), radial-gradient(circle at 52% 48%, rgba(255,255,255,0.5) 0 14%, transparent 20%), radial-gradient(circle at 84% 58%, rgba(255,255,255,0.56) 0 16%, transparent 22%);
+        animation-duration: 10s;
+        animation-direction: reverse;
+        opacity: 0.35;
+      }
+      .cloud-layer.layer-3 {
+        background-image: radial-gradient(circle at 25% 50%, rgba(255,255,255,0.5) 0 12%, transparent 17%), radial-gradient(circle at 62% 42%, rgba(255,255,255,0.45) 0 13%, transparent 18%);
+        animation-duration: 12s;
+        opacity: 0.25;
+      }
+      @keyframes cloud-layer-drift {
+        from { transform: translateX(0); }
+        to { transform: translateX(-220px); }
+      }
+      .hud-bar-track--energy.spins-charge {
+        animation: spins-charge 720ms ease-in-out;
+      }
+      @keyframes spins-charge {
+        0% { box-shadow: 0 0 0 rgba(120,240,255,0); transform: scale(1); }
+        50% { box-shadow: 0 0 22px rgba(120,240,255,0.7); transform: scale(1.03); }
+        100% { box-shadow: 0 0 0 rgba(120,240,255,0); transform: scale(1); }
+      }
+      .coin-particle.burst {
+        width: 14px;
+        height: 14px;
+        box-shadow: 0 0 8px rgba(255, 208, 90, 0.65);
       }
 
       .world-sky {
@@ -1262,7 +1459,8 @@
         border-radius: 16px;
         color: #3c2a14;
         font-weight: 900;
-        letter-spacing: 0.04em;
+        font-size: 0.92rem;
+        letter-spacing: 0.045em;
         background:
           radial-gradient(circle at 10% 10%, rgba(255,255,255,0.32), transparent 45%),
           linear-gradient(180deg, rgba(250, 237, 210, 0.98), rgba(220, 198, 150, 0.98));
@@ -1270,10 +1468,23 @@
           0 18px 45px rgba(0, 0, 0, 0.75),
           0 0 0 1px rgba(120, 85, 40, 0.7);
         pointer-events: none;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .world-status span {
         color: #2e7d32;
+      }
+      #payoutText {
+        background: linear-gradient(180deg, rgba(8, 12, 24, 0.86), rgba(6, 8, 20, 0.9));
+        border: 1px solid rgba(255, 209, 102, 0.55);
+        color: #e8f1ff;
+        min-height: 58px;
+      }
+      #payoutText span {
+        color: #ffd166;
       }
 
       /* Sidebar stacked status (below #researchCapture) */
@@ -2699,14 +2910,14 @@
         </div>
         <div class="hud-bars">
           <div class="hud-bar">
-            <div class="hud-bar-label">Energy</div>
+            <div class="hud-bar-label">Spins</div>
             <div class="hud-bar-track hud-bar-track--energy">
               <div class="hud-bar-fill energy" id="energyFill" style="width: 100%"></div>
             </div>
             <div class="hud-bar-value">
               <span id="energyValue">10</span>/<span id="energyMaxValue">10</span>
               <span id="hudEnergyTimer" class="hud-timer">Next: 05:00</span>
-              <button id="devRefillBtn" type="button" class="dev-refill-btn" title="Dev refill">+</button>
+              <button id="devRefillBtn" type="button" class="dev-refill-btn" title="Refill Spins">+</button>
             </div>
           </div>
           <div class="hud-bar">
@@ -2889,16 +3100,16 @@
         </div>
       </div>
       <div id="villageCelebration" class="village-celebration hidden">
-        <div class="village-popup">VILLAGE COMPLETE!</div>
+        <div id="villagePopupText" class="village-popup">VILLAGE COMPLETE!</div>
       </div>
-      <div id="energyModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Out of energy">
+      <div id="energyModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Out of spins">
         <div class="modal-sheet energy-modal-sheet">
           <div class="modal-header">
             <div class="modal-title energy-modal-title">Out of Spins!</div>
           </div>
           <div class="energy-icon-lg">⚡</div>
-          <div class="energy-modal-body">Don't worry! Your energy is recharging.</div>
-          <div id="energyTimerDisplay" class="energy-timer">Next Energy in: 05:00</div>
+          <div class="energy-modal-body">Your spins are recharging...</div>
+          <div id="energyTimerDisplay" class="energy-timer">Next Spin in: 05:00</div>
           <div class="controls" style="display:flex; justify-content:center;">
             <button id="closeEnergyBtn" type="button" class="secondary metal-btn">Close</button>
           </div>
@@ -2921,12 +3132,28 @@
           </div>
         </aside>
 
-        <div class="world-status world-status--sidebar" id="statusLine">
+        <div class="world-status world-status--sidebar" id="payoutText">
           Status: <span>Ready.</span>
         </div>
       </div>
     </div>
     <div id="cfgLabel" class="cfg-label">CFG: -</div>
+    <div id="cloudOverlay" aria-hidden="true">
+      <div class="cloud-layer layer-1"></div>
+      <div class="cloud-layer layer-2"></div>
+      <div class="cloud-layer layer-3"></div>
+    </div>
+    <div id="travelCloudOverlay" class="travel-cloud" aria-hidden="true"></div>
+    <div id="rivalVillageContainer" class="hidden" aria-hidden="true">
+      <div class="rival-village">
+        <div class="rival-title" id="rivalVillageTitle">Ghost Village</div>
+        <div class="rival-targets" id="rivalTargets">
+          <button type="button" class="rival-target" data-building="Castle">Castle</button>
+          <button type="button" class="rival-target" data-building="Cannon">Cannon</button>
+          <button type="button" class="rival-target" data-building="Statue">Statue</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
@@ -3078,6 +3305,11 @@
         const devRefillBtn = document.getElementById("devRefillBtn");
         const worldInnerEl = document.querySelector(".world-inner");
         const villageCelebrationEl = document.getElementById("villageCelebration");
+        const villagePopupTextEl = document.getElementById("villagePopupText");
+        const rivalVillageContainerEl = document.getElementById("rivalVillageContainer");
+        const rivalTargetsEl = document.getElementById("rivalTargets");
+        const rivalVillageTitleEl = document.getElementById("rivalVillageTitle");
+        const travelCloudOverlayEl = document.getElementById("travelCloudOverlay");
         const raidModalEl = document.getElementById("raidModal");
         const collectRaidBtn = document.getElementById("collectRaidBtn");
         const energyModalEl = document.getElementById("energyModal");
@@ -3101,7 +3333,8 @@
         ];
         const reelsWrap = document.getElementById("reels");
 
-        const statusLineEl = document.getElementById("statusLine");
+        const statusLineEl = document.getElementById("payoutText") || document.getElementById("statusLine");
+        const cloudOverlayEl = document.getElementById("cloudOverlay");
 
         const tutorialOverlayEl = document.getElementById("tutorialOverlay");
         const tutorialTooltipEl = document.getElementById("tutorialTooltip");
@@ -3120,13 +3353,13 @@
         const appLayoutEl = document.getElementById("appLayout");
         const consentStartBtn = document.getElementById("consentStartBtn");
 
-        const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0 };
+        const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0, spins: 0, currentRivalName: "" };
         const DEFAULT_ECONOMY_DATA = {
           condition_A: {
-            initialEnergy: 10,
-            maxEnergy: 10,
+            initialSpins: 10,
+            maxSpins: 10,
             refillMinutes: 5,
-            villageCompleteReward: { coins: 500000, energy: 20 },
+            villageCompleteReward: { coins: 500000, spins: 20 },
             slotWeights: { hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, energy: 2 },
             payouts: {
               coin_single: 1000,
@@ -3134,7 +3367,7 @@
               raid_base: 100000,
               attack_hit: 700,
               attack_blocked: 120,
-              energy_triple: 10,
+              spins_triple: 10,
             },
             buildings: {
               Boat: { baseCost: 5000, multiplier: 1.5 },
@@ -3145,10 +3378,10 @@
             },
           },
           condition_B: {
-            initialEnergy: 20,
-            maxEnergy: 20,
+            initialSpins: 20,
+            maxSpins: 20,
             refillMinutes: 3,
-            villageCompleteReward: { coins: 1000000, energy: 50 },
+            villageCompleteReward: { coins: 1000000, spins: 50 },
             slotWeights: { hammer: 5, pig: 5, shield: 2, coin: 4, bag: 4, energy: 2 },
             payouts: {
               coin_single: 2500,
@@ -3156,7 +3389,7 @@
               raid_base: 300000,
               attack_hit: 900,
               attack_blocked: 200,
-              energy_triple: 10,
+              spins_triple: 10,
             },
             buildings: {
               Boat: { baseCost: 3000, multiplier: 1.3 },
@@ -3184,7 +3417,7 @@
           const reward = (getConditionEconomy() && getConditionEconomy().villageCompleteReward) || {};
           return {
             coins: Number.isFinite(Number(reward.coins)) ? Number(reward.coins) : 500000,
-            energy: Number.isFinite(Number(reward.energy)) ? Number(reward.energy) : 20,
+            spins: Number.isFinite(Number(reward.spins)) ? Number(reward.spins) : 20,
           };
         }
         function calculateUpgradeCost(buildingName, currentStars) {
@@ -3219,13 +3452,13 @@
         function getGameConfig() {
           const economy = getConditionEconomy();
           const slotWeights = Object.assign({ hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, energy: 2 }, economy.slotWeights || {});
-          const initialEnergy = Number(economy.initialEnergy);
-          const maxEnergy = Number(economy.maxEnergy);
+          const initialSpins = Number(economy.initialSpins);
+          const maxSpins = Number(economy.maxSpins);
           const refillMinutes = Number(economy.refillMinutes);
           return {
             slotWeights,
-            initialEnergy: Number.isFinite(initialEnergy) ? initialEnergy : 10,
-            maxEnergy: Number.isFinite(maxEnergy) ? maxEnergy : 10,
+            initialEnergy: Number.isFinite(initialSpins) ? initialSpins : 10,
+            maxEnergy: Number.isFinite(maxSpins) ? maxSpins : 10,
             refillMinutes: Number.isFinite(refillMinutes) ? refillMinutes : 5,
           };
         }
@@ -3236,6 +3469,7 @@
 
         let energy = GAME_CONFIG.initialEnergy;
         gameState.energy = energy;
+        gameState.spins = energy;
         let lastEnergyRefillAt = Date.now();
         let ENERGY_REFILL_INTERVAL_MS = Math.max(60000, GAME_CONFIG.refillMinutes * 60 * 1000);
         let nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
@@ -3255,6 +3489,8 @@
         let villageStartedAtMs = Date.now();
         let isVillageCelebrating = false;
         const VILLAGE_ITEMS = ["Castle", "Cannon", "Statue", "Farm", "Boat"];
+        const ATTACKABLE_TARGETS = ["Castle", "Cannon", "Statue"];
+        const RIVAL_BOTS = ["YossiKing", "LiadSpins", "BarakPro", "EdenGamer", "MayaQueen", "DanSpin", "SaritStar", "NoamWinner", "GalPlayer", "AdiCasino"];
         let villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
 
         let maxedLoggedSecondCannon = false;
@@ -3268,7 +3504,7 @@
           { name: "Hammer", icon: "hammer", weight: 16, base: 0 },
           { name: "Pig", icon: "pig", weight: 16, base: 0 },
           { name: "Shield", icon: "shield", weight: 15, base: 0 },
-          { name: "Energy", icon: "energy", weight: 10, base: 0 },
+          { name: "Spins", icon: "energy", weight: 10, base: 0 },
           { name: "Coin", icon: "coin_compass", weight: 26, base: 180 },
           { name: "Bag", icon: "coin_griffin", weight: 27, base: 180 },
         ];
@@ -3480,11 +3716,147 @@
         setReelIcon(reelEls[1], "pig");
         setReelIcon(reelEls[2], "shield");
 
+        let statusTypewriterTimer = null;
         function setStatus(message, isError) {
           if (!statusLineEl) return;
           statusLineEl.classList.toggle("error", !!isError);
           const span = statusLineEl.querySelector("span");
-          if (span) span.textContent = message;
+          if (!span) return;
+          if (statusTypewriterTimer) {
+            clearInterval(statusTypewriterTimer);
+            statusTypewriterTimer = null;
+          }
+          const text = String(message || "");
+          let idx = 0;
+          span.textContent = "";
+          statusTypewriterTimer = setInterval(() => {
+            idx += 1;
+            span.textContent = text.slice(0, idx);
+            if (idx >= text.length) {
+              clearInterval(statusTypewriterTimer);
+              statusTypewriterTimer = null;
+            }
+          }, 14);
+        }
+        function getRandomBotName() {
+          return RIVAL_BOTS[Math.floor(Math.random() * RIVAL_BOTS.length)];
+        }
+        function playRaidSound() {}
+        function playCoinFlySound() {}
+        function playAttackSound() {}
+        function playShieldGainSound() {}
+        async function triggerTravelSequence(toRival) {
+          const targetBotName = gameState.currentRivalName || "";
+          logEvent("island_travel_started", { targetBotName, toRival });
+          if (cloudOverlayEl) cloudOverlayEl.classList.add("active");
+          await sleep(800);
+          if (toRival) {
+            document.body.classList.add("rival-mode");
+            if (rivalVillageContainerEl) rivalVillageContainerEl.classList.remove("hidden");
+            if (worldInnerEl) worldInnerEl.classList.add("travel-hidden");
+          } else {
+            if (rivalVillageContainerEl) rivalVillageContainerEl.classList.add("hidden");
+            if (worldInnerEl) worldInnerEl.classList.remove("travel-hidden");
+            document.body.classList.remove("rival-mode");
+          }
+          await sleep(800);
+          if (cloudOverlayEl) cloudOverlayEl.classList.remove("active");
+          logEvent("island_travel_ended", { targetBotName, toRival });
+          if (!toRival) gameState.currentRivalName = "";
+        }
+        async function animateIslandTravel(toRival, callback) {
+          const durationMs = toRival ? 1500 : 1000;
+          if (travelCloudOverlayEl) {
+            travelCloudOverlayEl.classList.remove("active");
+            void travelCloudOverlayEl.offsetWidth;
+            travelCloudOverlayEl.classList.add("active");
+          }
+          if (worldInnerEl) {
+            worldInnerEl.style.transition = "transform 260ms ease, filter 260ms ease";
+            worldInnerEl.style.transform = "scale(1.04)";
+            worldInnerEl.style.filter = "brightness(1.08)";
+          }
+          pulseScreenShake();
+          await sleep(Math.min(520, durationMs / 2));
+          if (toRival) {
+            if (worldInnerEl) worldInnerEl.classList.add("travel-hidden");
+            if (rivalVillageContainerEl) rivalVillageContainerEl.classList.remove("hidden");
+          } else {
+            if (rivalVillageContainerEl) rivalVillageContainerEl.classList.add("hidden");
+            if (worldInnerEl) worldInnerEl.classList.remove("travel-hidden");
+          }
+          await sleep(Math.max(300, durationMs - Math.min(520, durationMs / 2)));
+          if (worldInnerEl) {
+            worldInnerEl.style.transform = "";
+            worldInnerEl.style.filter = "";
+          }
+          if (travelCloudOverlayEl) travelCloudOverlayEl.classList.remove("active");
+          if (typeof callback === "function") callback();
+        }
+        function animateShieldGain() {
+          playShieldGainSound();
+          shieldSlotEls.forEach((slot, idx) => {
+            if (!slot || idx >= gameState.shields) return;
+            slot.classList.remove("shield-juice");
+            void slot.offsetWidth;
+            slot.classList.add("shield-juice");
+            setTimeout(() => slot.classList.remove("shield-juice"), 460);
+          });
+        }
+        function spawnImpactEffect(targetBtn, blocked) {
+          if (!rivalTargetsEl || !targetBtn) return;
+          const burst = document.createElement("div");
+          burst.className = `impact-burst ${blocked ? "block" : "hit"}`;
+          const rect = targetBtn.getBoundingClientRect();
+          const hostRect = rivalTargetsEl.getBoundingClientRect();
+          burst.style.left = `${rect.left - hostRect.left + rect.width / 2}px`;
+          burst.style.top = `${rect.top - hostRect.top + rect.height / 2}px`;
+          rivalTargetsEl.appendChild(burst);
+          setTimeout(() => burst.remove(), 780);
+        }
+        function spawnCoinExplosionToHud(baseCoins, totalCoins, particles) {
+          const sourceEl = reelsWrap || spinBtn;
+          if (!sourceEl || !coinsEl) return;
+          const count = Math.max(20, Math.min(30, Number(particles) || 24));
+          const from = sourceEl.getBoundingClientRect();
+          const to = coinsEl.getBoundingClientRect();
+          const startX = from.left + from.width / 2;
+          const startY = from.top + from.height / 2;
+          const endX = to.left + to.width / 2;
+          const endY = to.top + to.height / 2;
+          const perParticle = count > 0 ? Math.max(1, Math.floor(totalCoins / count)) : 0;
+          let visualCoins = Math.max(0, Number(baseCoins) || 0);
+          let landed = 0;
+          for (let i = 0; i < count; i++) {
+            const p = document.createElement("div");
+            p.className = "coin-particle burst";
+            document.body.appendChild(p);
+            p.style.left = Math.round(startX) + "px";
+            p.style.top = Math.round(startY) + "px";
+            const midX = startX + (endX - startX) * 0.35 + (Math.random() * 180 - 90);
+            const midY = startY - (80 + Math.random() * 140);
+            const dur = 640 + Math.random() * 260;
+            p.animate(
+              [
+                { transform: "translate(-50%, -50%) scale(0.8)", opacity: 0.95 },
+                { transform: `translate(${midX - startX}px, ${midY - startY}px) translate(-50%, -50%) scale(1.25)`, opacity: 1 },
+                { transform: `translate(${endX - startX}px, ${endY - startY}px) translate(-50%, -50%) scale(0.48)`, opacity: 0 },
+              ],
+              { duration: dur, easing: "cubic-bezier(0.2, 0.9, 0.2, 1)", fill: "forwards" }
+            ).onfinish = () => {
+              p.remove();
+              landed += 1;
+              if (landed <= count - 1) {
+                visualCoins += perParticle;
+                if (coinsEl) coinsEl.textContent = String(visualCoins);
+              } else {
+                visualCoins = Math.max(visualCoins, Math.max(0, Number(baseCoins) || 0) + Math.max(0, Number(totalCoins) || 0));
+                if (coinsEl) coinsEl.textContent = String(visualCoins);
+                updateUI();
+              }
+            };
+          }
+          playCoinFlySound();
         }
 
         function clamp(v, lo, hi) {
@@ -3530,15 +3902,16 @@
           ENERGY_REFILL_INTERVAL_MS = Math.max(60000, GAME_CONFIG.refillMinutes * 60 * 1000);
           energy = GAME_CONFIG.initialEnergy;
           gameState.energy = energy;
+          gameState.spins = gameState.energy;
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
 
           logEvent("consent_given", { condition: gameState.condition });
           logEvent("experiment_assigned", { condition: gameState.condition });
 
           loadState();
-          updateEnergyRefillTimer();
+          updateSpinRefillTimer();
           if (!window.__energyTickInterval) {
-            window.__energyTickInterval = setInterval(updateEnergyRefillTimer, 1000);
+            window.__energyTickInterval = setInterval(updateSpinRefillTimer, 1000);
           }
           updateUI();
           refreshShieldOrbitVisuals();
@@ -3552,7 +3925,7 @@
           if (appLayoutEl) appLayoutEl.style.pointerEvents = "auto";
           if (tutorialOverlayEl && tutorialStep <= 0) tutorialOverlayEl.style.pointerEvents = "none";
 
-          logEvent("game_start", { initialEnergy: energy, initialCoins: coins, condition: gameState.condition });
+          logEvent("game_start", { initialSpins: energy, initialCoins: coins, condition: gameState.condition });
           initTutorial();
         }
         function handleConsent() {
@@ -3644,6 +4017,7 @@
           gameState.shields = clamp(gameState.shields, 0, 3);
           shields = gameState.shields;
           gameState.energy = clamp(energy, 0, MAX_ENERGY);
+          gameState.spins = gameState.energy;
           energy = gameState.energy;
           if (energyEl) energyEl.textContent = String(gameState.energy);
           if (energyMaxEl) energyMaxEl.textContent = String(GAME_CONFIG.maxEnergy);
@@ -3798,9 +4172,14 @@
           }, {});
           const entries = Object.entries(counts).sort((x, y) => y[1] - x[1]);
           const [topName, topCount] = entries[0];
-          if (topCount === 3 && topName === "Energy") return 0;
-          if (topCount === 3 && topName === "Coin") return getPayoutValue("coin_single", 1000);
+          const coinBase = getPayoutValue("coin_single", 1000);
+          if (topCount === 3 && topName === "Spins") return 0;
+          if (topCount === 3 && topName === "Coin") return coinBase;
           if (topCount === 3 && topName === "Bag") return getPayoutValue("bag_triple", 50000);
+          const coinLikeCount = names.filter((n) => n === "Coin" || n === "Bag").length;
+          if (coinLikeCount > 0) {
+            return Math.max(1, Math.round((coinBase * coinLikeCount) / 3));
+          }
           return 0;
         }
         function getActionForTriple(symbols) {
@@ -3888,11 +4267,16 @@
           await sleep(3000);
           const reward = getVillageCompleteReward();
           coins += reward.coins;
-          gameState.energy = clamp(gameState.energy + reward.energy, 0, MAX_ENERGY);
+          gameState.energy = clamp(gameState.energy + reward.spins, 0, MAX_ENERGY);
+          gameState.spins = gameState.energy;
           energy = gameState.energy;
-          setStatus("Village complete! Bonus gift claimed.", false);
+          if (villagePopupTextEl) {
+            villagePopupTextEl.textContent = `VILLAGE COMPLETE! +${reward.coins} Coins and +${reward.spins} Spins!`;
+          }
+          setStatus(`Village complete! +${reward.coins} Coins and +${reward.spins} Spins!`, false);
           await sleep(2000);
           if (villageCelebrationEl) villageCelebrationEl.classList.add("hidden");
+          if (villagePopupTextEl) villagePopupTextEl.textContent = "VILLAGE COMPLETE!";
           if (worldInnerEl) {
             worldInnerEl.style.transition = "filter 450ms ease";
             worldInnerEl.style.filter = `hue-rotate(${(villageId % 6) * 28}deg) saturate(1.08)`;
@@ -3928,24 +4312,41 @@
           if (!target) return;
           upgradeVillageItem(target, 0);
         }
-        function resolveAttackMode() {
+        async function resolveAttackMode() {
           const targetUserId = "bot";
+          const rivalName = getRandomBotName();
+          gameState.currentRivalName = rivalName;
+          logEvent("rival_encounter_started", { rivalBotName: rivalName, actionType: "attack" });
+          if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `${rivalName}'s Ghost Village`;
+          setStatus(`Targeting ${rivalName}...`, false);
+          await triggerTravelSequence(true);
+          const chosen = await new Promise((resolve) => {
+            if (!rivalTargetsEl) return resolve(null);
+            const buttons = Array.from(rivalTargetsEl.querySelectorAll(".rival-target"));
+            buttons.forEach((btn) => {
+              btn.disabled = false;
+              btn.onclick = () => {
+                buttons.forEach((b) => (b.disabled = true));
+                resolve(btn);
+              };
+            });
+          });
+          const buildingName = (chosen && chosen.dataset && chosen.dataset.building) || ATTACKABLE_TARGETS[Math.floor(Math.random() * ATTACKABLE_TARGETS.length)];
           const blocked = Math.random() < 0.35;
-          let reward = 0;
-          let result = "hit";
-          if (blocked) {
-            result = "blocked";
-            reward = getPayoutValue("attack_blocked", 120);
-            coins += reward;
-            setStatus("Blocked by shield. Small reward.", false);
-          } else {
-            reward = getPayoutValue("attack_hit", 700);
-            coins += reward;
-            pulseScreenShake();
-            setStatus("Hit! Large reward.", false);
-          }
-          spawnFlyingCoins(blocked ? 8 : 18);
-          logEvent("action_attack", { targetUserId, result, reward });
+          const result = blocked ? "blocked" : "hit";
+          const reward = blocked ? getPayoutValue("attack_blocked", 120) : getPayoutValue("attack_hit", 700);
+          spawnImpactEffect(chosen, blocked);
+          playAttackSound();
+          coins += reward;
+          if (!blocked) pulseScreenShake();
+          const detailedResult = blocked
+            ? `BLOCKED! ${rivalName} used a Shield. Still got ${reward} Coins.`
+            : `BOOM! Direct Hit on ${rivalName} for ${reward} Coins!`;
+          setStatus(detailedResult, false);
+          const detailedResultTag = blocked ? `Attack_Blocked_${rivalName}` : `Attack_Hit_${rivalName}`;
+          logEvent("action_attack", { targetUserId, result, reward, buildingName, rivalName, detailedResult, detailedResultTag });
+          await sleep(2000);
+          await triggerTravelSequence(false);
           refreshShieldOrbitVisuals();
         }
         function maybeBotCounterAttack() {
@@ -3963,8 +4364,18 @@
             setStatus("Enemy attack damaged your island.", true);
           }
         }
-        function openRaidMode() {
+        async function openRaidMode() {
           if (!raidModalEl || !raidBoardEl) return;
+          const rivalName = getRandomBotName();
+          gameState.currentRivalName = rivalName;
+          logEvent("rival_encounter_started", { rivalBotName: rivalName, actionType: "raid" });
+          const maxRaidAmount = getPayoutValue("raid_base", 100000);
+          if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `${rivalName}'s Ghost Village`;
+          const travelMessage = `Traveling to ${rivalName}'s Island...`;
+          setStatus(travelMessage, false);
+          logEvent("action_raid_travel", { rivalName, maxRaidAmount, detailedResult: travelMessage });
+          await triggerTravelSequence(true);
+          playRaidSound();
           gameState.isRaidActive = true;
           raidModalEl.classList.remove("hidden");
           if (collectRaidBtn) collectRaidBtn.classList.add("hidden");
@@ -3994,11 +4405,18 @@
               if (raidInfoEl) raidInfoEl.textContent = `Shovels: ${shovels}`;
               if (shovels === 0) {
                 const perfectRaid = totalStolen >= 780;
-                logEvent("action_raid", { totalStolen, perfectRaid });
-                setStatus(`Raid complete: +${totalStolen} coins`, false);
+                const detailedResult = `Raid complete on ${rivalName}: stole ${totalStolen} coins.`;
+                const detailedResultTag = `Raid_Complete_${rivalName}`;
+                logEvent("action_raid", { totalStolen, perfectRaid, rivalName, detailedResult, detailedResultTag });
+                setStatus(detailedResult, false);
                 updateUI();
                 persistState();
-                if (collectRaidBtn) collectRaidBtn.classList.remove("hidden");
+                if (collectRaidBtn) collectRaidBtn.classList.add("hidden");
+                setTimeout(async () => {
+                  gameState.isRaidActive = false;
+                  if (raidModalEl) raidModalEl.classList.add("hidden");
+                  await triggerTravelSequence(false);
+                }, 2000);
               }
             };
           });
@@ -4054,27 +4472,27 @@
           const ss = String(totalSec % 60).padStart(2, "0");
           return `${mm}:${ss}`;
         }
-        function showEnergyModal() {
+        function showOutOfSpinsModal() {
           if (!energyModalEl) return;
           energyModalEl.style.display = "grid";
           energyModalEl.classList.remove("hidden");
-          logEvent("energy_out_modal_shown", { energy: gameState.energy, nextRefillTime });
+          logEvent("spins_out_modal_shown", { spins: gameState.energy, nextRefillTime });
         }
-        function closeEnergyModal() {
+        function closeOutOfSpinsModal() {
           if (!energyModalEl) return;
           energyModalEl.classList.add("hidden");
           energyModalEl.style.display = "";
         }
-        function updateEnergyRefillTimer() {
+        function updateSpinRefillTimer() {
           const now = Date.now();
           if (gameState.energy < MAX_ENERGY && now >= nextRefillTime) {
             const before = gameState.energy;
             gameState.energy = clamp(gameState.energy + 1, 0, MAX_ENERGY);
             energy = gameState.energy;
             nextRefillTime = now + ENERGY_REFILL_INTERVAL_MS;
-            logEvent("energy_refill_completed", { energyBefore: before, energyAfter: gameState.energy });
-            logEvent("energy_refill_applied", { energyBefore: before, energyAfter: gameState.energy });
-            logEvent("energy_timer_sync_applied", { nextRefillTime, energyAfter: gameState.energy });
+            logEvent("spin_refill_completed", { spinsBefore: before, spinsAfter: gameState.energy });
+            logEvent("spin_refill_applied", { spinsBefore: before, spinsAfter: gameState.energy });
+            logEvent("spin_timer_sync_applied", { nextRefillTime, spinsAfter: gameState.energy });
             if (energyFillEl) {
               energyFillEl.classList.remove("energy-refill-flash");
               void energyFillEl.offsetWidth;
@@ -4083,14 +4501,14 @@
             }
             updateUI();
             persistState();
-            if (energyModalEl && !energyModalEl.classList.contains("hidden")) closeEnergyModal();
+            if (energyModalEl && !energyModalEl.classList.contains("hidden")) closeOutOfSpinsModal();
           }
           const remaining = Math.max(0, nextRefillTime - now);
-          const timerText = gameState.energy >= MAX_ENERGY ? "MAX" : `Next: ${formatCountdown(remaining)}`;
+          const timerText = gameState.energy >= MAX_ENERGY ? "MAX" : `Next Spin: ${formatCountdown(remaining)}`;
           if (energyTimerDisplayEl) {
             energyTimerDisplayEl.textContent = gameState.energy >= MAX_ENERGY
-              ? "Next Energy in: MAX"
-              : `Next Energy in: ${formatCountdown(remaining)}`;
+              ? "Next Spin in: MAX"
+              : `Next Spin in: ${formatCountdown(remaining)}`;
             energyTimerDisplayEl.classList.toggle("pulse", gameState.energy < MAX_ENERGY && remaining <= 10000);
           }
           if (hudEnergyTimerEl) {
@@ -4286,12 +4704,12 @@
             placement = "above";
           } else if (stepNumber === 3) {
             msg =
-              "The reels hold your fate. Spin to win coins and energy!";
+              "The reels hold your fate. Spin to win coins and spins!";
             target = spinBtn;
             placement = "above";
           } else if (stepNumber === 4) {
             msg =
-              "Energy ⚡ fuels your spins. It refills over time or via the Refill button.";
+              "Spins ⚡ fuel your progress. They refill over time or via Refill Spins.";
             target = energyTarget || energyFillEl;
             placement = "below";
           } else if (stepNumber === 5) {
@@ -4365,8 +4783,8 @@
 
         async function runSpin(triggeredByTutorial) {
           if (gameState.energy <= 0) {
-            setStatus("Out of energy. Wait for refill.", true);
-            showEnergyModal();
+            setStatus("Low Spins Warning: wait for refill.", true);
+            showOutOfSpinsModal();
             return;
           }
 
@@ -4383,7 +4801,7 @@
           totalSpinsToComplete += 1;
           updateUI();
           if (gameState.energy === 0) {
-            setTimeout(() => showEnergyModal(), 1000);
+            setTimeout(() => showOutOfSpinsModal(), 1000);
           }
           logEvent("slot_spin_started", { spinIndex, energyBefore, condition: gameState.condition });
 
@@ -4408,23 +4826,48 @@
           }
 
           coins += coinsWon;
-          if (result.every((s) => s.name === "Energy")) {
+          const randomCoinParticles = 20 + Math.floor(Math.random() * 11);
+          let spinsTripleTriggered = false;
+          if (result.every((s) => s.name === "Spins")) {
+            spinsTripleTriggered = true;
             const beforeEnergy = gameState.energy;
-            const energyReward = getPayoutValue("energy_triple", 10);
+            const energyReward = getPayoutValue("spins_triple", 10);
             gameState.energy = clamp(gameState.energy + energyReward, 0, MAX_ENERGY);
+            gameState.spins = gameState.energy;
             energy = gameState.energy;
             if (gameState.energy < MAX_ENERGY) {
               nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
             }
-            logEvent("energy_slot_reward", { energyBefore: beforeEnergy, energyAfter: gameState.energy, reward: energyReward });
+            logEvent("spins_triple_reward", { spinsBefore: beforeEnergy, spinsAfter: gameState.energy, reward: energyReward, detailedResult: `Triple Spins! Gained ${energyReward} spins.` });
+            setStatus(`Triple Spins! Gained ${energyReward} spins.`, false);
+            const spinTrack = document.querySelector(".hud-bar-track--energy");
+            if (spinTrack) {
+              spinTrack.classList.remove("spins-charge");
+              void spinTrack.offsetWidth;
+              spinTrack.classList.add("spins-charge");
+              setTimeout(() => spinTrack.classList.remove("spins-charge"), 760);
+            }
           }
-          setStatus(coinsWon > 0 ? `+${coinsWon} coins!` : "No payout.", coinsWon <= 0);
+          let detailedResult = coinsWon > 0
+            ? `JACKPOT! Found a hidden treasure of ${coinsWon} Coins!`
+            : "No payout this spin. Try again.";
+          if (spinsTripleTriggered) {
+            detailedResult = `Triple Spins! Gained +${getPayoutValue("spins_triple", 10)} Spins.`;
+          } else if (actionTriggered === "raid") {
+            detailedResult = "Three pigs! Raid triggered.";
+          } else if (actionTriggered === "attack") {
+            detailedResult = "Three hammers! Attack triggered.";
+          } else if (actionTriggered === "shield") {
+            detailedResult = "Three shields! Defense fortified.";
+          }
+          setStatus(detailedResult, coinsWon <= 0 && !actionTriggered);
 
           logEvent("slot_spin_result", {
             symbols: result.map((s) => s.name),
             payout: coinsWon,
             actionTriggered,
             condition: gameState.condition,
+            detailedResult,
           });
           logEvent("slot_spin_completed", {
             spinIndex,
@@ -4432,19 +4875,21 @@
             payout: coinsWon,
             actionTriggered,
             condition: gameState.condition,
+            detailedResult,
           });
 
           if (coinsWon > 0) {
-            spawnFlyingCoins(15);
+            spawnCoinExplosionToHud(coins - coinsWon, coinsWon, randomCoinParticles);
           }
           if (actionTriggered === "shield" && gameState.shields < 3) {
             gameState.shields += 1;
-            setStatus("Shield added.", false);
+            animateShieldGain();
+            setStatus("Shield forged! Your defenses are empowered.", false);
             refreshShieldOrbitVisuals();
           } else if (actionTriggered === "attack") {
-            resolveAttackMode();
+            await resolveAttackMode();
           } else if (actionTriggered === "raid") {
-            openRaidMode();
+            await openRaidMode();
           }
           applyVillageUpgradeFromSpin();
           maybeBotCounterAttack();
@@ -4733,7 +5178,7 @@
         function onSpinClick() {
           return (async function () {
             if (gameState.energy <= 0) {
-              showEnergyModal();
+              showOutOfSpinsModal();
               return;
             }
             if (tutorialStep === 3) {
@@ -4768,9 +5213,9 @@
           energy = gameState.energy;
           updateUI();
           if (typeof window.saveToFirestore === "function") {
-            window.saveToFirestore("dev_refill", { energyAfter: gameState.energy, condition: gameState.condition });
+            window.saveToFirestore("dev_refill", { spinsAfter: gameState.energy, condition: gameState.condition });
           }
-          console.log("Energy Refilled");
+          console.log("Spins Refilled");
         }
         function onConfirmUpgradeClick() {
             if (!upgradeContext) return;
@@ -4873,11 +5318,12 @@
           setupListener("devRefillBtn", onDevRefillClick);
           setupListener("closeUpgradeBtn", closeUpgradeModal);
           setupListener("confirmUpgradeBtn", onConfirmUpgradeClick);
-          setupListener("collectRaidBtn", () => {
+          setupListener("collectRaidBtn", async () => {
             gameState.isRaidActive = false;
             if (raidModalEl) raidModalEl.classList.add("hidden");
+            await triggerTravelSequence(false);
           });
-          setupListener("closeEnergyBtn", closeEnergyModal);
+          setupListener("closeEnergyBtn", closeOutOfSpinsModal);
           setupListener("tutorialContinueBtn", onTutorialContinueClick);
           setupListener("skipTutorialBtn", onSkipTutorialClick);
           window.addEventListener("resize", function () {
