@@ -5,7 +5,7 @@
     "refillMinutes": 5,
     "villageCompleteReward": { "coins": 500000, "energy": 20 },
     "slotWeights": {
-      "hammer": 2, "pig": 2, "shield": 3, "coin": 7, "bag": 6, "energy": 1
+      "hammer": 20, "pig": 2, "shield": 3, "coin": 7, "bag": 6, "energy": 1
     },
     "payouts": {
       "coin_single": 1000,
