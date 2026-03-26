@@ -1852,7 +1852,7 @@
       }
 
       .reels.is-spinning .reel {
-        filter: blur(2px) saturate(1.2);
+        filter: none;
       }
 
       .reel {
@@ -1869,7 +1869,7 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.08),
           inset 0 -10px 16px rgba(0, 0, 0, 0.65),
           0 14px 35px rgba(0, 0, 0, 0.85);
-        transition: filter 150ms ease-out, transform 150ms ease-out;
+        transition: filter 150ms cubic-bezier(0.45, 0.05, 0.55, 0.95), transform 150ms cubic-bezier(0.45, 0.05, 0.55, 0.95);
       }
 
       .reel::before {
@@ -1913,7 +1913,7 @@
         animation: reel-spin 520ms linear;
       }
       .reel.rolling {
-        filter: blur(2.3px) saturate(1.25) brightness(1.05);
+        filter: saturate(1.06) brightness(1.03);
       }
       .reel.anticipation {
         animation: reel-tension 120ms linear infinite;
@@ -3625,14 +3625,16 @@
           const ss = String(totalSec % 60).padStart(2, "0");
           return `${mm}:${ss}`;
         }
-        function openEnergyModal() {
+        function showEnergyModal() {
           if (!energyModalEl) return;
+          energyModalEl.style.display = "grid";
           energyModalEl.classList.remove("hidden");
           logEvent("energy_out_modal_shown", { energy: gameState.energy, nextRefillTime });
         }
         function closeEnergyModal() {
           if (!energyModalEl) return;
           energyModalEl.classList.add("hidden");
+          energyModalEl.style.display = "";
         }
         function updateEnergyRefillTimer() {
           const now = Date.now();
@@ -3917,7 +3919,7 @@
         async function runSpin(triggeredByTutorial) {
           if (gameState.energy <= 0) {
             setStatus("Out of energy. Wait for refill.", true);
-            openEnergyModal();
+            showEnergyModal();
             return;
           }
 
@@ -3932,6 +3934,10 @@
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
           spinIndex += 1;
           totalSpinsToComplete += 1;
+          updateUI();
+          if (gameState.energy === 0) {
+            setTimeout(() => showEnergyModal(), 1000);
+          }
           logEvent("slot_spin_started", { spinIndex, energyBefore, condition: gameState.condition });
 
           let tutorialRigged = false;
@@ -4302,6 +4308,10 @@
 
         function onSpinClick() {
           return (async function () {
+            if (gameState.energy <= 0) {
+              showEnergyModal();
+              return;
+            }
             if (tutorialStep === 3) {
               await runSpin(true);
               completeTutorialStep(3);
