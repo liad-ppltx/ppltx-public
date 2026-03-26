@@ -394,6 +394,62 @@
         padding: 3px 6px;
         pointer-events: none;
       }
+      .landing-page {
+        position: fixed;
+        inset: 0;
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        font-family: Arial, Helvetica, sans-serif;
+        background: rgba(6, 9, 20, 0.58);
+        backdrop-filter: blur(8px);
+      }
+      .landing-card {
+        width: min(720px, 96vw);
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background:
+          radial-gradient(circle at 30% 10%, rgba(255, 255, 255, 0.12), transparent 60%),
+          linear-gradient(180deg, rgba(19, 24, 41, 0.95), rgba(10, 12, 24, 0.96));
+        box-shadow: 0 26px 64px rgba(0, 0, 0, 0.6);
+        padding: 22px;
+      }
+      .landing-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(220, 235, 255, 0.86);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        padding: 4px 10px;
+        margin-bottom: 12px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .landing-title {
+        margin: 0 0 10px;
+        font-size: clamp(1.2rem, 3.4vw, 1.8rem);
+        color: #ffe08a;
+        font-weight: 1000;
+      }
+      .landing-copy {
+        margin: 0;
+        color: #dce7ff;
+        line-height: 1.55;
+        font-size: 0.98rem;
+      }
+      .landing-cta {
+        margin-top: 16px;
+        width: 100%;
+        font-size: 0.96rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
       .energy-modal-sheet {
         max-width: 420px;
         border: 1px solid rgba(255, 224, 138, 0.28);
@@ -2442,8 +2498,22 @@
   </head>
   <body>
     <div class="ocean-waves" aria-hidden="true"></div>
+    <div id="landingPage" class="landing-page">
+      <div class="landing-card">
+        <div class="landing-badge">🧪 University Research</div>
+        <h1 class="landing-title">PlayPltx: Gaming Experience Study</h1>
+        <p class="landing-copy">
+          Welcome! You are invited to participate in a brief study on mobile gaming behavior.
+          <br /><br />
+          Task: Play the game for 5-10 minutes. Build your village and explore the slot mechanics.
+          <br /><br />
+          Privacy: Your data is 100% anonymous. We collect only in-game actions (spins, builds, attacks). No personal info is stored.
+        </p>
+        <button id="consentStartBtn" type="button" class="rune-btn landing-cta">I AGREE &amp; START PLAYING</button>
+      </div>
+    </div>
 
-    <div class="app-layout">
+    <div id="appLayout" class="app-layout hidden">
       <div class="phone-frame">
       <div class="phone-bezel-notch" aria-hidden="true"></div>
 
@@ -2730,7 +2800,7 @@
           }
         })();
 
-        const EXPERIMENT_CONDITION = (function () {
+        function assignExperimentCondition() {
           const key = "match3Condition";
           const variants = ["A", "B"];
           try {
@@ -2742,7 +2812,8 @@
           } catch (e) {
             return "A";
           }
-        })();
+        }
+        let EXPERIMENT_CONDITION = "A";
 
         const energyEl = document.getElementById("energyValue");
         const energyMaxEl = document.getElementById("energyMaxValue");
@@ -2827,8 +2898,11 @@
         const STORAGE_KEY_SAVE = "coinIslandState_v1";
         const STORAGE_KEY_TUTORIAL = "tutorialCompleted";
         const cfgLabelEl = document.getElementById("cfgLabel");
+        const landingPageEl = document.getElementById("landingPage");
+        const appLayoutEl = document.getElementById("appLayout");
+        const consentStartBtn = document.getElementById("consentStartBtn");
 
-        const gameState = { shields: 0, condition: EXPERIMENT_CONDITION, isRaidActive: false, energy: 0 };
+        const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0 };
         function getGameConfig() {
           if (gameState.condition === "B") {
             return {
@@ -2843,7 +2917,7 @@
             maxEnergy: 10,
           };
         }
-        const GAME_CONFIG = getGameConfig();
+        let GAME_CONFIG = getGameConfig();
         let MAX_ENERGY = GAME_CONFIG.maxEnergy;
         const MAX_LEVEL = 10;
         const MAX_STAGE = MAX_LEVEL;
@@ -2854,6 +2928,7 @@
         let lastEnergyRefillAt = Date.now();
         const ENERGY_REFILL_INTERVAL_MS = 5 * 60 * 1000;
         let nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
+        let gameBooted = false;
         let coins = 0;
         let stage = 1;
         let cannon1Level = 0;
@@ -3131,6 +3206,35 @@
           }
         }
         window.logEvent = logEvent;
+        function startGameAfterConsent() {
+          if (gameBooted) return;
+          gameBooted = true;
+          EXPERIMENT_CONDITION = assignExperimentCondition();
+          gameState.condition = EXPERIMENT_CONDITION;
+          window.__researchContext.condition = gameState.condition;
+          GAME_CONFIG = getGameConfig();
+          MAX_ENERGY = GAME_CONFIG.maxEnergy;
+          energy = GAME_CONFIG.initialEnergy;
+          gameState.energy = energy;
+          nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
+
+          logEvent("consent_given", { condition: gameState.condition });
+          logEvent("experiment_assigned", { condition: gameState.condition });
+
+          loadState();
+          updateEnergyRefillTimer();
+          if (!window.__energyTickInterval) {
+            window.__energyTickInterval = setInterval(updateEnergyRefillTimer, 1000);
+          }
+          updateUI();
+          refreshShieldOrbitVisuals();
+
+          if (landingPageEl) landingPageEl.classList.add("hidden");
+          if (appLayoutEl) appLayoutEl.classList.remove("hidden");
+
+          logEvent("game_start", { initialEnergy: energy, initialCoins: coins, condition: gameState.condition });
+          initTutorial();
+        }
 
         function upgradeCostForStage(s) {
           if (s >= MAX_STAGE) return 0;
@@ -4196,40 +4300,18 @@
           shopModalEl.classList.add("hidden");
         }
 
-        spinBtn.addEventListener("click", async function () {
-          if (tutorialStep === 3) {
-            await runSpin(true); // rigged first tutorial spin
-            completeTutorialStep(3);
-            enterTutorialStep(4);
-            return;
-          }
-          await runSpin(false);
-        });
-
-        upgradeBtn.addEventListener("click", function () {
-          handleUpgrade();
-        });
-
-        if (upgradeCannonBtn) {
-          upgradeCannonBtn.addEventListener("click", function () {
-            handleCannonUpgrade();
-          });
+        function onSpinClick() {
+          return (async function () {
+            if (tutorialStep === 3) {
+              await runSpin(true);
+              completeTutorialStep(3);
+              enterTutorialStep(4);
+              return;
+            }
+            await runSpin(false);
+          })();
         }
-
-        if (shopBtn) {
-          shopBtn.addEventListener("click", function () {
-            openShopModal();
-          });
-        }
-
-        if (closeShopBtn) {
-          closeShopBtn.addEventListener("click", function () {
-            closeShopModal();
-          });
-        }
-
-        if (buySecondCannonBtn) {
-          buySecondCannonBtn.addEventListener("click", function () {
+        function onBuySecondCannonClick() {
             const cost = 1500;
             if (hasSecondCannon) {
               logEvent("item_maxed_out", { item: "second_cannon", cost });
@@ -4251,11 +4333,8 @@
             persistState();
             updateUI();
             setStatus("Second cannon acquired!", false);
-          });
         }
-
-        if (buyWallBtn) {
-          buyWallBtn.addEventListener("click", function () {
+        function onBuyWallClick() {
             const cost = 900;
             if (hasWall) {
               logEvent("item_maxed_out", { item: "wall_start", cost });
@@ -4278,18 +4357,8 @@
             persistState();
             updateUI();
             setStatus("Iron Wall constructed!", false);
-          });
         }
-
-
-        if (closeUpgradeBtn) {
-          closeUpgradeBtn.addEventListener("click", function () {
-            closeUpgradeModal();
-          });
-        }
-
-        if (confirmUpgradeBtn) {
-          confirmUpgradeBtn.addEventListener("click", function () {
+        function onConfirmUpgradeClick() {
             if (!upgradeContext) return;
             if (upgradeContext.type === "castle") {
               handleUpgrade();
@@ -4312,7 +4381,6 @@
               }
             }
             closeUpgradeModal();
-          });
         }
 
         // Asset click wiring: any island entity opens the contextual upgrade modal.
@@ -4333,26 +4401,12 @@
         bindUpgradeClick(cannon2TagBtn, "cannon", 2);
         bindUpgradeClick(wallTagBtn, "wall", 3);
 
-        if (collectRaidBtn) {
-          collectRaidBtn.addEventListener("click", function () {
-            gameState.isRaidActive = false;
-            if (raidModalEl) raidModalEl.classList.add("hidden");
-          });
-        }
-        if (closeEnergyBtn) {
-          closeEnergyBtn.addEventListener("click", function () {
-            closeEnergyModal();
-          });
-        }
-
         function logTutorialAction(action) {
           if (tutorialStep > 0) {
             logTutorialStep(tutorialStep, action);
           }
         }
-
-        if (tutorialContinueBtn) {
-          tutorialContinueBtn.addEventListener("click", function () {
+        function onTutorialContinueClick() {
             if (tutorialStep <= 0) return;
             logTutorialAction("continue_click");
 
@@ -4369,32 +4423,41 @@
               return;
             }
             enterTutorialStep(tutorialStep + 1);
-          });
         }
-
-        if (skipTutorialBtn) {
-          skipTutorialBtn.addEventListener("click", function () {
+        function onSkipTutorialClick() {
             if (tutorialStep > 0) {
               logTutorialAction("skip_click");
               completeTutorialStep(tutorialStep);
             }
             endTutorial();
             updateUI();
-          });
         }
-
-        window.addEventListener("resize", function () {
-          if (tutorialStep > 0) renderTutorialStep(tutorialStep);
+        document.addEventListener("DOMContentLoaded", () => {
+          const setupListener = (id, func) => {
+            const el = document.getElementById(id);
+            if (el) el.onclick = func;
+          };
+          setupListener("consentStartBtn", startGameAfterConsent);
+          setupListener("spinBtn", onSpinClick);
+          setupListener("upgradeBtn", handleUpgrade);
+          setupListener("upgradeCannonBtn", () => handleCannonUpgrade());
+          setupListener("shopBtn", openShopModal);
+          setupListener("closeShopBtn", closeShopModal);
+          setupListener("buySecondCannonBtn", onBuySecondCannonClick);
+          setupListener("buyWallBtn", onBuyWallClick);
+          setupListener("closeUpgradeBtn", closeUpgradeModal);
+          setupListener("confirmUpgradeBtn", onConfirmUpgradeClick);
+          setupListener("collectRaidBtn", () => {
+            gameState.isRaidActive = false;
+            if (raidModalEl) raidModalEl.classList.add("hidden");
+          });
+          setupListener("closeEnergyBtn", closeEnergyModal);
+          setupListener("tutorialContinueBtn", onTutorialContinueClick);
+          setupListener("skipTutorialBtn", onSkipTutorialClick);
+          window.addEventListener("resize", function () {
+            if (tutorialStep > 0) renderTutorialStep(tutorialStep);
+          });
         });
-
-        loadState();
-        updateEnergyRefillTimer();
-        setInterval(updateEnergyRefillTimer, 1000);
-        updateUI();
-        refreshShieldOrbitVisuals();
-        logEvent("game_start", { initialEnergy: energy, initialCoins: coins, condition: gameState.condition });
-
-        initTutorial();
       })();
     </script>
   </body>
