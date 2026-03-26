@@ -444,6 +444,63 @@
         letter-spacing: 0.04em;
         color: #f2f6ff;
       }
+      .shop-cost {
+        margin-top: 4px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #9be77a;
+      }
+      .shop-cost.poor {
+        color: #ff7d7d;
+      }
+      .building-upgrade-glow {
+        animation: building-upgrade-glow 700ms ease-out;
+      }
+      @keyframes building-upgrade-glow {
+        0% { filter: brightness(1); }
+        45% { filter: brightness(1.28) drop-shadow(0 0 14px rgba(255, 217, 125, 0.65)); }
+        100% { filter: brightness(1); }
+      }
+      .floating-star {
+        position: fixed;
+        z-index: 280;
+        color: #ffe08a;
+        font-size: 18px;
+        text-shadow: 0 0 12px rgba(255, 217, 125, 0.75);
+        pointer-events: none;
+      }
+      .village-celebration {
+        position: fixed;
+        inset: 0;
+        z-index: 350;
+        pointer-events: none;
+      }
+      .village-celebration.hidden { display: none; }
+      .village-popup {
+        position: absolute;
+        left: 50%;
+        top: 20%;
+        transform: translateX(-50%);
+        font-size: clamp(1.2rem, 4vw, 2.1rem);
+        font-weight: 1000;
+        letter-spacing: 0.08em;
+        color: #ffe08a;
+        text-shadow: 0 0 18px rgba(255, 209, 102, 0.75);
+        animation: village-popup-pulse 1000ms ease-in-out infinite;
+      }
+      @keyframes village-popup-pulse {
+        0% { transform: translateX(-50%) scale(1); }
+        50% { transform: translateX(-50%) scale(1.05); }
+        100% { transform: translateX(-50%) scale(1); }
+      }
+      .confetti-piece {
+        position: fixed;
+        width: 8px;
+        height: 14px;
+        border-radius: 2px;
+        pointer-events: none;
+        z-index: 360;
+      }
       .hud-bar-fill.energy.energy-refill-flash {
         animation: energy-refill-flash 620ms ease-out;
       }
@@ -2783,29 +2840,37 @@
               <div class="shop-title">Castle</div>
               <div class="shop-desc">Stars: <span id="shopStarCastle">0</span>/5</div>
               <button id="shopVillageCastleBtn" type="button" class="secondary wood-metal">Add Star</button>
+              <div id="shopCostCastle" class="shop-cost">Cost: 0 Coins</div>
             </div>
             <div class="shop-item">
               <div class="shop-title">Cannon</div>
               <div class="shop-desc">Stars: <span id="shopStarCannon">0</span>/5</div>
               <button id="shopVillageCannonBtn" type="button" class="secondary wood-metal">Add Star</button>
+              <div id="shopCostCannon" class="shop-cost">Cost: 0 Coins</div>
             </div>
             <div class="shop-item">
               <div class="shop-title">Statue</div>
               <div class="shop-desc">Stars: <span id="shopStarStatue">0</span>/5</div>
               <button id="shopVillageStatueBtn" type="button" class="secondary wood-metal">Add Star</button>
+              <div id="shopCostStatue" class="shop-cost">Cost: 0 Coins</div>
             </div>
             <div class="shop-item">
               <div class="shop-title">Farm</div>
               <div class="shop-desc">Stars: <span id="shopStarFarm">0</span>/5</div>
               <button id="shopVillageFarmBtn" type="button" class="secondary wood-metal">Add Star</button>
+              <div id="shopCostFarm" class="shop-cost">Cost: 0 Coins</div>
             </div>
             <div class="shop-item">
               <div class="shop-title">Boat</div>
               <div class="shop-desc">Stars: <span id="shopStarBoat">0</span>/5</div>
               <button id="shopVillageBoatBtn" type="button" class="secondary wood-metal">Add Star</button>
+              <div id="shopCostBoat" class="shop-cost">Cost: 0 Coins</div>
             </div>
           </div>
         </div>
+      </div>
+      <div id="villageCelebration" class="village-celebration hidden">
+        <div class="village-popup">VILLAGE COMPLETE!</div>
       </div>
       <div id="energyModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Out of energy">
         <div class="modal-sheet energy-modal-sheet">
@@ -2984,9 +3049,16 @@
         const shopStarStatueEl = document.getElementById("shopStarStatue");
         const shopStarFarmEl = document.getElementById("shopStarFarm");
         const shopStarBoatEl = document.getElementById("shopStarBoat");
+        const shopCostCastleEl = document.getElementById("shopCostCastle");
+        const shopCostCannonEl = document.getElementById("shopCostCannon");
+        const shopCostStatueEl = document.getElementById("shopCostStatue");
+        const shopCostFarmEl = document.getElementById("shopCostFarm");
+        const shopCostBoatEl = document.getElementById("shopCostBoat");
         const villageProgressFillEl = document.getElementById("villageProgressFill");
         const villageProgressLabelEl = document.getElementById("villageProgressLabel");
         const devRefillBtn = document.getElementById("devRefillBtn");
+        const worldInnerEl = document.querySelector(".world-inner");
+        const villageCelebrationEl = document.getElementById("villageCelebration");
         const raidModalEl = document.getElementById("raidModal");
         const collectRaidBtn = document.getElementById("collectRaidBtn");
         const energyModalEl = document.getElementById("energyModal");
@@ -3068,6 +3140,8 @@
         let shields = 0;
         let villageId = 1;
         let totalSpinsToComplete = 0;
+        let villageStartedAtMs = Date.now();
+        let isVillageCelebrating = false;
         const VILLAGE_ITEMS = ["Castle", "Cannon", "Statue", "Farm", "Boat"];
         let villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
 
@@ -3408,6 +3482,7 @@
                 villageId,
                 totalSpinsToComplete,
                 villageProgress,
+                villageStartedAtMs,
                 lastEnergyRefillAt,
                 nextRefillTime,
               })
@@ -3443,6 +3518,7 @@
                 villageProgress[item] = clamp(Number(s.villageProgress[item] || 0), 0, 5);
               });
             }
+            if (typeof s.villageStartedAtMs === "number") villageStartedAtMs = s.villageStartedAtMs;
             if (typeof s.lastEnergyRefillAt === "number") lastEnergyRefillAt = s.lastEnergyRefillAt;
             if (typeof s.nextRefillTime === "number") nextRefillTime = s.nextRefillTime;
           } catch (e) {}
@@ -3549,6 +3625,28 @@
           if (shopStarStatueEl) shopStarStatueEl.textContent = String(villageProgress.Statue);
           if (shopStarFarmEl) shopStarFarmEl.textContent = String(villageProgress.Farm);
           if (shopStarBoatEl) shopStarBoatEl.textContent = String(villageProgress.Boat);
+          const setShopState = (item, btn, costEl) => {
+            if (!btn || !costEl) return;
+            const current = villageProgress[item] || 0;
+            if (current >= 5) {
+              btn.disabled = true;
+              btn.textContent = "MAX STARS";
+              costEl.textContent = "Cost: MAX";
+              costEl.classList.remove("poor");
+              return;
+            }
+            const cost = 120 + current * 80;
+            const canAfford = coins >= cost;
+            btn.disabled = !canAfford || isVillageCelebrating;
+            btn.textContent = "Add Star";
+            costEl.textContent = `Cost: ${cost} Coins`;
+            costEl.classList.toggle("poor", !canAfford);
+          };
+          setShopState("Castle", shopVillageCastleBtn, shopCostCastleEl);
+          setShopState("Cannon", shopVillageCannonBtn, shopCostCannonEl);
+          setShopState("Statue", shopVillageStatueBtn, shopCostStatueEl);
+          setShopState("Farm", shopVillageFarmBtn, shopCostFarmEl);
+          setShopState("Boat", shopVillageBoatBtn, shopCostBoatEl);
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
           if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${villageId} Progress: ${totalStars} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
@@ -3614,15 +3712,88 @@
             castleEl.appendChild(el);
           }
         }
+        function celebrateBuildingUpgrade(item) {
+          const map = {
+            Castle: castleEl,
+            Cannon: cannonEl,
+            Statue: wallEl,
+            Farm: cannon2El || cannonEl,
+            Boat: castleEl,
+          };
+          const target = map[item];
+          if (target) {
+            target.classList.remove("building-upgrade-glow");
+            void target.offsetWidth;
+            target.classList.add("building-upgrade-glow");
+            setTimeout(() => target.classList.remove("building-upgrade-glow"), 750);
+            const rect = target.getBoundingClientRect();
+            const s = document.createElement("div");
+            s.className = "floating-star";
+            s.textContent = "★";
+            s.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
+            s.style.top = `${Math.round(rect.top)}px`;
+            document.body.appendChild(s);
+            s.animate(
+              [
+                { transform: "translate(-50%, 0px)", opacity: 0.95 },
+                { transform: "translate(-50%, -26px)", opacity: 0.0 },
+              ],
+              { duration: 900, easing: "cubic-bezier(0.2,0.9,0.2,1)", fill: "forwards" }
+            ).onfinish = () => s.remove();
+          }
+        }
+        function spawnConfettiBurst() {
+          for (let i = 0; i < 90; i++) {
+            const c = document.createElement("div");
+            c.className = "confetti-piece";
+            c.style.left = `${Math.random() * 100}vw`;
+            c.style.top = "-12px";
+            c.style.background = ["#ffd166", "#5ad1ff", "#ff7ab6", "#a8ff7a"][i % 4];
+            document.body.appendChild(c);
+            const drift = (Math.random() * 120) - 60;
+            const dur = 1800 + Math.random() * 1600;
+            c.animate(
+              [
+                { transform: "translate(0px, 0px) rotate(0deg)", opacity: 1 },
+                { transform: `translate(${drift}px, ${window.innerHeight + 80}px) rotate(${280 + Math.random() * 360}deg)`, opacity: 0.9 },
+              ],
+              { duration: dur, easing: "cubic-bezier(0.2,0.9,0.2,1)", fill: "forwards" }
+            ).onfinish = () => c.remove();
+          }
+        }
+        async function runVillageCompleteCelebration() {
+          if (isVillageCelebrating) return;
+          isVillageCelebrating = true;
+          if (appLayoutEl) appLayoutEl.style.pointerEvents = "none";
+          if (villageCelebrationEl) villageCelebrationEl.classList.remove("hidden");
+          spawnConfettiBurst();
+          await sleep(3000);
+          coins += 500000;
+          gameState.energy = clamp(gameState.energy + 20, 0, MAX_ENERGY);
+          energy = gameState.energy;
+          setStatus("Village complete! Bonus gift claimed.", false);
+          await sleep(2000);
+          if (villageCelebrationEl) villageCelebrationEl.classList.add("hidden");
+          if (worldInnerEl) {
+            worldInnerEl.style.transition = "filter 450ms ease";
+            worldInnerEl.style.filter = `hue-rotate(${(villageId % 6) * 28}deg) saturate(1.08)`;
+          }
+          villageId += 1;
+          totalSpinsToComplete = 0;
+          villageStartedAtMs = Date.now();
+          villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
+          updateUI();
+          persistState();
+          if (appLayoutEl) appLayoutEl.style.pointerEvents = "";
+          isVillageCelebrating = false;
+        }
         function finalizeVillageProgress() {
           const stars = VILLAGE_ITEMS.reduce((sum, item) => sum + villageProgress[item], 0);
           stage = clamp(Math.ceil((stars / 25) * MAX_STAGE), 1, MAX_STAGE);
           if (stars >= 25) {
-            logEvent("village_complete", { villageId, totalSpinsToComplete });
-            setStatus(`VILLAGE_COMPLETE! Sailing to island ${villageId + 1}.`, false);
-            villageId += 1;
-            totalSpinsToComplete = 0;
-            villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
+            const timeSpent = Math.max(0, Math.round((Date.now() - villageStartedAtMs) / 1000));
+            logEvent("village_complete", { villageId, totalSpins: totalSpinsToComplete, timeSpent });
+            runVillageCompleteCelebration();
           }
         }
         function upgradeVillageItem(item, cost) {
@@ -3630,6 +3801,7 @@
           if (villageProgress[item] >= 5) return;
           villageProgress[item] += 1;
           logEvent("village_upgrade", { item, levelAfter: villageProgress[item], cost: Math.max(0, Number(cost || 0)) });
+          celebrateBuildingUpgrade(item);
           finalizeVillageProgress();
         }
         function applyVillageUpgradeFromSpin() {
@@ -4449,6 +4621,7 @@
           })();
         }
         function onShopVillageUpgrade(item) {
+          if (isVillageCelebrating) return;
           const current = villageProgress[item] || 0;
           if (current >= 5) {
             setStatus(`${item} is already max stars.`, false);
