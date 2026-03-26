@@ -197,6 +197,13 @@
           inset 0 1px 0 rgba(255, 255, 255, 0.10);
         position: relative;
       }
+      .hud,
+      .hud-container,
+      #shopBtn,
+      #devRefillBtn {
+        z-index: 9999 !important;
+        pointer-events: auto !important;
+      }
 
       .hud::before {
         content: "";
@@ -541,6 +548,10 @@
         font-family: Arial, Helvetica, sans-serif;
         background: rgba(6, 9, 20, 0.58);
         backdrop-filter: blur(8px);
+      }
+      #landingPage.hidden {
+        display: none !important;
+        pointer-events: none !important;
       }
       .landing-card {
         width: min(720px, 96vw);
@@ -1903,6 +1914,14 @@
         display: grid;
         align-items: end;
         z-index: 60;
+      }
+      .modal.hidden {
+        pointer-events: none !important;
+      }
+      #shopModal,
+      #shopModal .modal-sheet,
+      #shopModal button {
+        pointer-events: auto !important;
       }
 
       .modal.hidden {
@@ -3431,10 +3450,19 @@
           refreshShieldOrbitVisuals();
 
           if (landingPageEl) landingPageEl.classList.add("hidden");
+          if (landingPageEl) {
+            landingPageEl.style.display = "none";
+            landingPageEl.style.pointerEvents = "none";
+          }
           if (appLayoutEl) appLayoutEl.classList.remove("hidden");
+          if (appLayoutEl) appLayoutEl.style.pointerEvents = "auto";
+          if (tutorialOverlayEl && tutorialStep <= 0) tutorialOverlayEl.style.pointerEvents = "none";
 
           logEvent("game_start", { initialEnergy: energy, initialCoins: coins, condition: gameState.condition });
           initTutorial();
+        }
+        function handleConsent() {
+          startGameAfterConsent();
         }
 
         function upgradeCostForStage(s) {
@@ -4597,6 +4625,7 @@
           updateUI();
         }
         function openShop() {
+          console.log("Shop clicked");
           openShopModal();
         }
 
@@ -4645,6 +4674,7 @@
           if (typeof window.saveToFirestore === "function") {
             window.saveToFirestore("dev_refill", { energyAfter: gameState.energy, condition: gameState.condition });
           }
+          console.log("Energy Refilled");
         }
         function onConfirmUpgradeClick() {
             if (!upgradeContext) return;
@@ -4725,7 +4755,8 @@
             const el = document.getElementById(id);
             if (el) el.onclick = func;
           };
-          setupListener("consentStartBtn", startGameAfterConsent);
+          setupListener("consentStartBtn", handleConsent);
+          setupListener("agreeBtn", handleConsent);
           setupListener("spinBtn", onSpinClick);
           setupListener("upgradeBtn", handleUpgrade);
           setupListener("upgradeCannonBtn", () => handleCannonUpgrade());
