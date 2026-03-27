@@ -152,10 +152,14 @@
         justify-content: center;
         flex-wrap: nowrap !important;
       }
+      #appLayout {
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+      }
 
       #researchCapture {
         width: min(360px, calc(100vw - 32px));
-        flex: 0 1 360px;
+        flex: 0 0 360px;
         margin-top: 0;
       }
 
@@ -163,7 +167,7 @@
         display: flex;
         flex-direction: column;
         width: min(360px, calc(100vw - 32px));
-        flex: 0 1 360px;
+        flex: 0 0 360px;
       }
 
       @media (max-width: 980px) {
@@ -409,6 +413,19 @@
         background: rgba(255, 255, 255, 0.08);
         color: #eaf3ff;
         font-size: 13px;
+        font-weight: 900;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .dev-reset-btn {
+        margin-left: 6px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 120, 120, 0.45);
+        background: rgba(255, 80, 80, 0.12);
+        color: #ffd6d6;
+        font-size: 11px;
         font-weight: 900;
         line-height: 1;
         cursor: pointer;
@@ -901,9 +918,9 @@
 
       .island {
         position: relative;
-        width: min(320px, 80vw);
-        height: 210px;
-        margin: 18px auto 10px;
+        width: min(400px, 88vw);
+        height: 260px;
+        margin: 20px auto 12px;
         transform: perspective(900px) rotateX(16deg);
         transform-origin: center top;
       }
@@ -1883,8 +1900,8 @@
 
       .village-asset {
         position: absolute;
-        width: 84px;
-        min-height: 60px;
+        width: 120px;
+        min-height: 92px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1892,24 +1909,31 @@
         font-size: 28px;
         font-weight: 900;
         text-align: center;
-        pointer-events: none;
+        pointer-events: auto;
         z-index: 108;
         filter: drop-shadow(0 6px 10px rgba(0,0,0,0.55));
         transition: transform 220ms ease, filter 220ms ease, background 220ms ease;
       }
       .village-asset .asset-label {
-        font-size: 10px;
+        font-size: 11px;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         position: absolute;
-        bottom: -14px;
+        bottom: -18px;
         color: rgba(235, 244, 255, 0.85);
+        opacity: 0;
+        transform: translateY(4px);
+        transition: opacity 180ms ease, transform 180ms ease;
       }
-      .statue-visual { left: 8px; top: 126px; width: 78px; min-height: 66px; }
-      .farm-visual { right: 4px; top: 126px; width: 88px; min-height: 66px; }
-      .boat-visual { left: 120px; top: 178px; width: 84px; min-height: 56px; }
-      .castle-visual { left: 108px; top: 62px; width: 110px; min-height: 92px; z-index: 114; }
-      .cannon-visual { right: 26px; top: 166px; width: 106px; min-height: 70px; z-index: 113; }
+      .village-asset:hover .asset-label {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .statue-visual { left: 6px; top: 136px; width: 104px; min-height: 86px; z-index: 111; }
+      .farm-visual { right: 8px; top: 138px; width: 108px; min-height: 88px; z-index: 111; }
+      .boat-visual { left: 252px; top: 200px; width: 124px; min-height: 82px; z-index: 110; }
+      .castle-visual { left: 126px; top: 30px; width: 160px; min-height: 138px; z-index: 114; }
+      .cannon-visual { left: 118px; top: 196px; width: 126px; min-height: 94px; z-index: 113; }
       .building-comp {
         position: relative;
         width: 100%;
@@ -1924,6 +1948,88 @@
         filter: none !important;
       }
       .building-comp .layer { position: absolute; transform-origin: center; will-change: transform, opacity; }
+      .village-actions {
+        width: 100%;
+        margin-top: 42px;
+        position: relative;
+        min-height: 60px;
+      }
+      #villageStars {
+        width: 94%;
+        margin: 0 auto;
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 12px;
+        padding: 8px;
+        background: rgba(0,0,0,.18);
+        font-size: .78rem;
+        transform: translateY(52px);
+      }
+      .xp-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 8px;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .xp-level-label {
+        color: #ffe08a;
+        font-size: 0.74rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+      }
+      .xp-track {
+        position: relative;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(14, 20, 32, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        overflow: hidden;
+      }
+      .xp-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #4de0ff, #79ffbe, #4de0ff);
+        box-shadow: 0 0 12px rgba(98, 238, 255, 0.45);
+        transition: width 280ms ease;
+      }
+      .xp-text {
+        color: #dce7ff;
+        font-size: 0.72rem;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+      .level-up-pop {
+        position: fixed;
+        left: 50%;
+        top: 26%;
+        transform: translate(-50%, -50%);
+        z-index: 12500;
+        padding: 10px 16px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 224, 138, 0.65);
+        background: linear-gradient(180deg, rgba(38, 24, 6, 0.95), rgba(17, 10, 3, 0.95));
+        color: #ffe08a;
+        font-size: 1rem;
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.65), 0 0 20px rgba(255, 224, 138, 0.4);
+        pointer-events: none;
+        opacity: 0;
+      }
+      .level-up-pop.show {
+        animation: level-up-pop 1100ms cubic-bezier(0.2, 0.9, 0.2, 1);
+      }
+      @keyframes level-up-pop {
+        0% { opacity: 0; transform: translate(-50%, -46%) scale(0.9); }
+        18% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
+        72% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -56%) scale(1); }
+      }
       .building-comp.is-max { animation: max-float 2800ms ease-in-out infinite; }
       @keyframes max-float {
         0% { transform: translateY(0); }
@@ -3125,6 +3231,7 @@
               <span id="energyValue">10</span>/<span id="energyMaxValue">10</span>
               <span id="hudEnergyTimer" class="hud-timer">Next: 05:00</span>
               <button id="devRefillBtn" type="button" class="dev-refill-btn" title="Refill Spins">+</button>
+              <button id="devResetBtn" type="button" class="dev-reset-btn" title="Reset Game">R</button>
             </div>
           </div>
           <div class="hud-bar">
@@ -3205,8 +3312,8 @@
             <div class="island-shadow" aria-hidden="true"></div>
           </div>
 
-          <div class="village-actions" style="width: 100%; margin-top: 10px; position: relative; min-height: 60px;">
-            <div id="villageStars" style="width:100%; border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:8px; background:rgba(0,0,0,.18); font-size:.78rem;">
+          <div class="village-actions">
+            <div id="villageStars">
               <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span>Village <span id="villageIdValue">1</span></span><span>Stars <span id="villageTotalStars">0</span>/25</span></div>
               <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
                 <div>Castle: <span id="starCastle">0</span>/5</div>
@@ -3214,6 +3321,11 @@
                 <div>Statue: <span id="starStatue">0</span>/5</div>
                 <div>Farm: <span id="starFarm">0</span>/5</div>
                 <div>Boat: <span id="starBoat">0</span>/5</div>
+              </div>
+              <div class="xp-row">
+                <span id="playerLevelLabel" class="xp-level-label">Level 1</span>
+                <div class="xp-track"><div id="xpFill" class="xp-fill"></div></div>
+                <span id="xpText" class="xp-text">0/100 XP</span>
               </div>
             </div>
           </div>
@@ -3372,6 +3484,7 @@
         <button id="miniTutorialPlayBtn" type="button" class="rune-btn">Let's Play!</button>
       </div>
     </div>
+    <div id="levelUpPopup" class="level-up-pop" aria-hidden="true">LEVEL UP!</div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
@@ -3520,6 +3633,10 @@
         const shopCostBoatEl = document.getElementById("shopCostBoat");
         const villageProgressFillEl = document.getElementById("villageProgressFill");
         const villageProgressLabelEl = document.getElementById("villageProgressLabel");
+        const playerLevelLabelEl = document.getElementById("playerLevelLabel");
+        const xpFillEl = document.getElementById("xpFill");
+        const xpTextEl = document.getElementById("xpText");
+        const levelUpPopupEl = document.getElementById("levelUpPopup");
         const castleVisualEl = document.getElementById("castleVisual");
         const cannonVisualEl = document.getElementById("cannonVisual");
         const statueVisualEl = document.getElementById("statueVisual");
@@ -3578,7 +3695,7 @@
         const appLayoutEl = document.getElementById("appLayout");
         const consentStartBtn = document.getElementById("consentStartBtn");
 
-        const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0, spins: 0, currentRivalName: "" };
+        const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0, spins: 0, currentRivalName: "", xp: 0, level: 1 };
         const DEFAULT_ECONOMY_DATA = {
           condition_A: {
             initialSpins: 10,
@@ -3680,12 +3797,43 @@
           const initialSpins = Number(economy.initialSpins);
           const maxSpins = Number(economy.maxSpins);
           const refillMinutes = Number(economy.refillMinutes);
+          const rootXp = (window.ECONOMY_DATA && window.ECONOMY_DATA.xpSettings) || {};
+          const conditionXp = (economy && economy.xpSettings) || {};
+          const xpSource = Object.assign({}, rootXp, conditionXp);
+          const xpSettings = {
+            xpPerSpin: Math.max(0, Number(xpSource.xpPerSpin) || 5),
+            xpPerAttack: Math.max(0, Number(xpSource.xpPerAttack) || 12),
+            xpPerRaid: Math.max(0, Number(xpSource.xpPerRaid) || 15),
+            xpPerUpgrade: Math.max(0, Number(xpSource.xpPerUpgrade) || 10),
+            xpRequired: Math.max(1, Number(xpSource.xpRequired) || 100),
+          };
           return {
             slotWeights,
             initialEnergy: Number.isFinite(initialSpins) ? initialSpins : 10,
             maxEnergy: Number.isFinite(maxSpins) ? maxSpins : 10,
             refillMinutes: Number.isFinite(refillMinutes) ? refillMinutes : 5,
+            xpSettings,
           };
+        }
+        function showLevelUpPopup(level) {
+          if (!levelUpPopupEl) return;
+          levelUpPopupEl.textContent = `LEVEL UP! LV ${level}`;
+          levelUpPopupEl.classList.remove("show");
+          void levelUpPopupEl.offsetWidth;
+          levelUpPopupEl.classList.add("show");
+          setTimeout(() => levelUpPopupEl.classList.remove("show"), 1150);
+        }
+        function gainXp(amount, source) {
+          const gain = Math.max(0, Math.round(Number(amount) || 0));
+          if (gain <= 0) return;
+          const required = Math.max(1, Number((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpRequired) || 100));
+          gameState.xp = Math.max(0, Math.round(Number(gameState.xp) || 0)) + gain;
+          while (gameState.xp >= required) {
+            gameState.xp -= required;
+            gameState.level = Math.max(1, Math.round(Number(gameState.level) || 1) + 1);
+            showLevelUpPopup(gameState.level);
+            logEvent("player_level_up", { newLevel: gameState.level });
+          }
         }
         let GAME_CONFIG = getGameConfig();
         let MAX_ENERGY = GAME_CONFIG.maxEnergy;
@@ -4261,6 +4409,8 @@
                 villageId,
                 totalSpinsToComplete,
                 villageProgress,
+                xp: gameState.xp,
+                level: gameState.level,
                 villageStartedAtMs,
                 lastEnergyRefillAt,
                 nextRefillTime,
@@ -4292,6 +4442,8 @@
             }
             if (typeof s.villageId === "number") villageId = Math.max(1, s.villageId);
             if (typeof s.totalSpinsToComplete === "number") totalSpinsToComplete = Math.max(0, s.totalSpinsToComplete);
+            if (typeof s.xp === "number") gameState.xp = Math.max(0, Math.round(s.xp));
+            if (typeof s.level === "number") gameState.level = Math.max(1, Math.round(s.level));
             if (s.villageProgress && typeof s.villageProgress === "object") {
               VILLAGE_ITEMS.forEach((item) => {
                 villageProgress[item] = clamp(Number(s.villageProgress[item] || 0), 0, 5);
@@ -4408,7 +4560,7 @@
           const setShopState = (item, btn, costEl) => {
             if (!btn || !costEl) return;
             const current = villageProgress[item] || 0;
-            const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle";
+            const isFreeCastleTutorial = item === "Castle" && ((miniTutorial.active && miniTutorial.step === 4) || tutorialStep === 4);
             if (current >= 5) {
               btn.disabled = true;
               btn.textContent = "MAX";
@@ -4424,8 +4576,13 @@
             btn.disabled = (!canAfford && !isFreeCastleTutorial) || isVillageCelebrating;
             btn.textContent = "Add Star";
             costEl.textContent = isFreeCastleTutorial ? "Cost: FREE" : `Cost: ${formatNumber(cost)} Coins`;
-            costEl.classList.toggle("poor", !canAfford);
-            costEl.classList.toggle("rich", canAfford);
+            if (isFreeCastleTutorial) {
+              costEl.classList.remove("poor");
+              costEl.classList.remove("rich");
+            } else {
+              costEl.classList.toggle("poor", !canAfford);
+              costEl.classList.toggle("rich", canAfford);
+            }
           };
           setShopState("Castle", shopVillageCastleBtn, shopCostCastleEl);
           setShopState("Cannon", shopVillageCannonBtn, shopCostCannonEl);
@@ -4435,6 +4592,12 @@
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
           if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${villageId} Progress: ${totalStars} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
+          const xpRequired = Math.max(1, Number((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpRequired) || 100));
+          const xpValue = Math.max(0, Math.round(Number(gameState.xp) || 0));
+          const xpPct = Math.max(0, Math.min(100, Math.round((xpValue / xpRequired) * 100)));
+          if (playerLevelLabelEl) playerLevelLabelEl.textContent = `Level ${gameState.level}`;
+          if (xpFillEl) xpFillEl.style.width = `${xpPct}%`;
+          if (xpTextEl) xpTextEl.textContent = `${formatNumber(xpValue)}/${formatNumber(xpRequired)} XP`;
           updateVillageVisuals();
         }
 
@@ -4562,6 +4725,7 @@
           if (!VILLAGE_ITEMS.includes(item)) return;
           if (villageProgress[item] >= 5) return;
           villageProgress[item] += 1;
+          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerUpgrade) || 0, "upgrade");
           logEvent("village_upgrade", { item, levelAfter: villageProgress[item], cost: Math.max(0, Number(cost || 0)) });
           logEvent("building_evolved", { building: item, newLevel: villageProgress[item], isFree: !!isFree });
           const targetMap = {
@@ -4596,11 +4760,6 @@
           updateVillageVisuals();
           finalizeVillageProgress();
         }
-        function applyVillageUpgradeFromSpin() {
-          const target = VILLAGE_ITEMS.find((item) => villageProgress[item] < 5);
-          if (!target) return;
-          upgradeVillageItem(target, 0, false);
-        }
         async function resolveAttackMode() {
           const targetUserId = "bot";
           const rivalName = getRandomBotName();
@@ -4634,6 +4793,7 @@
           setStatus(detailedResult, false);
           const detailedResultTag = blocked ? `Attack_Blocked_${rivalName}` : `Attack_Hit_${rivalName}`;
           logEvent("action_attack", { targetUserId, result, reward, buildingName, rivalName, detailedResult, detailedResultTag });
+          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerAttack) || 0, "attack");
           await sleep(2000);
           await triggerTravelSequence(false);
           refreshShieldOrbitVisuals();
@@ -4700,6 +4860,7 @@
                 const detailedResult = `Raid complete on ${rivalName}: stole ${formatNumber(totalStolen)} coins.`;
                 const detailedResultTag = `Raid_Complete_${rivalName}`;
                 logEvent("action_raid", { totalStolen, perfectRaid, rivalName, detailedResult, detailedResultTag });
+                gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerRaid) || 0, "raid");
                 setStatus(detailedResult, false);
                 updateUI();
                 persistState();
@@ -5188,6 +5349,7 @@
             setTimeout(() => showOutOfSpinsModal(), 1000);
           }
           logEvent("slot_spin_started", { spinIndex, energyBefore, condition: gameState.condition });
+          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerSpin) || 0, "spin");
 
           let tutorialRigged = false;
           let result = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];
@@ -5275,7 +5437,6 @@
           } else if (actionTriggered === "raid") {
             await openRaidMode();
           }
-          applyVillageUpgradeFromSpin();
           maybeBotCounterAttack();
 
           persistState();
@@ -5591,13 +5752,15 @@
             setStatus(`${item} is already max stars.`, false);
             return;
           }
-          const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle";
+          const isFreeCastleTutorial = item === "Castle" && ((miniTutorial.active && miniTutorial.step === 4) || tutorialStep === 4);
           const cost = isFreeCastleTutorial ? 0 : calculateUpgradeCost(item, current);
           if (coins < cost) {
             setStatus("Not enough coins.", true);
             return;
           }
-          coins -= cost;
+          if (!isFreeCastleTutorial) {
+            coins -= cost;
+          }
           upgradeVillageItem(item, cost, isFreeCastleTutorial);
           if (isFreeCastleTutorial) {
             advanceMiniTutorial();
@@ -5615,6 +5778,16 @@
           }
           console.log("Spins Refilled");
         }
+        function onDevResetClick() {
+          try {
+            localStorage.removeItem(STORAGE_KEY_SAVE);
+            localStorage.removeItem(STORAGE_KEY_TUTORIAL);
+            localStorage.removeItem(STORAGE_KEY_MINI_TUTORIAL);
+          } catch (e) {}
+          console.log("Game state reset");
+          window.location.reload();
+        }
+        window.resetGameState = onDevResetClick;
         function onConfirmUpgradeClick() {
             if (!upgradeContext) return;
             if (upgradeContext.type === "castle") {
@@ -5742,6 +5915,7 @@
           setupListener("shopVillageFarmBtn", () => onShopVillageUpgrade("Farm"));
           setupListener("shopVillageBoatBtn", () => onShopVillageUpgrade("Boat"));
           setupListener("devRefillBtn", onDevRefillClick);
+          setupListener("devResetBtn", onDevResetClick);
           setupListener("closeUpgradeBtn", closeUpgradeModal);
           setupListener("confirmUpgradeBtn", onConfirmUpgradeClick);
           setupListener("collectRaidBtn", async () => {
