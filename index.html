@@ -463,22 +463,6 @@
       .shop-cost.rich {
         color: #78f3b1;
       }
-      .building-upgrade-glow {
-        animation: building-upgrade-glow 700ms ease-out;
-      }
-      @keyframes building-upgrade-glow {
-        0% { filter: brightness(1); }
-        45% { filter: brightness(1.28) drop-shadow(0 0 14px rgba(255, 217, 125, 0.65)); }
-        100% { filter: brightness(1); }
-      }
-      .floating-star {
-        position: fixed;
-        z-index: 280;
-        color: #ffe08a;
-        font-size: 18px;
-        text-shadow: 0 0 12px rgba(255, 217, 125, 0.75);
-        pointer-events: none;
-      }
       .village-celebration {
         position: fixed;
         inset: 0;
@@ -1932,6 +1916,13 @@
         height: 100%;
         pointer-events: none;
       }
+      body.composite-village-mode #castle,
+      body.composite-village-mode #cannon,
+      body.composite-village-mode #cannon2,
+      body.composite-village-mode #wall {
+        opacity: 0 !important;
+        filter: none !important;
+      }
       .building-comp .layer { position: absolute; transform-origin: center; will-change: transform, opacity; }
       .building-comp.is-max { animation: max-float 2800ms ease-in-out infinite; }
       @keyframes max-float {
@@ -1989,6 +1980,14 @@
         50% { filter: brightness(1.5); }
         100% { filter: brightness(1); }
       }
+      .evolve-flash-soft {
+        animation: evolve-flash-soft 260ms ease-out;
+      }
+      @keyframes evolve-flash-soft {
+        0% { filter: brightness(1); }
+        50% { filter: brightness(1.15); }
+        100% { filter: brightness(1); }
+      }
 
       .castle-evo-0 { filter: grayscale(1) brightness(0.75); }
       .castle-evo-1 { filter: grayscale(0.7) brightness(0.82); }
@@ -2028,9 +2027,17 @@
       .evolve-bounce {
         animation: evolve-bounce 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
       }
+      .evolve-bounce-soft {
+        animation: evolve-bounce-soft 360ms cubic-bezier(0.2, 0.9, 0.2, 1);
+      }
       @keyframes evolve-bounce {
         0% { transform: scale(1); }
         45% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+      }
+      @keyframes evolve-bounce-soft {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.06); }
         100% { transform: scale(1); }
       }
       .sparkle-particle {
@@ -3179,9 +3186,9 @@
             <div id="cannon2" class="cannon cannon2 cannon-lvl-0 hidden" aria-label="Second Cannon"></div>
             <div id="castleVisual" class="village-asset castle-visual" aria-hidden="true"></div>
             <div id="cannonVisual" class="village-asset cannon-visual" aria-hidden="true"></div>
-            <div id="statueVisual" class="village-asset statue-visual statue-evo-0" aria-hidden="true"><span id="statueVisualEmoji">⬜</span><span class="asset-label">Statue</span></div>
-            <div id="farmVisual" class="village-asset farm-visual farm-evo-0" aria-hidden="true"><span id="farmVisualEmoji">🟫</span><span class="asset-label">Farm</span></div>
-            <div id="boatVisual" class="village-asset boat-visual boat-evo-0" aria-hidden="true"><span id="boatVisualEmoji">🪵</span><span class="asset-label">Boat</span></div>
+            <div id="statueVisual" class="village-asset statue-visual" aria-hidden="true"></div>
+            <div id="farmVisual" class="village-asset farm-visual" aria-hidden="true"></div>
+            <div id="boatVisual" class="village-asset boat-visual" aria-hidden="true"></div>
 
             <button id="castleTag" type="button" class="entity-tag entity-tag--castle">
               <span class="entity-tag__label">Lv.</span> <span id="castleLevelTag">1</span>
@@ -3518,9 +3525,6 @@
         const statueVisualEl = document.getElementById("statueVisual");
         const farmVisualEl = document.getElementById("farmVisual");
         const boatVisualEl = document.getElementById("boatVisual");
-        const statueVisualEmojiEl = document.getElementById("statueVisualEmoji");
-        const farmVisualEmojiEl = document.getElementById("farmVisualEmoji");
-        const boatVisualEmojiEl = document.getElementById("boatVisualEmoji");
         const miniTutorialCompleteModalEl = document.getElementById("miniTutorialCompleteModal");
         const miniTutorialPlayBtn = document.getElementById("miniTutorialPlayBtn");
         const devRefillBtn = document.getElementById("devRefillBtn");
@@ -4080,10 +4084,10 @@
           const maxClass = level >= 5 ? "is-max" : "";
           const base = level >= 1 ? `<div class="layer" style="left:20px;top:44px;width:52px;height:14px;background:#7b4a21;border-radius:4px"></div>` : `<div class="layer" style="left:22px;top:48px;width:48px;height:10px;background:#6a4e2e;border-radius:999px"></div>`;
           const barrel = level >= 2 ? `<div class="layer" style="left:30px;top:28px;width:48px;height:14px;background:#3b414d;border-radius:8px"></div>` : "";
-          const wheels = level >= 3 ? `<div class="layer" style="left:24px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:60px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:78px;top:44px;font-size:12px">⚫⚫</div>` : "";
-          const reinforced = level >= 4 ? `<div class="layer" style="left:28px;top:26px;width:52px;height:18px;border:2px solid #8ea4bf;border-radius:9px"></div>` : "";
+          const balls = level >= 3 ? `<div class="layer" style="left:76px;top:44px;font-size:12px">⚫⚫</div>` : "";
+          const wheels = level >= 4 ? `<div class="layer" style="left:24px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:60px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:28px;top:26px;width:52px;height:18px;border:2px solid #8ea4bf;border-radius:9px"></div>` : "";
           const epic = level >= 5 ? `<svg class="layer" viewBox="0 0 120 70" style="left:16px;top:18px;width:78px;height:34px"><rect x="10" y="18" width="62" height="10" rx="5" fill="#c89b35"/><rect x="18" y="8" width="54" height="9" rx="4" fill="#d9ad49"/><path d="M72 18 L96 22 L72 28 Z" fill="#2d2f36"/></svg><div class="layer smoke-particle" style="left:86px;top:16px"></div>` : "";
-          return `<div class="building-comp ${maxClass}">${base}${barrel}${wheels}${reinforced}${epic}</div>`;
+          return `<div class="building-comp ${maxClass}">${base}${barrel}${balls}${wheels}${epic}</div>`;
         }
         function renderStatueComposite(level) {
           const maxClass = level >= 5 ? "is-max" : "";
@@ -4109,11 +4113,12 @@
           const raft = `<div class="layer" style="left:10px;top:40px;width:66px;height:14px;border-radius:0 0 12px 12px;background:#7a4f25"></div>`;
           const mast = level >= 3 ? `<div class="layer" style="left:42px;top:14px;width:3px;height:28px;background:#d6dcec"></div>` : "";
           const sail = level >= 3 ? `<svg class="layer" viewBox="0 0 50 40" style="left:44px;top:14px;width:28px;height:22px"><path d="M0 2 L20 10 L0 22 Z" fill="#f8fbff"/></svg>` : "";
-          const secondMast = level >= 4 ? `<div class="layer" style="left:26px;top:18px;width:2px;height:22px;background:#d6dcec"></div><svg class="layer" viewBox="0 0 50 40" style="left:28px;top:18px;width:20px;height:16px"><path d="M0 2 L14 8 L0 16 Z" fill="#eef5ff"/></svg>` : "";
+          const secondSail = level >= 4 ? `<svg class="layer" viewBox="0 0 50 40" style="left:30px;top:18px;width:20px;height:16px"><path d="M0 2 L14 8 L0 16 Z" fill="#eef5ff"/></svg>` : "";
           const galleon = level >= 5 ? `<div class="layer" style="left:8px;top:34px;width:72px;height:18px;border-radius:0 0 16px 16px;background:#2a2b34"></div><div class="layer" style="left:56px;top:10px;font-size:16px">⚓</div><div class="layer" style="left:22px;top:8px;font-size:12px;color:#ffe08a">⛵⛵⛵</div>` : "";
-          return `<div class="building-comp ${maxClass}">${raft}${mast}${sail}${secondMast}${galleon}</div>`;
+          return `<div class="building-comp ${maxClass}">${raft}${mast}${sail}${secondSail}${galleon}</div>`;
         }
         function updateVillageVisuals() {
+          document.body.classList.add("composite-village-mode");
           const castleStars = villageProgress.Castle || 0;
           const cannonStars = villageProgress.Cannon || 0;
           const statueStars = villageProgress.Statue || 0;
@@ -4125,10 +4130,10 @@
           if (farmVisualEl) farmVisualEl.innerHTML = `${renderFarmComposite(farmStars)}<span class="asset-label">Farm</span>`;
           if (boatVisualEl) boatVisualEl.innerHTML = `${renderBoatComposite(boatStars)}<span class="asset-label">Boat</span>`;
         }
-        function spawnSparkleBurst(target) {
+        function spawnSparkleBurst(target, particleCount = 14) {
           if (!target) return;
           const rect = target.getBoundingClientRect();
-          for (let i = 0; i < 14; i++) {
+          for (let i = 0; i < particleCount; i++) {
             const p = document.createElement("div");
             p.className = "sparkle-particle";
             const sx = rect.left + rect.width / 2;
@@ -4403,7 +4408,7 @@
           const setShopState = (item, btn, costEl) => {
             if (!btn || !costEl) return;
             const current = villageProgress[item] || 0;
-            const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle" && current === 0;
+            const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle";
             if (current >= 5) {
               btn.disabled = true;
               btn.textContent = "MAX";
@@ -4482,44 +4487,15 @@
         }
         function refreshShieldOrbitVisuals() {
           document.querySelectorAll(".shield-orbit").forEach((n) => n.remove());
-          if (!castleEl) return;
+          const shieldHost = castleVisualEl || castleEl;
+          if (!shieldHost) return;
           for (let i = 0; i < gameState.shields; i++) {
             const el = document.createElement("div");
             el.className = "shield-orbit";
             el.style.left = `${36 + i * 18}%`;
             el.style.top = `${22 + i * 6}%`;
             el.style.animationDelay = `${i * 220}ms`;
-            castleEl.appendChild(el);
-          }
-        }
-        function celebrateBuildingUpgrade(item) {
-          const map = {
-            Castle: castleVisualEl || castleEl,
-            Cannon: cannonVisualEl || cannonEl,
-            Statue: statueVisualEl || wallEl,
-            Farm: farmVisualEl || cannon2El || cannonEl,
-            Boat: boatVisualEl || castleEl,
-          };
-          const target = map[item];
-          if (target) {
-            target.classList.remove("building-upgrade-glow");
-            void target.offsetWidth;
-            target.classList.add("building-upgrade-glow");
-            setTimeout(() => target.classList.remove("building-upgrade-glow"), 750);
-            const rect = target.getBoundingClientRect();
-            const s = document.createElement("div");
-            s.className = "floating-star";
-            s.textContent = "★";
-            s.style.left = `${Math.round(rect.left + rect.width / 2)}px`;
-            s.style.top = `${Math.round(rect.top)}px`;
-            document.body.appendChild(s);
-            s.animate(
-              [
-                { transform: "translate(-50%, 0px)", opacity: 0.95 },
-                { transform: "translate(-50%, -26px)", opacity: 0.0 },
-              ],
-              { duration: 900, easing: "cubic-bezier(0.2,0.9,0.2,1)", fill: "forwards" }
-            ).onfinish = () => s.remove();
+            shieldHost.appendChild(el);
           }
         }
         function spawnConfettiBurst() {
@@ -4588,7 +4564,6 @@
           villageProgress[item] += 1;
           logEvent("village_upgrade", { item, levelAfter: villageProgress[item], cost: Math.max(0, Number(cost || 0)) });
           logEvent("building_evolved", { building: item, newLevel: villageProgress[item], isFree: !!isFree });
-          celebrateBuildingUpgrade(item);
           const targetMap = {
             Castle: castleVisualEl || castleEl,
             Cannon: cannonVisualEl || cannonEl,
@@ -4598,14 +4573,25 @@
           };
           const target = targetMap[item];
           if (target) {
+            const isCastle = item === "Castle";
             target.classList.remove("evolve-bounce");
             target.classList.remove("evolve-flash");
+            target.classList.remove("evolve-bounce-soft");
+            target.classList.remove("evolve-flash-soft");
             void target.offsetWidth;
-            target.classList.add("evolve-bounce");
-            target.classList.add("evolve-flash");
-            setTimeout(() => target.classList.remove("evolve-bounce"), 460);
-            setTimeout(() => target.classList.remove("evolve-flash"), 380);
-            spawnSparkleBurst(target);
+            if (isCastle) {
+              target.classList.add("evolve-bounce-soft");
+              target.classList.add("evolve-flash-soft");
+              setTimeout(() => target.classList.remove("evolve-bounce-soft"), 380);
+              setTimeout(() => target.classList.remove("evolve-flash-soft"), 280);
+              spawnSparkleBurst(target, 6);
+            } else {
+              target.classList.add("evolve-bounce");
+              target.classList.add("evolve-flash");
+              setTimeout(() => target.classList.remove("evolve-bounce"), 460);
+              setTimeout(() => target.classList.remove("evolve-flash"), 380);
+              spawnSparkleBurst(target, 16);
+            }
           }
           updateVillageVisuals();
           finalizeVillageProgress();
@@ -5605,7 +5591,7 @@
             setStatus(`${item} is already max stars.`, false);
             return;
           }
-          const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle" && current === 0;
+          const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle";
           const cost = isFreeCastleTutorial ? 0 : calculateUpgradeCost(item, current);
           if (coins < cost) {
             setStatus("Not enough coins.", true);
@@ -5614,11 +5600,7 @@
           coins -= cost;
           upgradeVillageItem(item, cost, isFreeCastleTutorial);
           if (isFreeCastleTutorial) {
-            spawnConfettiBurst();
-            miniTutorial.step = 5;
-            if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
-            hideTutorialPopup();
-            if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.remove("hidden");
+            advanceMiniTutorial();
           }
           persistState();
           updateUI();
@@ -5726,6 +5708,14 @@
         }
         function onMiniTutorialPlayClick() {
           finishMiniTutorial();
+        }
+        function advanceMiniTutorial() {
+          if (!miniTutorial.active || miniTutorial.step !== 4) return;
+          spawnConfettiBurst();
+          miniTutorial.step = 5;
+          if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+          hideTutorialPopup();
+          if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.remove("hidden");
         }
         document.addEventListener("DOMContentLoaded", async () => {
           await loadGameEconomy();
