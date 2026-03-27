@@ -168,6 +168,9 @@
         flex-direction: column;
         width: min(360px, calc(100vw - 32px));
         flex: 0 0 360px;
+        position: sticky;
+        top: 16px;
+        align-self: flex-start;
       }
 
       @media (max-width: 980px) {
@@ -271,6 +274,26 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 8px;
+        gap: 10px;
+      }
+      .hud-coin-pips {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hud-coin-pip {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 209, 102, 0.45);
+        background: rgba(24, 16, 4, 0.72);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease;
+      }
+      .hud-coin-pip.filled {
+        background: radial-gradient(circle at 35% 30%, #ffe8a8 0%, #ffd166 55%, #c98520 100%);
+        box-shadow: 0 0 10px rgba(255, 209, 102, 0.45);
+        transform: scale(1.08);
       }
       #shopBtn {
         position: relative;
@@ -671,9 +694,12 @@
         width: 100%;
         border-radius: 26px;
         background:
-          radial-gradient(circle at 30% 10%, rgba(181, 23, 255, 0.25), transparent 60%),
-          radial-gradient(circle at 70% 20%, rgba(79, 211, 255, 0.12), transparent 65%),
-          linear-gradient(180deg, rgba(22, 6, 32, 0.98), rgba(6, 2, 18, 0.98));
+          radial-gradient(circle at 18% 14%, rgba(235, 255, 205, 0.14), transparent 34%),
+          radial-gradient(circle at 75% 12%, rgba(255, 240, 185, 0.12), transparent 36%),
+          radial-gradient(circle at 50% 58%, rgba(24, 72, 28, 0.56), transparent 68%),
+          repeating-radial-gradient(circle at 22% 72%, rgba(14, 42, 16, 0.36) 0 2px, rgba(0,0,0,0) 2px 8px),
+          repeating-radial-gradient(circle at 78% 70%, rgba(26, 58, 20, 0.28) 0 1px, rgba(0,0,0,0) 1px 7px),
+          linear-gradient(180deg, rgba(52, 86, 36, 0.96), rgba(20, 42, 18, 0.98));
         border: 1px solid rgba(255, 255, 255, 0.08);
         box-shadow:
           0 28px 80px rgba(0, 0, 0, 0.9),
@@ -1950,19 +1976,24 @@
       .building-comp .layer { position: absolute; transform-origin: center; will-change: transform, opacity; }
       .village-actions {
         width: 100%;
-        margin-top: 42px;
-        position: relative;
-        min-height: 60px;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 10px;
+        min-height: 72px;
+        z-index: 120;
+        pointer-events: none;
       }
       #villageStars {
-        width: 94%;
+        width: min(90%, 420px);
         margin: 0 auto;
         border: 1px solid rgba(255,255,255,.12);
         border-radius: 12px;
         padding: 8px;
-        background: rgba(0,0,0,.18);
+        background: rgba(0,0,0,.38);
         font-size: .78rem;
-        transform: translateY(52px);
+        transform: none;
+        pointer-events: auto;
       }
       .xp-row {
         display: grid;
@@ -3217,8 +3248,13 @@
         <span class="hud-rivet hud-rivet--tl" aria-hidden="true"></span>
         <span class="hud-rivet hud-rivet--tr" aria-hidden="true"></span>
         <div class="hud-top">
-          <div class="hud-title">PlayPltx</div>
+          <div class="hud-title">PlayPLTX</div>
           <div class="hud-level">Stage <span id="levelValue">1</span>/10</div>
+          <div class="hud-coin-pips" aria-hidden="true">
+            <span id="hudCoinPip0" class="hud-coin-pip"></span>
+            <span id="hudCoinPip1" class="hud-coin-pip"></span>
+            <span id="hudCoinPip2" class="hud-coin-pip"></span>
+          </div>
           <button id="shopBtn" type="button" class="secondary metal-btn" style="padding: 7px 10px; font-size: 0.72rem;">SHOP</button>
         </div>
         <div class="hud-bars">
@@ -3633,6 +3669,11 @@
         const shopCostBoatEl = document.getElementById("shopCostBoat");
         const villageProgressFillEl = document.getElementById("villageProgressFill");
         const villageProgressLabelEl = document.getElementById("villageProgressLabel");
+        const hudCoinPipEls = [
+          document.getElementById("hudCoinPip0"),
+          document.getElementById("hudCoinPip1"),
+          document.getElementById("hudCoinPip2"),
+        ];
         const playerLevelLabelEl = document.getElementById("playerLevelLabel");
         const xpFillEl = document.getElementById("xpFill");
         const xpTextEl = document.getElementById("xpText");
@@ -4218,14 +4259,21 @@
         function formatNumber(num) {
           return Number(num || 0).toLocaleString();
         }
+        function setHudCoinPips(filledCount) {
+          const count = Math.max(0, Math.min(3, Number(filledCount) || 0));
+          hudCoinPipEls.forEach((el, idx) => {
+            if (!el) return;
+            el.classList.toggle("filled", idx < count);
+          });
+        }
         function renderCastleComposite(level) {
           const maxClass = level >= 5 ? "is-max" : "";
-          const roof = level >= 1 ? `<div class="layer" style="left:32px;top:14px;width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;border-bottom:20px solid #9d2f2f;"></div>` : "";
+          const roof = level >= 1 ? `<div class="layer" style="left:28px;top:12px;width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:24px solid #9d2f2f;"></div>` : "";
           const door = level >= 1 ? `<div class="layer" style="left:44px;top:46px;width:20px;height:24px;border-radius:10px 10px 2px 2px;background:#5c3716;"></div>` : "";
-          const towers = level >= 2 ? `<div class="layer" style="left:14px;top:28px;width:18px;height:34px;background:#8e98ad;border-radius:4px"></div><div class="layer" style="left:78px;top:28px;width:18px;height:34px;background:#8e98ad;border-radius:4px"></div><div class="layer" style="left:28px;top:34px;width:54px;height:20px;background:#737f95;border-radius:3px"></div>` : "";
-          const keep = level >= 3 ? `<div class="layer" style="left:30px;top:24px;width:48px;height:40px;background:#a0adc7;border-radius:6px"></div>` : "";
+          const towers = level >= 3 ? `<div class="layer" style="left:12px;top:24px;width:18px;height:40px;background:#8e98ad;border-radius:4px"></div><div class="layer" style="left:80px;top:24px;width:18px;height:40px;background:#8e98ad;border-radius:4px"></div><div class="layer" style="left:28px;top:34px;width:54px;height:20px;background:#737f95;border-radius:3px"></div>` : "";
+          const keep = level >= 4 ? `<div class="layer" style="left:30px;top:20px;width:48px;height:44px;background:#a0adc7;border-radius:6px"></div>` : "";
           const flag = level >= 4 ? `<div class="layer" style="left:56px;top:4px;width:2px;height:20px;background:#dce7ff"></div><div class="layer flag-cloth" style="left:58px;top:6px;width:16px;height:10px;background:#3f8cff;border-radius:0 2px 2px 0"></div>` : "";
-          const epic = level >= 5 ? `<div class="layer castle-aura"></div><svg class="layer" viewBox="0 0 120 70" style="left:22px;top:44px;width:76px;height:24px"><rect x="0" y="6" width="76" height="14" rx="4" fill="#c9982f"/><rect x="4" y="0" width="68" height="8" rx="3" fill="#ffd97a"/></svg><div class="layer" style="left:8px;top:18px;width:16px;height:44px;background:#8f98ad;border-radius:4px"></div><div class="layer" style="left:92px;top:18px;width:16px;height:44px;background:#8f98ad;border-radius:4px"></div>` : "";
+          const epic = level >= 5 ? `<div class="layer castle-aura"></div><svg class="layer" viewBox="0 0 120 70" style="left:18px;top:42px;width:82px;height:26px"><rect x="0" y="8" width="82" height="14" rx="4" fill="#b88728"/><rect x="4" y="0" width="74" height="10" rx="3" fill="#ffd97a"/></svg><div class="layer" style="left:8px;top:16px;width:16px;height:46px;background:#8f98ad;border-radius:4px"></div><div class="layer" style="left:94px;top:16px;width:16px;height:46px;background:#8f98ad;border-radius:4px"></div>` : "";
           return `<div class="building-comp ${maxClass}"><div class="layer" style="left:22px;top:50px;width:66px;height:14px;background:#6a727f;border-radius:4px"></div>${roof}${door}${towers}${keep}${flag}${epic}</div>`;
         }
         function renderCannonComposite(level) {
@@ -4234,7 +4282,7 @@
           const barrel = level >= 2 ? `<div class="layer" style="left:30px;top:28px;width:48px;height:14px;background:#3b414d;border-radius:8px"></div>` : "";
           const balls = level >= 3 ? `<div class="layer" style="left:76px;top:44px;font-size:12px">⚫⚫</div>` : "";
           const wheels = level >= 4 ? `<div class="layer" style="left:24px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:60px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:28px;top:26px;width:52px;height:18px;border:2px solid #8ea4bf;border-radius:9px"></div>` : "";
-          const epic = level >= 5 ? `<svg class="layer" viewBox="0 0 120 70" style="left:16px;top:18px;width:78px;height:34px"><rect x="10" y="18" width="62" height="10" rx="5" fill="#c89b35"/><rect x="18" y="8" width="54" height="9" rx="4" fill="#d9ad49"/><path d="M72 18 L96 22 L72 28 Z" fill="#2d2f36"/></svg><div class="layer smoke-particle" style="left:86px;top:16px"></div>` : "";
+          const epic = level >= 5 ? `<svg class="layer" viewBox="0 0 120 70" style="left:14px;top:16px;width:84px;height:36px"><rect x="10" y="18" width="62" height="10" rx="5" fill="#c89b35"/><rect x="18" y="8" width="54" height="9" rx="4" fill="#d9ad49"/><path d="M72 18 L96 22 L72 28 Z" fill="#2d2f36"/><path d="M6 20 C10 8, 24 8, 28 20 C24 18,12 18,6 20 Z" fill="#2d2f36"/></svg><div class="layer smoke-particle" style="left:88px;top:14px"></div>` : "";
           return `<div class="building-comp ${maxClass}">${base}${barrel}${balls}${wheels}${epic}</div>`;
         }
         function renderStatueComposite(level) {
@@ -4309,12 +4357,41 @@
           window.__visualLogBuffer.push(entry);
           window.__visualLogBuffer = window.__visualLogBuffer.slice(-10);
           logPreviewEl.classList.remove("log-preview-empty");
+          const totalStars = VILLAGE_ITEMS.reduce((sum, item) => sum + (villageProgress[item] || 0), 0);
+          const snapshot = {
+            level: gameState.level,
+            xp: gameState.xp,
+            coins,
+            spins: gameState.energy,
+            villageId,
+            totalStars,
+            villageProgress,
+          };
           logPreviewEl.textContent = JSON.stringify(
-            window.__visualLogBuffer.map((x) => x.event),
+            {
+              snapshot,
+              events: window.__visualLogBuffer.map((x) => x.event),
+            },
             null,
             2
           );
         };
+        function runStressTest() {
+          const checks = {
+            condition: gameState.condition,
+            hasEconomy: !!window.ECONOMY_DATA,
+            hasXpSettings: !!(GAME_CONFIG && GAME_CONFIG.xpSettings),
+            hasLogger: typeof window.saveToFirestore === "function",
+            hasRunSpin: typeof runSpin === "function",
+            hasAddStar: typeof window.addStar === "function",
+          };
+          logEvent("audit_stress_test", checks);
+          if (typeof window.__appendVisualLog === "function") {
+            window.__appendVisualLog({ eventType: "audit_stress_test", ...checks });
+          }
+          return checks;
+        }
+        window.runStressTest = runStressTest;
 
         // Expose research context for the unified logger
         window.__researchContext = {
@@ -4545,18 +4622,18 @@
             slot.classList.toggle("active", idx < shields);
           });
           const totalStars = VILLAGE_ITEMS.reduce((sum, item) => sum + villageProgress[item], 0);
-          if (villageIdValueEl) villageIdValueEl.textContent = String(villageId);
-          if (villageTotalStarsEl) villageTotalStarsEl.textContent = String(totalStars);
-          if (starCastleEl) starCastleEl.textContent = String(villageProgress.Castle);
-          if (starCannonEl) starCannonEl.textContent = String(villageProgress.Cannon);
-          if (starStatueEl) starStatueEl.textContent = String(villageProgress.Statue);
-          if (starFarmEl) starFarmEl.textContent = String(villageProgress.Farm);
-          if (starBoatEl) starBoatEl.textContent = String(villageProgress.Boat);
-          if (shopStarCastleEl) shopStarCastleEl.textContent = String(villageProgress.Castle);
-          if (shopStarCannonEl) shopStarCannonEl.textContent = String(villageProgress.Cannon);
-          if (shopStarStatueEl) shopStarStatueEl.textContent = String(villageProgress.Statue);
-          if (shopStarFarmEl) shopStarFarmEl.textContent = String(villageProgress.Farm);
-          if (shopStarBoatEl) shopStarBoatEl.textContent = String(villageProgress.Boat);
+          if (villageIdValueEl) villageIdValueEl.textContent = formatNumber(villageId);
+          if (villageTotalStarsEl) villageTotalStarsEl.textContent = formatNumber(totalStars);
+          if (starCastleEl) starCastleEl.textContent = formatNumber(villageProgress.Castle);
+          if (starCannonEl) starCannonEl.textContent = formatNumber(villageProgress.Cannon);
+          if (starStatueEl) starStatueEl.textContent = formatNumber(villageProgress.Statue);
+          if (starFarmEl) starFarmEl.textContent = formatNumber(villageProgress.Farm);
+          if (starBoatEl) starBoatEl.textContent = formatNumber(villageProgress.Boat);
+          if (shopStarCastleEl) shopStarCastleEl.textContent = formatNumber(villageProgress.Castle);
+          if (shopStarCannonEl) shopStarCannonEl.textContent = formatNumber(villageProgress.Cannon);
+          if (shopStarStatueEl) shopStarStatueEl.textContent = formatNumber(villageProgress.Statue);
+          if (shopStarFarmEl) shopStarFarmEl.textContent = formatNumber(villageProgress.Farm);
+          if (shopStarBoatEl) shopStarBoatEl.textContent = formatNumber(villageProgress.Boat);
           const setShopState = (item, btn, costEl) => {
             if (!btn || !costEl) return;
             const current = villageProgress[item] || 0;
@@ -4590,7 +4667,7 @@
           setShopState("Farm", shopVillageFarmBtn, shopCostFarmEl);
           setShopState("Boat", shopVillageBoatBtn, shopCostBoatEl);
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
-          if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${villageId} Progress: ${totalStars} / 25 Stars`;
+          if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${formatNumber(villageId)} Progress: ${formatNumber(totalStars)} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
           const xpRequired = Math.max(1, Number((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpRequired) || 100));
           const xpValue = Math.max(0, Math.round(Number(gameState.xp) || 0));
@@ -5331,6 +5408,7 @@
             showOutOfSpinsModal();
             return;
           }
+          setHudCoinPips(0);
 
           const nowMs = performance.now();
           const reactionTimeMs =
@@ -5425,7 +5503,10 @@
           });
 
           if (coinsWon > 0) {
+            setHudCoinPips(3);
             spawnCoinExplosionToHud(coins - coinsWon, coinsWon, randomCoinParticles);
+          } else {
+            setHudCoinPips(0);
           }
           if (actionTriggered === "shield" && gameState.shields < 3) {
             gameState.shields += 1;
@@ -5769,6 +5850,10 @@
           updateUI();
           setStatus(`${item} improved!`, false);
         }
+        function addStar(item) {
+          onShopVillageUpgrade(item);
+        }
+        window.addStar = addStar;
         function onDevRefillClick() {
           gameState.energy = GAME_CONFIG.maxEnergy;
           energy = gameState.energy;
