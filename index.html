@@ -3077,31 +3077,31 @@
             <button id="closeShopBtn" type="button" class="secondary metal-btn">Close</button>
           </div>
           <div class="shop-list">
-            <div class="shop-item">
+            <div class="shop-item" data-item="Castle">
               <div class="shop-title">Castle</div>
               <div class="shop-desc">Stars: <span id="shopStarCastle">0</span>/5</div>
               <button id="shopVillageCastleBtn" type="button" class="secondary wood-metal">Add Star</button>
               <div id="shopCostCastle" class="shop-cost">Cost: 0 Coins</div>
             </div>
-            <div class="shop-item">
+            <div class="shop-item" data-item="Cannon">
               <div class="shop-title">Cannon</div>
               <div class="shop-desc">Stars: <span id="shopStarCannon">0</span>/5</div>
               <button id="shopVillageCannonBtn" type="button" class="secondary wood-metal">Add Star</button>
               <div id="shopCostCannon" class="shop-cost">Cost: 0 Coins</div>
             </div>
-            <div class="shop-item">
+            <div class="shop-item" data-item="Statue">
               <div class="shop-title">Statue</div>
               <div class="shop-desc">Stars: <span id="shopStarStatue">0</span>/5</div>
               <button id="shopVillageStatueBtn" type="button" class="secondary wood-metal">Add Star</button>
               <div id="shopCostStatue" class="shop-cost">Cost: 0 Coins</div>
             </div>
-            <div class="shop-item">
+            <div class="shop-item" data-item="Farm">
               <div class="shop-title">Farm</div>
               <div class="shop-desc">Stars: <span id="shopStarFarm">0</span>/5</div>
               <button id="shopVillageFarmBtn" type="button" class="secondary wood-metal">Add Star</button>
               <div id="shopCostFarm" class="shop-cost">Cost: 0 Coins</div>
             </div>
-            <div class="shop-item">
+            <div class="shop-item" data-item="Boat">
               <div class="shop-title">Boat</div>
               <div class="shop-desc">Stars: <span id="shopStarBoat">0</span>/5</div>
               <button id="shopVillageBoatBtn" type="button" class="secondary wood-metal">Add Star</button>
@@ -4587,19 +4587,28 @@
             localStorage.setItem(STORAGE_KEY_MINI_TUTORIAL, "1");
           } catch (e) {}
         }
-        function stopMiniTutorial() {
+        function stopMiniTutorial(markCompleted) {
           miniTutorial.active = false;
           miniTutorial.step = 0;
           clearTutorialHighlight();
           if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
           hideTutorialPopup();
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Continue";
+          if (tutorialContinueBtn) tutorialContinueBtn.style.display = "";
           if (skipTutorialBtn) skipTutorialBtn.style.display = "";
-          setMiniTutorialSeen();
+          if (markCompleted) setMiniTutorialSeen();
+        }
+        function positionTutorialFingerOnly(targetEl) {
+          if (!tutorialFingerEl || !targetEl) return;
+          const rect = targetEl.getBoundingClientRect();
+          tutorialFingerEl.style.display = "block";
+          tutorialFingerEl.style.left = Math.round(rect.left + rect.width / 2) + "px";
+          tutorialFingerEl.style.top = Math.round(rect.top + rect.height / 2 + 10) + "px";
         }
         function renderMiniTutorialStep(stepNumber) {
           if (!tutorialTextEl || !tutorialTooltipEl) return;
           const progressTarget = document.getElementById("villageProgressBarContainer");
+          const boatItem = shopModalEl ? shopModalEl.querySelector('.shop-item[data-item="Boat"]') : null;
           let target = null;
           let msg = "";
           let placement = "above";
@@ -4610,20 +4619,32 @@
             placement = "above";
           } else if (stepNumber === 2) {
             target = progressTarget;
-            msg = "Build your village to earn stars and unlock new worlds!";
+            msg = "Build your village to earn stars and complete levels! Every 5 stars finishes a building.";
             placement = "below";
           } else if (stepNumber === 3) {
             target = shopBtn;
-            msg = "Use your coins here to upgrade your buildings!";
+            msg = "Click the Shop to see what you can build!";
             placement = "below";
+          } else if (stepNumber === 4) {
+            target = boatItem;
+            msg = "This is a building. Click 'Add Star' to upgrade it using your coins. Collect all stars to move to the next Village!";
+            placement = "above";
           }
           if (!target) return;
           target.classList.add("mini-tutorial-target");
           tutorialTextEl.textContent = msg;
           showTutorialPopup();
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Got it!";
+          if (tutorialContinueBtn) tutorialContinueBtn.style.display = stepNumber === 3 ? "none" : "";
           if (skipTutorialBtn) skipTutorialBtn.style.display = "none";
-          setHaloTarget(target);
+          setHaloTarget(null);
+          if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
+          if (spotlightHoleEl) {
+            spotlightHoleEl.setAttribute("stroke", "transparent");
+            spotlightHoleEl.setAttribute("width", "1");
+            spotlightHoleEl.setAttribute("height", "1");
+          }
+          positionTutorialFingerOnly(target);
           positionTutorialPopup(target, placement);
         }
         function startMiniTutorial() {
@@ -4633,7 +4654,7 @@
         }
         function maybeAdvanceMiniTutorialBySpins() {
           if (!miniTutorial.active) return;
-          if (miniTutorial.step === 1 && totalSpinsToComplete >= 3) {
+          if (miniTutorial.step === 1 && totalSpinsToComplete >= 1) {
             miniTutorial.step = 2;
             renderMiniTutorialStep(2);
           }
@@ -4641,6 +4662,7 @@
 
         function positionSpotlightOn(targetEl) {
           if (!spotlightHoleEl || !tutorialTooltipEl || !targetEl) return;
+          spotlightHoleEl.setAttribute("stroke", "rgba(120, 240, 255, 0.78)");
           const rect = targetEl.getBoundingClientRect();
           const pad = 10;
           const x = Math.max(0, rect.left - pad);
@@ -5214,6 +5236,10 @@
           if (!shopModalEl) return;
           shopModalEl.classList.remove("hidden");
           updateUI();
+          if (miniTutorial.active && miniTutorial.step === 3) {
+            miniTutorial.step = 4;
+            renderMiniTutorialStep(4);
+          }
         }
         function openShop() {
           console.log("Shop clicked");
@@ -5328,7 +5354,11 @@
                 renderMiniTutorialStep(3);
                 return;
               }
-              stopMiniTutorial();
+              if (miniTutorial.step === 4) {
+                stopMiniTutorial(true);
+                return;
+              }
+              stopMiniTutorial(false);
               return;
             }
             if (tutorialStep <= 0) return;
@@ -5350,7 +5380,7 @@
         }
         function onSkipTutorialClick() {
             if (miniTutorial.active) {
-              stopMiniTutorial();
+              stopMiniTutorial(false);
               return;
             }
             if (tutorialStep > 0) {
