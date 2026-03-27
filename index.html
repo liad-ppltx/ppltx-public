@@ -1891,6 +1891,115 @@
       }
       .shop-title { font-weight: 1000; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 6px; }
       .shop-desc { color: var(--text-subtle); font-size: 0.86rem; margin-bottom: 10px; }
+      .shop-item button.max-btn {
+        background: linear-gradient(180deg, #ffd166, #b8860b) !important;
+        border-color: rgba(255, 215, 120, 0.7) !important;
+        color: #2b1704 !important;
+      }
+
+      .village-asset {
+        position: absolute;
+        width: 84px;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 28px;
+        font-weight: 900;
+        text-align: center;
+        pointer-events: none;
+        z-index: 108;
+        filter: drop-shadow(0 6px 10px rgba(0,0,0,0.55));
+        transition: transform 220ms ease, filter 220ms ease, background 220ms ease;
+      }
+      .village-asset .asset-label {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        position: absolute;
+        bottom: -14px;
+        color: rgba(235, 244, 255, 0.85);
+      }
+      .statue-visual { left: 8px; top: 126px; width: 78px; min-height: 66px; }
+      .farm-visual { right: 4px; top: 126px; width: 88px; min-height: 66px; }
+      .boat-visual { left: 120px; top: 178px; width: 84px; min-height: 56px; }
+
+      .castle-evo-0 { filter: grayscale(1) brightness(0.75); }
+      .castle-evo-1 { filter: grayscale(0.7) brightness(0.82); }
+      .castle-evo-2 { filter: grayscale(0.45) brightness(0.9); }
+      .castle-evo-3 { filter: brightness(0.98); }
+      .castle-evo-4 { filter: saturate(1.15) brightness(1.06); box-shadow: 0 0 18px rgba(100, 180, 255, 0.28); }
+      .castle-evo-5 { filter: saturate(1.25) brightness(1.16); box-shadow: 0 0 24px rgba(255, 214, 120, 0.62); }
+
+      .cannon-evo-0 { opacity: 0.7; filter: grayscale(1) brightness(0.7); }
+      .cannon-evo-1 { filter: grayscale(0.8) brightness(0.78); }
+      .cannon-evo-2 { filter: grayscale(0.5) brightness(0.88); }
+      .cannon-evo-3 { filter: brightness(1); }
+      .cannon-evo-4 { box-shadow: 0 0 14px rgba(170, 230, 255, 0.3); }
+      .cannon-evo-5 { box-shadow: 0 0 22px rgba(255, 200, 95, 0.52); }
+
+      .statue-evo-0 { background: rgba(68, 72, 84, 0.5); }
+      .statue-evo-1 { background: rgba(86, 90, 105, 0.58); }
+      .statue-evo-2 { background: rgba(92, 100, 118, 0.62); }
+      .statue-evo-3 { background: rgba(106, 116, 132, 0.68); }
+      .statue-evo-4 { background: rgba(132, 144, 168, 0.75); }
+      .statue-evo-5 { background: linear-gradient(180deg, rgba(255,224,138,0.88), rgba(181,134,11,0.84)); box-shadow: 0 0 20px rgba(255, 216, 130, 0.58); }
+
+      .farm-evo-0 { background: rgba(80, 56, 24, 0.62); }
+      .farm-evo-1 { background: rgba(96, 70, 30, 0.7); }
+      .farm-evo-2 { background: rgba(72, 105, 40, 0.7); }
+      .farm-evo-3 { background: rgba(76, 128, 50, 0.74); }
+      .farm-evo-4 { background: rgba(92, 152, 58, 0.78); }
+      .farm-evo-5 { background: linear-gradient(180deg, rgba(228, 205, 94, 0.84), rgba(126, 188, 72, 0.84)); box-shadow: 0 0 18px rgba(220, 210, 105, 0.55); }
+
+      .boat-evo-0 { background: rgba(56, 45, 30, 0.72); }
+      .boat-evo-1 { background: rgba(72, 56, 38, 0.74); }
+      .boat-evo-2 { background: rgba(84, 64, 42, 0.78); }
+      .boat-evo-3 { background: rgba(96, 72, 46, 0.82); }
+      .boat-evo-4 { background: rgba(106, 82, 52, 0.85); }
+      .boat-evo-5 { background: linear-gradient(180deg, rgba(36,36,44,0.88), rgba(160,112,44,0.85)); box-shadow: 0 0 16px rgba(255, 194, 88, 0.46); }
+
+      .evolve-bounce {
+        animation: evolve-bounce 420ms cubic-bezier(0.2, 0.9, 0.2, 1);
+      }
+      @keyframes evolve-bounce {
+        0% { transform: scale(1); }
+        45% { transform: scale(1.2); }
+        100% { transform: scale(1); }
+      }
+      .sparkle-particle {
+        position: fixed;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 30%, #fff9d2 0%, #ffd166 60%, rgba(255,209,102,0) 100%);
+        pointer-events: none;
+        z-index: 12000;
+      }
+
+      .mini-complete-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 12050;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(5, 8, 18, 0.62);
+        backdrop-filter: blur(6px);
+      }
+      .mini-complete-modal.hidden {
+        display: none !important;
+      }
+      .mini-complete-sheet {
+        width: min(520px, 92vw);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 214, 120, 0.45);
+        background: linear-gradient(180deg, rgba(24, 28, 46, 0.95), rgba(10, 12, 24, 0.95));
+        box-shadow: 0 24px 60px rgba(0,0,0,0.72), 0 0 24px rgba(255, 214, 120, 0.22);
+        padding: 18px;
+        text-align: center;
+      }
 
 
       .floating-log-header {
@@ -3003,6 +3112,9 @@
             <!-- Larger transparent hitbox overlay for reliable Cannon 2 hover/click -->
             <div id="cannon2Hit" class="cannon2-hitbox hidden" aria-hidden="true"></div>
             <div id="cannon2" class="cannon cannon2 cannon-lvl-0 hidden" aria-label="Second Cannon"></div>
+            <div id="statueVisual" class="village-asset statue-visual statue-evo-0" aria-hidden="true"><span id="statueVisualEmoji">⬜</span><span class="asset-label">Statue</span></div>
+            <div id="farmVisual" class="village-asset farm-visual farm-evo-0" aria-hidden="true"><span id="farmVisualEmoji">🟫</span><span class="asset-label">Farm</span></div>
+            <div id="boatVisual" class="village-asset boat-visual boat-evo-0" aria-hidden="true"><span id="boatVisualEmoji">🪵</span><span class="asset-label">Boat</span></div>
 
             <button id="castleTag" type="button" class="entity-tag entity-tag--castle">
               <span class="entity-tag__label">Lv.</span> <span id="castleLevelTag">1</span>
@@ -3179,6 +3291,13 @@
         </div>
       </div>
     </div>
+    <div id="miniTutorialCompleteModal" class="mini-complete-modal hidden" role="dialog" aria-modal="true" aria-label="Tutorial complete">
+      <div class="mini-complete-sheet">
+        <h3 style="margin:0 0 10px; color:#ffe08a; letter-spacing:0.06em;">Village Life Starts Now!</h3>
+        <div style="color:#dce7ff; margin-bottom:14px;">Build all 5 buildings to 5 stars to unlock the next world. Good luck, Viking!</div>
+        <button id="miniTutorialPlayBtn" type="button" class="rune-btn">Let's Play!</button>
+      </div>
+    </div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
@@ -3327,6 +3446,14 @@
         const shopCostBoatEl = document.getElementById("shopCostBoat");
         const villageProgressFillEl = document.getElementById("villageProgressFill");
         const villageProgressLabelEl = document.getElementById("villageProgressLabel");
+        const statueVisualEl = document.getElementById("statueVisual");
+        const farmVisualEl = document.getElementById("farmVisual");
+        const boatVisualEl = document.getElementById("boatVisual");
+        const statueVisualEmojiEl = document.getElementById("statueVisualEmoji");
+        const farmVisualEmojiEl = document.getElementById("farmVisualEmoji");
+        const boatVisualEmojiEl = document.getElementById("boatVisualEmoji");
+        const miniTutorialCompleteModalEl = document.getElementById("miniTutorialCompleteModal");
+        const miniTutorialPlayBtn = document.getElementById("miniTutorialPlayBtn");
         const devRefillBtn = document.getElementById("devRefillBtn");
         const worldInnerEl = document.querySelector(".world-inner");
         const villageCelebrationEl = document.getElementById("villageCelebration");
@@ -3870,6 +3997,60 @@
         function formatNumber(num) {
           return Number(num || 0).toLocaleString();
         }
+        function getVisualEmojiForLevel(building, lvl) {
+          const map = {
+            Castle: ["⬜", "🏰", "🏯", "🏛️", "🚩", "👑"],
+            Cannon: ["🟤", "🪵", "🔩", "💣", "🔥", "🐉"],
+            Statue: ["⬜", "🪨", "🗿", "🗽", "🦸", "✨"],
+            Farm: ["🟫", "🪵", "🌱", "🌾", "🐄", "🌻"],
+            Boat: ["🪵", "🛶", "🚣", "⛵", "🚤", "🛳️"],
+          };
+          const arr = map[building] || [];
+          return arr[Math.max(0, Math.min(5, lvl))] || "⬜";
+        }
+        function applyEvolutionClass(el, prefix, level) {
+          if (!el) return;
+          for (let i = 0; i <= 5; i++) el.classList.remove(`${prefix}-${i}`);
+          el.classList.add(`${prefix}-${Math.max(0, Math.min(5, level))}`);
+        }
+        function updateVillageVisuals() {
+          const castleStars = villageProgress.Castle || 0;
+          const cannonStars = villageProgress.Cannon || 0;
+          const statueStars = villageProgress.Statue || 0;
+          const farmStars = villageProgress.Farm || 0;
+          const boatStars = villageProgress.Boat || 0;
+          if (castleEl) applyEvolutionClass(castleEl, "castle-evo", castleStars);
+          if (cannonEl) applyEvolutionClass(cannonEl, "cannon-evo", cannonStars);
+          if (wallEl) applyEvolutionClass(wallEl, "statue-evo", statueStars);
+          if (statueVisualEl) applyEvolutionClass(statueVisualEl, "statue-evo", statueStars);
+          if (farmVisualEl) applyEvolutionClass(farmVisualEl, "farm-evo", farmStars);
+          if (boatVisualEl) applyEvolutionClass(boatVisualEl, "boat-evo", boatStars);
+          if (statueVisualEmojiEl) statueVisualEmojiEl.textContent = getVisualEmojiForLevel("Statue", statueStars);
+          if (farmVisualEmojiEl) farmVisualEmojiEl.textContent = getVisualEmojiForLevel("Farm", farmStars);
+          if (boatVisualEmojiEl) boatVisualEmojiEl.textContent = getVisualEmojiForLevel("Boat", boatStars);
+        }
+        function spawnSparkleBurst(target) {
+          if (!target) return;
+          const rect = target.getBoundingClientRect();
+          for (let i = 0; i < 14; i++) {
+            const p = document.createElement("div");
+            p.className = "sparkle-particle";
+            const sx = rect.left + rect.width / 2;
+            const sy = rect.top + rect.height / 2;
+            p.style.left = `${Math.round(sx)}px`;
+            p.style.top = `${Math.round(sy)}px`;
+            document.body.appendChild(p);
+            const dx = (Math.random() * 90) - 45;
+            const dy = -40 - Math.random() * 70;
+            p.animate(
+              [
+                { transform: "translate(-50%, -50%) scale(0.8)", opacity: 1 },
+                { transform: `translate(${dx}px, ${dy}px) translate(-50%, -50%) scale(1.2)`, opacity: 0 },
+              ],
+              { duration: 1000, easing: "cubic-bezier(0.2,0.9,0.2,1)", fill: "forwards" }
+            ).onfinish = () => p.remove();
+          }
+        }
 
         window.__appendVisualLog = function (eventObj) {
           if (!logPreviewEl) return;
@@ -4049,7 +4230,7 @@
             coinsFillEl.style.width = pct + "%";
           }
 
-          if (upgradeCostEl) upgradeCostEl.textContent = String(cost);
+          if (upgradeCostEl) upgradeCostEl.textContent = formatNumber(cost);
 
           if (spinBtn) spinBtn.disabled = energy <= 0;
           if (upgradeBtn) upgradeBtn.disabled = stage >= MAX_STAGE || coins < cost;
@@ -4126,19 +4307,22 @@
           const setShopState = (item, btn, costEl) => {
             if (!btn || !costEl) return;
             const current = villageProgress[item] || 0;
+            const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle" && current === 0;
             if (current >= 5) {
               btn.disabled = true;
-              btn.textContent = "MAX STARS";
+              btn.textContent = "MAX";
+              btn.classList.add("max-btn");
               costEl.textContent = "Cost: MAX";
               costEl.classList.remove("poor");
               costEl.classList.remove("rich");
               return;
             }
-            const cost = calculateUpgradeCost(item, current);
+            btn.classList.remove("max-btn");
+            const cost = isFreeCastleTutorial ? 0 : calculateUpgradeCost(item, current);
             const canAfford = coins >= cost;
-            btn.disabled = !canAfford || isVillageCelebrating;
+            btn.disabled = (!canAfford && !isFreeCastleTutorial) || isVillageCelebrating;
             btn.textContent = "Add Star";
-            costEl.textContent = `Cost: ${formatNumber(cost)} Coins`;
+            costEl.textContent = isFreeCastleTutorial ? "Cost: FREE" : `Cost: ${formatNumber(cost)} Coins`;
             costEl.classList.toggle("poor", !canAfford);
             costEl.classList.toggle("rich", canAfford);
           };
@@ -4150,6 +4334,7 @@
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
           if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${villageId} Progress: ${totalStars} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
+          updateVillageVisuals();
         }
 
         function getRandomSymbol() {
@@ -4301,18 +4486,35 @@
             runVillageCompleteCelebration();
           }
         }
-        function upgradeVillageItem(item, cost) {
+        function upgradeVillageItem(item, cost, isFree) {
           if (!VILLAGE_ITEMS.includes(item)) return;
           if (villageProgress[item] >= 5) return;
           villageProgress[item] += 1;
           logEvent("village_upgrade", { item, levelAfter: villageProgress[item], cost: Math.max(0, Number(cost || 0)) });
+          logEvent("building_evolved", { building: item, newLevel: villageProgress[item], isFree: !!isFree });
           celebrateBuildingUpgrade(item);
+          const targetMap = {
+            Castle: castleEl,
+            Cannon: cannonEl,
+            Statue: statueVisualEl || wallEl,
+            Farm: farmVisualEl,
+            Boat: boatVisualEl,
+          };
+          const target = targetMap[item];
+          if (target) {
+            target.classList.remove("evolve-bounce");
+            void target.offsetWidth;
+            target.classList.add("evolve-bounce");
+            setTimeout(() => target.classList.remove("evolve-bounce"), 460);
+            spawnSparkleBurst(target);
+          }
+          updateVillageVisuals();
           finalizeVillageProgress();
         }
         function applyVillageUpgradeFromSpin() {
           const target = VILLAGE_ITEMS.find((item) => villageProgress[item] < 5);
           if (!target) return;
-          upgradeVillageItem(target, 0);
+          upgradeVillageItem(target, 0, false);
         }
         async function resolveAttackMode() {
           const targetUserId = "bot";
@@ -4616,7 +4818,12 @@
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Continue";
           if (tutorialContinueBtn) tutorialContinueBtn.style.display = "";
           if (skipTutorialBtn) skipTutorialBtn.style.display = "";
+          if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.add("hidden");
           if (markCompleted) setMiniTutorialSeen();
+        }
+        function finishMiniTutorial() {
+          logEvent("tutorial_complete", { totalSpins: totalSpinsToComplete });
+          stopMiniTutorial(true);
         }
         function positionTutorialFingerOnly(targetEl) {
           if (!tutorialFingerEl || !targetEl) return;
@@ -4628,7 +4835,7 @@
         function renderMiniTutorialStep(stepNumber) {
           if (!tutorialTextEl || !tutorialTooltipEl) return;
           const progressTarget = document.getElementById("villageProgressBarContainer");
-          const boatItem = shopModalEl ? shopModalEl.querySelector('.shop-item[data-item="Boat"]') : null;
+          const castleItem = shopModalEl ? shopModalEl.querySelector('.shop-item[data-item="Castle"]') : null;
           let target = null;
           let msg = "";
           let placement = "above";
@@ -4646,8 +4853,8 @@
             msg = "Click the Shop to see what you can build!";
             placement = "below";
           } else if (stepNumber === 4) {
-            target = boatItem;
-            msg = "This is a building. Click 'Add Star' to upgrade it using your coins. Collect all stars to move to the next Village!";
+            target = castleItem;
+            msg = "This is your Castle, the heart of your village. Let's build its foundation for FREE!";
             placement = "above";
           }
           if (!target) return;
@@ -4655,7 +4862,7 @@
           tutorialTextEl.textContent = msg;
           showTutorialPopup();
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Got it!";
-          if (tutorialContinueBtn) tutorialContinueBtn.style.display = stepNumber === 3 ? "none" : "";
+          if (tutorialContinueBtn) tutorialContinueBtn.style.display = (stepNumber === 3 || stepNumber === 4) ? "none" : "";
           if (skipTutorialBtn) skipTutorialBtn.style.display = "none";
           setHaloTarget(null);
           if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
@@ -5226,7 +5433,7 @@
           if (upgradeModalTitleEl) upgradeModalTitleEl.textContent = title;
           if (upgradeCurrentEl) upgradeCurrentEl.textContent = `Current: ${currentStat} | Next: ${nextStat}`;
           if (upgradeNextEl) upgradeNextEl.textContent = itemName;
-          if (upgradeCostTextEl) upgradeCostTextEl.textContent = `${cost} Coins`;
+          if (upgradeCostTextEl) upgradeCostTextEl.textContent = `${formatNumber(cost)} Coins`;
           if (confirmUpgradeBtn) {
             if (reachedMax) {
               confirmUpgradeBtn.textContent = `${itemName}: MAX STARS`;
@@ -5299,13 +5506,21 @@
             setStatus(`${item} is already max stars.`, false);
             return;
           }
-          const cost = calculateUpgradeCost(item, current);
+          const isFreeCastleTutorial = miniTutorial.active && miniTutorial.step === 4 && item === "Castle" && current === 0;
+          const cost = isFreeCastleTutorial ? 0 : calculateUpgradeCost(item, current);
           if (coins < cost) {
             setStatus("Not enough coins.", true);
             return;
           }
           coins -= cost;
-          upgradeVillageItem(item, cost);
+          upgradeVillageItem(item, cost, isFreeCastleTutorial);
+          if (isFreeCastleTutorial) {
+            spawnConfettiBurst();
+            miniTutorial.step = 5;
+            if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+            hideTutorialPopup();
+            if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.remove("hidden");
+          }
           persistState();
           updateUI();
           setStatus(`${item} improved!`, false);
@@ -5374,7 +5589,7 @@
                 renderMiniTutorialStep(3);
                 return;
               }
-              if (miniTutorial.step === 4) {
+              if (miniTutorial.step === 5) {
                 stopMiniTutorial(true);
                 return;
               }
@@ -5409,6 +5624,9 @@
             }
             endTutorial();
             updateUI();
+        }
+        function onMiniTutorialPlayClick() {
+          finishMiniTutorial();
         }
         document.addEventListener("DOMContentLoaded", async () => {
           await loadGameEconomy();
@@ -5445,6 +5663,7 @@
           setupListener("closeEnergyBtn", closeOutOfSpinsModal);
           setupListener("tutorialContinueBtn", onTutorialContinueClick);
           setupListener("skipTutorialBtn", onSkipTutorialClick);
+          setupListener("miniTutorialPlayBtn", onMiniTutorialPlayClick);
           window.addEventListener("resize", function () {
             if (tutorialStep > 0) renderTutorialStep(tutorialStep);
           });
