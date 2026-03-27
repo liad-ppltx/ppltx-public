@@ -150,7 +150,7 @@
         gap: 16px;
         align-items: flex-start;
         justify-content: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap !important;
       }
 
       #researchCapture {
@@ -459,6 +459,9 @@
       }
       .shop-cost.poor {
         color: #ff7d7d;
+      }
+      .shop-cost.rich {
+        color: #78f3b1;
       }
       .building-upgrade-glow {
         animation: building-upgrade-glow 700ms ease-out;
@@ -2716,14 +2719,26 @@
         animation: tutorial-pulse 1100ms infinite var(--bezier-snap);
       }
       .mini-tutorial-target {
-        position: relative;
-        z-index: 120;
+        display: initial !important;
+        float: none !important;
         border-radius: 14px;
         box-shadow:
           0 0 0 2px rgba(255, 214, 120, 0.92),
           0 0 18px rgba(255, 214, 120, 0.75),
           0 0 34px rgba(255, 214, 120, 0.4);
         animation: mini-gold-ring 950ms ease-in-out infinite;
+      }
+      #villageProgressBarContainer.mini-tutorial-target {
+        position: fixed !important;
+        top: 10px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        z-index: 220 !important;
+      }
+      #shopModal .shop-item.mini-tutorial-target {
+        position: static !important;
+        transform: none !important;
+        z-index: auto !important;
       }
       @keyframes mini-gold-ring {
         0% { box-shadow: 0 0 0 2px rgba(255, 214, 120, 0.88), 0 0 16px rgba(255, 214, 120, 0.62), 0 0 28px rgba(255, 214, 120, 0.32); }
@@ -3838,10 +3853,10 @@
               landed += 1;
               if (landed <= count - 1) {
                 visualCoins += perParticle;
-                if (coinsEl) coinsEl.textContent = String(visualCoins);
+                if (coinsEl) coinsEl.textContent = formatNumber(visualCoins);
               } else {
                 visualCoins = Math.max(visualCoins, Math.max(0, Number(baseCoins) || 0) + Math.max(0, Number(totalCoins) || 0));
-                if (coinsEl) coinsEl.textContent = String(visualCoins);
+                if (coinsEl) coinsEl.textContent = formatNumber(visualCoins);
                 updateUI();
               }
             };
@@ -3851,6 +3866,9 @@
 
         function clamp(v, lo, hi) {
           return Math.max(lo, Math.min(hi, v));
+        }
+        function formatNumber(num) {
+          return Number(num || 0).toLocaleString();
         }
 
         window.__appendVisualLog = function (eventObj) {
@@ -4011,7 +4029,7 @@
           energy = gameState.energy;
           if (energyEl) energyEl.textContent = String(gameState.energy);
           if (energyMaxEl) energyMaxEl.textContent = String(GAME_CONFIG.maxEnergy);
-          if (coinsEl) coinsEl.textContent = String(coins);
+          if (coinsEl) coinsEl.textContent = formatNumber(coins);
           if (stageEl) stageEl.textContent = String(stage);
           if (cannonLevelValueEl) cannonLevelValueEl.textContent = String(cannon1Level);
           if (castleLevelTagEl) castleLevelTagEl.textContent = String(stage);
@@ -4113,14 +4131,16 @@
               btn.textContent = "MAX STARS";
               costEl.textContent = "Cost: MAX";
               costEl.classList.remove("poor");
+              costEl.classList.remove("rich");
               return;
             }
             const cost = calculateUpgradeCost(item, current);
             const canAfford = coins >= cost;
             btn.disabled = !canAfford || isVillageCelebrating;
             btn.textContent = "Add Star";
-            costEl.textContent = `Cost: ${cost} Coins`;
+            costEl.textContent = `Cost: ${formatNumber(cost)} Coins`;
             costEl.classList.toggle("poor", !canAfford);
+            costEl.classList.toggle("rich", canAfford);
           };
           setShopState("Castle", shopVillageCastleBtn, shopCostCastleEl);
           setShopState("Cannon", shopVillageCannonBtn, shopCostCannonEl);
@@ -4253,9 +4273,9 @@
           gameState.spins = gameState.energy;
           energy = gameState.energy;
           if (villagePopupTextEl) {
-            villagePopupTextEl.textContent = `VILLAGE COMPLETE! +${reward.coins} Coins and +${reward.spins} Spins!`;
+            villagePopupTextEl.textContent = `VILLAGE COMPLETE! +${formatNumber(reward.coins)} Coins and +${formatNumber(reward.spins)} Spins!`;
           }
-          setStatus(`Village complete! +${reward.coins} Coins and +${reward.spins} Spins!`, false);
+          setStatus(`Village complete! +${formatNumber(reward.coins)} Coins and +${formatNumber(reward.spins)} Spins!`, false);
           await sleep(2000);
           if (villageCelebrationEl) villageCelebrationEl.classList.add("hidden");
           if (villagePopupTextEl) villagePopupTextEl.textContent = "VILLAGE COMPLETE!";
@@ -4322,8 +4342,8 @@
           coins += reward;
           if (!blocked) triggerScreenShake(500);
           const detailedResult = blocked
-            ? `BLOCKED! ${rivalName} used a Shield. Still got ${reward} Coins.`
-            : `BOOM! Direct Hit on ${rivalName} for ${reward} Coins!`;
+            ? `BLOCKED! ${rivalName} used a Shield. Still got ${formatNumber(reward)} Coins.`
+            : `BOOM! Direct Hit on ${rivalName} for ${formatNumber(reward)} Coins!`;
           setStatus(detailedResult, false);
           const detailedResultTag = blocked ? `Attack_Blocked_${rivalName}` : `Attack_Hit_${rivalName}`;
           logEvent("action_attack", { targetUserId, result, reward, buildingName, rivalName, detailedResult, detailedResultTag });
@@ -4390,7 +4410,7 @@
               if (raidInfoEl) raidInfoEl.textContent = `Shovels: ${shovels}`;
               if (shovels === 0) {
                 const perfectRaid = totalStolen >= 780;
-                const detailedResult = `Raid complete on ${rivalName}: stole ${totalStolen} coins.`;
+                const detailedResult = `Raid complete on ${rivalName}: stole ${formatNumber(totalStolen)} coins.`;
                 const detailedResultTag = `Raid_Complete_${rivalName}`;
                 logEvent("action_raid", { totalStolen, perfectRaid, rivalName, detailedResult, detailedResultTag });
                 setStatus(detailedResult, false);
@@ -4910,8 +4930,8 @@
             if (gameState.energy < MAX_ENERGY) {
               nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
             }
-            logEvent("spins_triple_reward", { spinsBefore: beforeEnergy, spinsAfter: gameState.energy, reward: energyReward, detailedResult: `Triple Spins! Gained ${energyReward} spins.` });
-            setStatus(`Triple Spins! Gained ${energyReward} spins.`, false);
+            logEvent("spins_triple_reward", { spinsBefore: beforeEnergy, spinsAfter: gameState.energy, reward: energyReward, detailedResult: `Triple Spins! Gained ${formatNumber(energyReward)} spins.` });
+            setStatus(`Triple Spins! Gained ${formatNumber(energyReward)} spins.`, false);
             const spinTrack = document.querySelector(".hud-bar-track--energy");
             if (spinTrack) {
               spinTrack.classList.remove("spins-charge");
@@ -4921,10 +4941,10 @@
             }
           }
           let detailedResult = coinsWon > 0
-            ? `JACKPOT! Found a hidden treasure of ${coinsWon} Coins!`
+            ? `JACKPOT! Found a hidden treasure of ${formatNumber(coinsWon)} Coins!`
             : "No payout this spin. Try again.";
           if (spinsTripleTriggered) {
-            detailedResult = `Triple Spins! Gained +${getPayoutValue("spins_triple", 10)} Spins.`;
+            detailedResult = `Triple Spins! Gained +${formatNumber(getPayoutValue("spins_triple", 10))} Spins.`;
           } else if (actionTriggered === "raid") {
             detailedResult = "Three pigs! Raid triggered.";
           } else if (actionTriggered === "attack") {
