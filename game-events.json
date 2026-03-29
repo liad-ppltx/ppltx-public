@@ -8,25 +8,25 @@
   "source": "index.html",
 
   "getSuperProperties": {
-    "description": "Merged into every logEvent payload before saveToFirestore (Object.assign(super, params)). gameState gains userId and villageId for analytics.",
+    "description": "Returned from getSuperProperties(); passed as the third argument to saveToFirestore and written as top-level document fields (not inside eventParams).",
     "properties": {
       "userId": { "type": "string", "source": "gameState.userId (initialized from USER_ID)" },
       "condition": { "type": "string", "source": "gameState.condition" },
       "currentLevel": { "type": "number", "source": "gameState.level" },
       "currentVillage": { "type": "number", "source": "gameState.villageId" },
-      "timestamp": { "type": "number", "source": "Date.now() epoch ms" },
+      "timestamp": { "type": "number", "source": "Date.now() epoch ms — stored as clientTimestampMs on the document" },
       "platform": { "type": "string", "enum": ["web_mobile", "web_desktop"], "source": "matchMedia (max-width: 768px)" }
     }
   },
 
   "envelope": {
-    "description": "Every persisted row includes these fields (BigQuery / Firestore). eventParams is JSON.stringify of the merged payload: getSuperProperties() plus event-specific params (do not pass condition/userId manually in logEvent calls).",
+    "description": "Every persisted row: super columns + eventParams string containing only event-specific keys from logEvent(name, params).",
     "properties": [
       {
         "name": "userId",
         "type": "string",
         "required": true,
-        "source": "window.__researchContext.userId"
+        "source": "getSuperProperties().userId or __researchContext.userId"
       },
       {
         "name": "sessionId",
@@ -39,14 +39,14 @@
         "type": "string",
         "required": true,
         "description": "Experiment / CFG condition id",
-        "source": "window.__researchContext.condition (also often repeated inside eventParams)"
+        "source": "getSuperProperties().condition or __researchContext.condition"
       },
       {
         "name": "timestamp",
         "type": "string",
         "required": true,
         "format": "ISO-8601",
-        "source": "new Date().toISOString() at write time"
+        "source": "new Date().toISOString() at write time (ingest time)"
       },
       {
         "name": "eventType",
@@ -58,14 +58,38 @@
         "name": "eventParams",
         "type": "string",
         "required": true,
-        "description": "JSON.stringify(merge(getSuperProperties(), params)) — includes super properties + event fields"
+        "description": "JSON.stringify(params) only — event-specific fields, no userId/condition/level/village/platform"
+      },
+      {
+        "name": "currentLevel",
+        "type": "integer",
+        "required": true,
+        "source": "getSuperProperties().currentLevel"
+      },
+      {
+        "name": "currentVillage",
+        "type": "integer",
+        "required": true,
+        "source": "getSuperProperties().currentVillage"
+      },
+      {
+        "name": "clientTimestampMs",
+        "type": "integer",
+        "required": true,
+        "source": "getSuperProperties().timestamp (Date.now() at event time)"
+      },
+      {
+        "name": "platform",
+        "type": "string",
+        "required": true,
+        "source": "getSuperProperties().platform"
       }
     ]
   },
 
   "superProperties": {
-    "description": "Transport layer: envelope userId/sessionId/condition + eventParams JSON containing getSuperProperties + event fields. Join keys: userId, sessionId, envelope timestamp (ISO), eventType; inside eventParams also currentLevel, currentVillage, timestamp (epoch), platform.",
-    "list": ["userId", "sessionId", "condition", "timestamp", "eventType", "currentLevel", "currentVillage", "platform"]
+    "description": "Top-level Firestore fields from getSuperProperties; sessionId stays on __researchContext only.",
+    "list": ["userId", "sessionId", "condition", "timestamp", "eventType", "currentLevel", "currentVillage", "clientTimestampMs", "platform", "eventParams"]
   },
 
   "types": {
@@ -82,7 +106,6 @@
       "properties": {
         "initialSpins": { "type": "number", "required": true },
         "initialCoins": { "type": "number", "required": true },
-        "condition": { "type": "string", "required": true },
         "consent": { "type": "boolean", "required": true, "description": "true on normal consent path" }
       }
     },
@@ -91,7 +114,6 @@
       "properties": {
         "action": { "type": "ActionResult", "required": true },
         "building": { "type": "string", "required": true, "description": "Village slot or Cannon2; Statue/Farm for wall paths" },
-        "condition": { "type": "string", "required": true },
         "levelAfter": { "type": "number", "required": false, "description": "Usually absent on failure" },
         "cost": { "type": "number", "required": false },
         "isFree": { "type": "boolean", "required": false },
@@ -124,15 +146,13 @@
         },
         "detailedResult": { "type": "string", "required": true },
         "spinsBonus": { "type": "number", "required": true, "description": "0 if no triple-Spins row" },
-        "reactionTimeMs": { "type": "number", "required": true },
-        "condition": { "type": "string", "required": true }
+        "reactionTimeMs": { "type": "number", "required": true }
       }
     },
     "rival_interaction": {
       "description": "Attack resolution or raid completion (raid payload includes travel fields).",
       "properties": {
-        "type": { "type": "RivalType", "required": true },
-        "condition": { "type": "string", "required": true }
+        "type": { "type": "RivalType", "required": true }
       },
       "variants": {
         "attack": {
@@ -165,7 +185,6 @@
       "description": "Spin timer refill, out-of-spins modal, or dev refill.",
       "properties": {
         "kind": { "type": "EnergyKind", "required": true },
-        "condition": { "type": "string", "required": true },
         "spinsBefore": { "type": "number", "required": false, "description": "refill" },
         "spinsAfter": { "type": "number", "required": true },
         "nextRefillTime": { "type": "number", "required": false, "description": "epoch ms; refill + depleted_modal" },
@@ -178,15 +197,13 @@
         "phase": { "type": "string", "required": true, "description": "e.g. start, continue_click, skip_click, mini_complete" },
         "stepNumber": { "type": "number", "required": false },
         "timeSpent": { "type": "number", "required": false, "description": "ms on step" },
-        "totalSpins": { "type": "number", "required": false, "description": "mini_complete" },
-        "condition": { "type": "string", "required": true }
+        "totalSpins": { "type": "number", "required": false, "description": "mini_complete" }
       }
     },
     "player_level_up": {
       "description": "XP threshold crossed.",
       "properties": {
-        "newLevel": { "type": "number", "required": true },
-        "condition": { "type": "string", "required": true }
+        "newLevel": { "type": "number", "required": true }
       }
     },
     "village_complete": {
@@ -194,8 +211,7 @@
       "properties": {
         "villageId": { "type": "number", "required": true },
         "totalSpins": { "type": "number", "required": true },
-        "timeSpent": { "type": "number", "required": true, "description": "seconds in village" },
-        "condition": { "type": "string", "required": true }
+        "timeSpent": { "type": "number", "required": true, "description": "seconds in village" }
       }
     },
     "island_travel": {
@@ -203,14 +219,12 @@
       "properties": {
         "phase": { "type": "TravelPhase", "required": true },
         "targetBotName": { "type": "string", "required": true },
-        "toRival": { "type": "boolean", "required": true },
-        "condition": { "type": "string", "required": true }
+        "toRival": { "type": "boolean", "required": true }
       }
     },
     "audit_stress_test": {
       "description": "Dev harness runStressTest only.",
       "properties": {
-        "condition": { "type": "string", "required": true },
         "hasEconomy": { "type": "boolean", "required": true },
         "hasXpSettings": { "type": "boolean", "required": true },
         "hasLogger": { "type": "boolean", "required": true },

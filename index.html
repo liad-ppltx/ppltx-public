@@ -3480,28 +3480,33 @@
       console.log("Targeting database: mt-game in project: ppltx-project-dev");
 
       // Unified BigQuery-friendly logger:
-      // saveToFirestore(eventType: string, params: object)
-      // Always writes a flat envelope:
-      // { userId, sessionId, condition, timestamp, eventType, eventParams }
-      window.saveToFirestore = async function (eventType, params) {
+      // saveToFirestore(eventType, eventParams, superProps)
+      // eventParams = JSON string of event-only fields (no user/condition/level duplication).
+      // Super properties are top-level columns (merged with __researchContext for ids).
+      window.saveToFirestore = async function (eventType, eventParams, superProps) {
         const ctx = (window.__researchContext && typeof window.__researchContext === "object")
           ? window.__researchContext
           : {};
+        const sp = superProps && typeof superProps === "object" ? superProps : {};
 
         let eventParamsStr = "{}";
         try {
-          eventParamsStr = JSON.stringify(params ?? {});
+          eventParamsStr = JSON.stringify(eventParams ?? {});
         } catch (e) {
           eventParamsStr = JSON.stringify({ _stringifyError: String(e) });
         }
 
         const data = {
-          userId: String(ctx.userId || ""),
+          userId: String(sp.userId || ctx.userId || ""),
           sessionId: String(ctx.sessionId || ""),
-          condition: String(ctx.condition || ""),
+          condition: String(sp.condition || ctx.condition || ""),
           timestamp: new Date().toISOString(),
           eventType: String(eventType || ""),
           eventParams: eventParamsStr,
+          currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : 0,
+          currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : 0,
+          clientTimestampMs: Number.isFinite(Number(sp.timestamp)) ? Math.round(Number(sp.timestamp)) : Date.now(),
+          platform: String(sp.platform || ""),
         };
 
         if (typeof window.__appendVisualLog === "function") {
@@ -5017,8 +5022,7 @@
 
         function logEvent(eventType, params) {
           if (typeof window.saveToFirestore === "function") {
-            const finalPayload = Object.assign({}, getSuperProperties(), params || {});
-            window.saveToFirestore(eventType, finalPayload);
+            window.saveToFirestore(eventType, params || {}, getSuperProperties());
           }
         }
         window.logEvent = logEvent;
