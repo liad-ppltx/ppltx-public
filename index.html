@@ -4211,7 +4211,18 @@
 
         const consentStartBtn = document.getElementById("consentStartBtn");
 
-        const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0, spins: 0, currentRivalName: "", xp: 0, level: 1 };
+        const gameState = {
+          shields: 0,
+          condition: "A",
+          isRaidActive: false,
+          energy: 0,
+          spins: 0,
+          currentRivalName: "",
+          xp: 0,
+          level: 1,
+          userId: USER_ID,
+          villageId: 1,
+        };
         const DEFAULT_ECONOMY_DATA = {
           condition_A: {
             initialSpins: 10,
@@ -4345,7 +4356,6 @@
             showLevelUpPopup(gameState.level);
             logEvent("player_level_up", {
               newLevel: gameState.level,
-              condition: gameState.condition,
             });
           }
         }
@@ -4371,7 +4381,6 @@
         let spinIndex = 0;
         let lastSpinAtMs = null;
         let shields = 0;
-        let villageId = 1;
         let totalSpinsToComplete = 0;
         let villageStartedAtMs = Date.now();
         let isVillageCelebrating = false;
@@ -4649,7 +4658,6 @@
             phase: "started",
             targetBotName,
             toRival,
-            condition: gameState.condition,
           });
           if (cloudOverlayEl) cloudOverlayEl.classList.add("active");
           await sleep(800);
@@ -4668,7 +4676,6 @@
             phase: "ended",
             targetBotName,
             toRival,
-            condition: gameState.condition,
           });
           if (!toRival) gameState.currentRivalName = "";
         }
@@ -4956,7 +4963,7 @@
             xp: gameState.xp,
             coins,
             spins: gameState.energy,
-            villageId,
+            villageId: gameState.villageId,
             totalStars,
             villageProgress,
           };
@@ -4971,14 +4978,13 @@
         };
         function runStressTest() {
           const checks = {
-            condition: gameState.condition,
             hasEconomy: !!window.ECONOMY_DATA,
             hasXpSettings: !!(GAME_CONFIG && GAME_CONFIG.xpSettings),
             hasLogger: typeof window.saveToFirestore === "function",
             hasRunSpin: typeof runSpin === "function",
             hasAddStar: typeof window.addStar === "function",
           };
-          logEvent("audit_stress_test", { ...checks, condition: gameState.condition });
+          logEvent("audit_stress_test", checks);
           if (typeof window.__appendVisualLog === "function") {
             window.__appendVisualLog({ eventType: "audit_stress_test", ...checks });
           }
@@ -4993,12 +4999,30 @@
           condition: gameState.condition,
         };
 
+        function getSuperProperties() {
+          return {
+            userId: gameState.userId,
+            condition: gameState.condition,
+            currentLevel: gameState.level,
+            currentVillage: gameState.villageId,
+            timestamp: Date.now(),
+            platform:
+              typeof window !== "undefined" &&
+              window.matchMedia &&
+              window.matchMedia("(max-width: 768px)").matches
+                ? "web_mobile"
+                : "web_desktop",
+          };
+        }
+
         function logEvent(eventType, params) {
           if (typeof window.saveToFirestore === "function") {
-            window.saveToFirestore(eventType, params || {});
+            const finalPayload = Object.assign({}, getSuperProperties(), params || {});
+            window.saveToFirestore(eventType, finalPayload);
           }
         }
         window.logEvent = logEvent;
+        window.getSuperProperties = getSuperProperties;
         function startGameAfterConsent() {
           if (gameBooted) return;
           gameBooted = true;
@@ -5033,7 +5057,6 @@
           logEvent("session_start", {
             initialSpins: energy,
             initialCoins: coins,
-            condition: gameState.condition,
             consent: true,
           });
           initResearchDrawerAfterGameShow();
@@ -5079,7 +5102,7 @@
                 hasSecondCannon,
                 spinIndex,
                 shields: gameState.shields,
-                villageId,
+                villageId: gameState.villageId,
                 totalSpinsToComplete,
                 villageProgress,
                 xp: gameState.xp,
@@ -5113,7 +5136,7 @@
               shields = clamp(s.shields, 0, 3);
               gameState.shields = shields;
             }
-            if (typeof s.villageId === "number") villageId = Math.max(1, s.villageId);
+            if (typeof s.villageId === "number") gameState.villageId = Math.max(1, s.villageId);
             if (typeof s.totalSpinsToComplete === "number") totalSpinsToComplete = Math.max(0, s.totalSpinsToComplete);
             if (typeof s.xp === "number") gameState.xp = Math.max(0, Math.round(s.xp));
             if (typeof s.level === "number") gameState.level = Math.max(1, Math.round(s.level));
@@ -5218,7 +5241,7 @@
             slot.classList.toggle("active", idx < shields);
           });
           const totalStars = VILLAGE_ITEMS.reduce((sum, item) => sum + villageProgress[item], 0);
-          if (villageIdValueEl) villageIdValueEl.textContent = formatNumber(villageId);
+          if (villageIdValueEl) villageIdValueEl.textContent = formatNumber(gameState.villageId);
           if (villageTotalStarsEl) villageTotalStarsEl.textContent = formatNumber(totalStars);
           if (starCastleEl) starCastleEl.textContent = formatNumber(villageProgress.Castle);
           if (starCannonEl) starCannonEl.textContent = formatNumber(villageProgress.Cannon);
@@ -5265,7 +5288,7 @@
           setShopState("Farm", shopVillageFarmBtn, shopCostFarmEl);
           setShopState("Boat", shopVillageBoatBtn, shopCostBoatEl);
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
-          if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${formatNumber(villageId)} Progress: ${formatNumber(totalStars)} / 25 Stars`;
+          if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${formatNumber(gameState.villageId)} Progress: ${formatNumber(totalStars)} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
           const xpRequired = Math.max(1, Number((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpRequired) || 100));
           const xpValue = Math.max(0, Math.round(Number(gameState.xp) || 0));
@@ -5377,9 +5400,9 @@
           if (villagePopupTextEl) villagePopupTextEl.textContent = "VILLAGE COMPLETE!";
           if (worldInnerEl) {
             worldInnerEl.style.transition = "filter 450ms ease";
-            worldInnerEl.style.filter = `hue-rotate(${(villageId % 6) * 28}deg) saturate(1.08)`;
+            worldInnerEl.style.filter = `hue-rotate(${(gameState.villageId % 6) * 28}deg) saturate(1.08)`;
           }
-          villageId += 1;
+          gameState.villageId += 1;
           totalSpinsToComplete = 0;
           villageStartedAtMs = Date.now();
           villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
@@ -5394,10 +5417,9 @@
           if (stars >= 25) {
             const timeSpent = Math.max(0, Math.round((Date.now() - villageStartedAtMs) / 1000));
             logEvent("village_complete", {
-              villageId,
+              villageId: gameState.villageId,
               totalSpins: totalSpinsToComplete,
               timeSpent,
-              condition: gameState.condition,
             });
             runVillageCompleteCelebration();
           }
@@ -5427,7 +5449,6 @@
             levelAfter,
             cost: Math.max(0, Number(cost || 0)),
             isFree: !!isFree,
-            condition: gameState.condition,
           };
           if (o.cannonIndex != null) payload.cannonIndex = o.cannonIndex;
           if (o.levelBefore !== undefined) payload.levelBefore = o.levelBefore;
@@ -5509,7 +5530,6 @@
             rivalName,
             detailedResult,
             detailedResultTag,
-            condition: gameState.condition,
           });
           gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerAttack) || 0, "attack");
           await sleep(2000);
@@ -5584,7 +5604,6 @@
                   perfectRaid,
                   detailedResult,
                   detailedResultTag,
-                  condition: gameState.condition,
                 });
                 gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerRaid) || 0, "raid");
                 setStatus(detailedResult, false);
@@ -5659,7 +5678,6 @@
             kind: "depleted_modal",
             spins: gameState.energy,
             nextRefillTime,
-            condition: gameState.condition,
           });
         }
         function closeOutOfSpinsModal() {
@@ -5679,7 +5697,6 @@
               spinsBefore: before,
               spinsAfter: gameState.energy,
               nextRefillTime,
-              condition: gameState.condition,
             });
             if (energyFillEl) {
               energyFillEl.classList.remove("energy-refill-flash");
@@ -5822,7 +5839,6 @@
           logEvent("tutorial_progress", {
             phase: "mini_complete",
             totalSpins: totalSpinsToComplete,
-            condition: gameState.condition,
           });
           stopMiniTutorial(true);
         }
@@ -5925,7 +5941,6 @@
             phase,
             stepNumber,
             timeSpent: spentMs,
-            condition: gameState.condition,
           });
         }
 
@@ -6181,7 +6196,6 @@
             detailedResult,
             spinsBonus: spinsBonusAwarded,
             reactionTimeMs,
-            condition: gameState.condition,
           });
 
           if (coinsWon > 0) {
@@ -6268,7 +6282,6 @@
               levelAfter: before,
               cost,
               cannonIndex,
-              condition: gameState.condition,
             });
             return;
           }
@@ -6283,7 +6296,6 @@
               levelAfter: before,
               cost,
               cannonIndex,
-              condition: gameState.condition,
             });
             return;
           }
@@ -6318,7 +6330,6 @@
               levelBefore: before,
               levelAfter: before,
               cost,
-              condition: gameState.condition,
             });
             return;
           }
@@ -6333,7 +6344,6 @@
               levelBefore: before,
               levelAfter: before,
               cost,
-              condition: gameState.condition,
             });
             return;
           }
@@ -6346,7 +6356,6 @@
               levelBefore: before,
               levelAfter: before,
               cost,
-              condition: gameState.condition,
             });
             setStatus("MAX LEVEL REACHED.", false);
             return;
@@ -6361,7 +6370,6 @@
               levelBefore: before,
               levelAfter: before,
               cost,
-              condition: gameState.condition,
             });
             return;
           }
@@ -6534,7 +6542,6 @@
           logEvent("energy_update", {
             kind: "dev_refill",
             spinsAfter: gameState.energy,
-            condition: gameState.condition,
           });
           console.log("Spins Refilled");
         }

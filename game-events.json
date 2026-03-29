@@ -1,186 +1,226 @@
 {
-  "title": "PlayPLTX analytics schema (lean & deep)",
-  "description": "Ten core event types emitted via logEvent() → saveToFirestore(eventType, params). Economy load and upgrade modal open are intentionally not logged. Every payload should include condition where the game state exposes it (experiment / CFG).",
-  "sourceFile": "index.html",
-  "transport": "logEvent(eventType, params) → window.saveToFirestore when defined",
-  "coreEvents": [
-    {
-      "name": "session_start",
-      "replaces": ["consent_given", "experiment_assigned", "game_start"],
-      "when": "Once after consent, when the main app layout is shown and the session is ready.",
-      "payload": {
-        "initialSpins": "number",
-        "initialCoins": "number",
-        "condition": "string — experiment / CFG id",
-        "consent": "boolean — true when emitted from the consent/start path"
-      }
-    },
-    {
-      "name": "building_action",
-      "replaces": [
-        "village_upgrade",
-        "building_evolved",
-        "defense_upgrade_attempt",
-        "wall_upgrade_attempt",
-        "item_bought",
-        "max_level_reached"
-      ],
-      "when": "Shop star upgrade (upgradeVillageItem), island cannon/wall/castle flows, or blocked attempts.",
-      "payload": {
-        "action": "string — 'success' | 'failure' | 'max'",
-        "building": "string — village slot: Castle | Cannon | Statue | Farm | Boat; failures may use Cannon2 for second cannon",
-        "condition": "string",
-        "levelAfter": "number — optional on failure",
-        "cost": "number",
-        "isFree": "boolean — optional, shop free castle",
-        "reason": "string — optional on failure: capped_by_castle | not_enough_coins | already_max | wall_not_owned",
-        "levelBefore": "number — optional",
-        "cannonIndex": "number — optional (1 | 2)",
-        "cannonIslandLevelAfter": "number — optional, island cannon tier after success",
-        "wallIslandLevelAfter": "number — optional, wall tier after success",
-        "castleStageBefore": "number — optional",
-        "castleStageAfter": "number — optional",
-        "castleStageMaxed": "boolean — implied when action is max from castle stage cap",
-        "source": "string — optional 'wall_unlock_purchase' for first wall buy + Statue star"
+  "meta": {
+    "title": "PlayPLTX analytics event definitions",
+    "transport": "logEvent(name, props) → saveToFirestore; envelope fields are merged by the logger",
+    "note": "Valid JSON: use this file for codegen, docs, and validation."
+  },
+  "version": "2.0",
+  "source": "index.html",
+
+  "getSuperProperties": {
+    "description": "Merged into every logEvent payload before saveToFirestore (Object.assign(super, params)). gameState gains userId and villageId for analytics.",
+    "properties": {
+      "userId": { "type": "string", "source": "gameState.userId (initialized from USER_ID)" },
+      "condition": { "type": "string", "source": "gameState.condition" },
+      "currentLevel": { "type": "number", "source": "gameState.level" },
+      "currentVillage": { "type": "number", "source": "gameState.villageId" },
+      "timestamp": { "type": "number", "source": "Date.now() epoch ms" },
+      "platform": { "type": "string", "enum": ["web_mobile", "web_desktop"], "source": "matchMedia (max-width: 768px)" }
+    }
+  },
+
+  "envelope": {
+    "description": "Every persisted row includes these fields (BigQuery / Firestore). eventParams is JSON.stringify of the merged payload: getSuperProperties() plus event-specific params (do not pass condition/userId manually in logEvent calls).",
+    "properties": [
+      {
+        "name": "userId",
+        "type": "string",
+        "required": true,
+        "source": "window.__researchContext.userId"
       },
-      "notes": "action 'max' when village building hits 5★, island cannon/wall hits MAX_LEVEL, or castle stage hits max on the same upgrade. Failures never call upgradeVillageItem."
-    },
-    {
-      "name": "slot_action",
-      "replaces": ["slot_spin_started", "slot_spin_result", "slot_spin_completed", "spins_triple_reward"],
-      "when": "Once per completed spin after reels resolve, payout applied, and triple-spins bonus (if any) applied—before attack/raid minigames.",
-      "payload": {
-        "spinIndex": "number",
-        "energyBefore": "number — energy immediately before this spin (after −1 cost)",
-        "energyAfter": "number — after triple-spins bonus if triggered",
-        "symbols": "string[] — reel symbol names",
-        "payoutCoins": "number — coins added this spin from the table",
-        "actionTriggered": "string | null — 'raid' | 'attack' | 'shield' | null",
-        "detailedResult": "string",
-        "spinsBonus": "number — extra spins from triple Spins row; 0 if none",
-        "reactionTimeMs": "number — ms since previous spin (UI metric)",
-        "condition": "string"
-      }
-    },
-    {
-      "name": "rival_interaction",
-      "replaces": [
-        "rival_encounter_started",
-        "action_attack",
-        "action_raid_travel",
-        "action_raid"
-      ],
-      "when": "Attack fully resolved, or raid finished (single event includes travel context).",
-      "payloadAttack": {
-        "type": "attack",
-        "targetUserId": "string",
-        "result": "string",
-        "reward": "number",
-        "buildingName": "string",
-        "rivalName": "string",
-        "detailedResult": "string",
-        "detailedResultTag": "string",
-        "condition": "string"
+      {
+        "name": "sessionId",
+        "type": "string",
+        "required": true,
+        "source": "window.__researchContext.sessionId"
       },
-      "payloadRaid": {
-        "type": "raid",
-        "rivalName": "string",
-        "maxRaidAmount": "number",
-        "travelMessage": "string",
-        "totalStolen": "number",
-        "perfectRaid": "boolean",
-        "detailedResult": "string",
-        "detailedResultTag": "string",
-        "condition": "string"
+      {
+        "name": "condition",
+        "type": "string",
+        "required": true,
+        "description": "Experiment / CFG condition id",
+        "source": "window.__researchContext.condition (also often repeated inside eventParams)"
+      },
+      {
+        "name": "timestamp",
+        "type": "string",
+        "required": true,
+        "format": "ISO-8601",
+        "source": "new Date().toISOString() at write time"
+      },
+      {
+        "name": "eventType",
+        "type": "string",
+        "required": true,
+        "description": "Same as the event key in this file"
+      },
+      {
+        "name": "eventParams",
+        "type": "string",
+        "required": true,
+        "description": "JSON.stringify(merge(getSuperProperties(), params)) — includes super properties + event fields"
+      }
+    ]
+  },
+
+  "superProperties": {
+    "description": "Transport layer: envelope userId/sessionId/condition + eventParams JSON containing getSuperProperties + event fields. Join keys: userId, sessionId, envelope timestamp (ISO), eventType; inside eventParams also currentLevel, currentVillage, timestamp (epoch), platform.",
+    "list": ["userId", "sessionId", "condition", "timestamp", "eventType", "currentLevel", "currentVillage", "platform"]
+  },
+
+  "types": {
+    "BuildingId": "Castle | Cannon | Statue | Farm | Boat | Cannon2 (failure paths only)",
+    "ActionResult": "success | failure | max",
+    "EnergyKind": "refill | depleted_modal | dev_refill",
+    "TravelPhase": "started | ended",
+    "RivalType": "attack | raid"
+  },
+
+  "events": {
+    "session_start": {
+      "description": "Session ready after consent; replaces legacy consent + experiment + game_start.",
+      "properties": {
+        "initialSpins": { "type": "number", "required": true },
+        "initialCoins": { "type": "number", "required": true },
+        "condition": { "type": "string", "required": true },
+        "consent": { "type": "boolean", "required": true, "description": "true on normal consent path" }
       }
     },
-    {
-      "name": "energy_update",
-      "replaces": [
-        "spin_refill_completed",
-        "spin_refill_applied",
-        "spin_timer_sync_applied",
-        "spins_out_modal_shown",
-        "dev_refill (direct Firestore only)"
-      ],
-      "when": "Timer grants a spin; out-of-spins modal opens; dev refill button.",
-      "payload": {
-        "kind": "string — 'refill' | 'depleted_modal' | 'dev_refill'",
-        "condition": "string",
-        "spinsBefore": "number — refill only",
-        "spinsAfter": "number",
-        "nextRefillTime": "number — epoch ms; refill and depleted_modal",
-        "spins": "number — depleted_modal only (current energy)"
+    "building_action": {
+      "description": "Village stars, island cannon/wall/castle upgrades, failures, and wall unlock purchase.",
+      "properties": {
+        "action": { "type": "ActionResult", "required": true },
+        "building": { "type": "string", "required": true, "description": "Village slot or Cannon2; Statue/Farm for wall paths" },
+        "condition": { "type": "string", "required": true },
+        "levelAfter": { "type": "number", "required": false, "description": "Usually absent on failure" },
+        "cost": { "type": "number", "required": false },
+        "isFree": { "type": "boolean", "required": false },
+        "reason": {
+          "type": "string",
+          "required": false,
+          "enum": ["capped_by_castle", "not_enough_coins", "already_max", "wall_not_owned"]
+        },
+        "levelBefore": { "type": "number", "required": false },
+        "cannonIndex": { "type": "number", "required": false, "description": "1 | 2" },
+        "cannonIslandLevelAfter": { "type": "number", "required": false },
+        "wallIslandLevelAfter": { "type": "number", "required": false },
+        "castleStageBefore": { "type": "number", "required": false },
+        "castleStageAfter": { "type": "number", "required": false },
+        "source": { "type": "string", "required": false, "enum": ["wall_unlock_purchase"] }
       }
     },
-    {
-      "name": "tutorial_progress",
-      "replaces": ["tutorial_step", "tutorial_complete"],
-      "when": "Main guided tutorial step logging (logTutorialStep); mini-tutorial finished (finishMiniTutorial).",
-      "payload": {
-        "phase": "string — e.g. 'start', 'continue_click', 'skip_click', 'mini_complete', …",
-        "stepNumber": "number — optional, main tutorial",
-        "timeSpent": "number — optional ms on step",
-        "totalSpins": "number — optional, mini_complete only",
-        "condition": "string"
+    "slot_action": {
+      "description": "One row per completed spin (after payout and triple-spins energy, before attack/raid minigames).",
+      "properties": {
+        "spinIndex": { "type": "number", "required": true },
+        "energyBefore": { "type": "number", "required": true },
+        "energyAfter": { "type": "number", "required": true },
+        "symbols": { "type": "array", "items": { "type": "string" }, "required": true },
+        "payoutCoins": { "type": "number", "required": true },
+        "actionTriggered": {
+          "type": ["string", "null"],
+          "required": true,
+          "enum": ["raid", "attack", "shield", null]
+        },
+        "detailedResult": { "type": "string", "required": true },
+        "spinsBonus": { "type": "number", "required": true, "description": "0 if no triple-Spins row" },
+        "reactionTimeMs": { "type": "number", "required": true },
+        "condition": { "type": "string", "required": true }
       }
     },
-    {
-      "name": "player_level_up",
-      "replaces": [],
-      "when": "XP crosses level threshold in gainXp().",
-      "payload": {
-        "newLevel": "number",
-        "condition": "string"
+    "rival_interaction": {
+      "description": "Attack resolution or raid completion (raid payload includes travel fields).",
+      "properties": {
+        "type": { "type": "RivalType", "required": true },
+        "condition": { "type": "string", "required": true }
+      },
+      "variants": {
+        "attack": {
+          "when": "type === \"attack\"",
+          "properties": {
+            "targetUserId": { "type": "string", "required": true },
+            "result": { "type": "string", "required": true },
+            "reward": { "type": "number", "required": true },
+            "buildingName": { "type": "string", "required": true },
+            "rivalName": { "type": "string", "required": true },
+            "detailedResult": { "type": "string", "required": true },
+            "detailedResultTag": { "type": "string", "required": true }
+          }
+        },
+        "raid": {
+          "when": "type === \"raid\"",
+          "properties": {
+            "rivalName": { "type": "string", "required": true },
+            "maxRaidAmount": { "type": "number", "required": true },
+            "travelMessage": { "type": "string", "required": true },
+            "totalStolen": { "type": "number", "required": true },
+            "perfectRaid": { "type": "boolean", "required": true },
+            "detailedResult": { "type": "string", "required": true },
+            "detailedResultTag": { "type": "string", "required": true }
+          }
+        }
       }
     },
-    {
-      "name": "village_complete",
-      "replaces": [],
-      "when": "25★ collected for current village (finalizeVillageProgress).",
-      "payload": {
-        "villageId": "number",
-        "totalSpins": "number — totalSpinsToComplete",
-        "timeSpent": "number — seconds in village",
-        "condition": "string"
+    "energy_update": {
+      "description": "Spin timer refill, out-of-spins modal, or dev refill.",
+      "properties": {
+        "kind": { "type": "EnergyKind", "required": true },
+        "condition": { "type": "string", "required": true },
+        "spinsBefore": { "type": "number", "required": false, "description": "refill" },
+        "spinsAfter": { "type": "number", "required": true },
+        "nextRefillTime": { "type": "number", "required": false, "description": "epoch ms; refill + depleted_modal" },
+        "spins": { "type": "number", "required": false, "description": "depleted_modal only" }
       }
     },
-    {
-      "name": "island_travel",
-      "replaces": ["island_travel_started", "island_travel_ended"],
-      "when": "Cloud travel sequence to/from rival island.",
-      "payload": {
-        "phase": "string — 'started' | 'ended'",
-        "targetBotName": "string",
-        "toRival": "boolean",
-        "condition": "string"
+    "tutorial_progress": {
+      "description": "Main tutorial steps and mini-tutorial completion.",
+      "properties": {
+        "phase": { "type": "string", "required": true, "description": "e.g. start, continue_click, skip_click, mini_complete" },
+        "stepNumber": { "type": "number", "required": false },
+        "timeSpent": { "type": "number", "required": false, "description": "ms on step" },
+        "totalSpins": { "type": "number", "required": false, "description": "mini_complete" },
+        "condition": { "type": "string", "required": true }
       }
     },
-    {
-      "name": "audit_stress_test",
-      "replaces": [],
-      "when": "runStressTest() dev harness only.",
-      "payload": {
-        "condition": "string",
-        "hasEconomy": "boolean",
-        "hasXpSettings": "boolean",
-        "hasLogger": "boolean",
-        "hasRunSpin": "boolean",
-        "hasAddStar": "boolean"
+    "player_level_up": {
+      "description": "XP threshold crossed.",
+      "properties": {
+        "newLevel": { "type": "number", "required": true },
+        "condition": { "type": "string", "required": true }
+      }
+    },
+    "village_complete": {
+      "description": "25 stars collected for current village.",
+      "properties": {
+        "villageId": { "type": "number", "required": true },
+        "totalSpins": { "type": "number", "required": true },
+        "timeSpent": { "type": "number", "required": true, "description": "seconds in village" },
+        "condition": { "type": "string", "required": true }
+      }
+    },
+    "island_travel": {
+      "description": "Cloud travel to/from rival island.",
+      "properties": {
+        "phase": { "type": "TravelPhase", "required": true },
+        "targetBotName": { "type": "string", "required": true },
+        "toRival": { "type": "boolean", "required": true },
+        "condition": { "type": "string", "required": true }
+      }
+    },
+    "audit_stress_test": {
+      "description": "Dev harness runStressTest only.",
+      "properties": {
+        "condition": { "type": "string", "required": true },
+        "hasEconomy": { "type": "boolean", "required": true },
+        "hasXpSettings": { "type": "boolean", "required": true },
+        "hasLogger": { "type": "boolean", "required": true },
+        "hasRunSpin": { "type": "boolean", "required": true },
+        "hasAddStar": { "type": "boolean", "required": true }
       }
     }
-  ],
-  "intentionallyRemoved": [
-    {
-      "name": "economy_config_loaded",
-      "reason": "Not required for research; config load remains console-only on failure."
-    },
-    {
-      "name": "upgrade_modal_opened",
-      "reason": "High-volume UI noise; use building_action / slot_action for behavioral signals."
-    }
-  ],
-  "eventNameIndex": [
+  },
+
+  "eventNames": [
     "audit_stress_test",
     "building_action",
     "energy_update",
@@ -192,7 +232,15 @@
     "tutorial_progress",
     "village_complete"
   ],
-  "count": {
-    "distinctEventTypes": 10
-  }
+
+  "notEmitted": [
+    {
+      "name": "economy_config_loaded",
+      "reason": "Removed from lean pipeline"
+    },
+    {
+      "name": "upgrade_modal_opened",
+      "reason": "Removed from lean pipeline"
+    }
+  ]
 }
