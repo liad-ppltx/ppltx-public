@@ -1,0 +1,198 @@
+{
+  "title": "PlayPLTX analytics schema (lean & deep)",
+  "description": "Ten core event types emitted via logEvent() → saveToFirestore(eventType, params). Economy load and upgrade modal open are intentionally not logged. Every payload should include condition where the game state exposes it (experiment / CFG).",
+  "sourceFile": "index.html",
+  "transport": "logEvent(eventType, params) → window.saveToFirestore when defined",
+  "coreEvents": [
+    {
+      "name": "session_start",
+      "replaces": ["consent_given", "experiment_assigned", "game_start"],
+      "when": "Once after consent, when the main app layout is shown and the session is ready.",
+      "payload": {
+        "initialSpins": "number",
+        "initialCoins": "number",
+        "condition": "string — experiment / CFG id",
+        "consent": "boolean — true when emitted from the consent/start path"
+      }
+    },
+    {
+      "name": "building_action",
+      "replaces": [
+        "village_upgrade",
+        "building_evolved",
+        "defense_upgrade_attempt",
+        "wall_upgrade_attempt",
+        "item_bought",
+        "max_level_reached"
+      ],
+      "when": "Shop star upgrade (upgradeVillageItem), island cannon/wall/castle flows, or blocked attempts.",
+      "payload": {
+        "action": "string — 'success' | 'failure' | 'max'",
+        "building": "string — village slot: Castle | Cannon | Statue | Farm | Boat; failures may use Cannon2 for second cannon",
+        "condition": "string",
+        "levelAfter": "number — optional on failure",
+        "cost": "number",
+        "isFree": "boolean — optional, shop free castle",
+        "reason": "string — optional on failure: capped_by_castle | not_enough_coins | already_max | wall_not_owned",
+        "levelBefore": "number — optional",
+        "cannonIndex": "number — optional (1 | 2)",
+        "cannonIslandLevelAfter": "number — optional, island cannon tier after success",
+        "wallIslandLevelAfter": "number — optional, wall tier after success",
+        "castleStageBefore": "number — optional",
+        "castleStageAfter": "number — optional",
+        "castleStageMaxed": "boolean — implied when action is max from castle stage cap",
+        "source": "string — optional 'wall_unlock_purchase' for first wall buy + Statue star"
+      },
+      "notes": "action 'max' when village building hits 5★, island cannon/wall hits MAX_LEVEL, or castle stage hits max on the same upgrade. Failures never call upgradeVillageItem."
+    },
+    {
+      "name": "slot_action",
+      "replaces": ["slot_spin_started", "slot_spin_result", "slot_spin_completed", "spins_triple_reward"],
+      "when": "Once per completed spin after reels resolve, payout applied, and triple-spins bonus (if any) applied—before attack/raid minigames.",
+      "payload": {
+        "spinIndex": "number",
+        "energyBefore": "number — energy immediately before this spin (after −1 cost)",
+        "energyAfter": "number — after triple-spins bonus if triggered",
+        "symbols": "string[] — reel symbol names",
+        "payoutCoins": "number — coins added this spin from the table",
+        "actionTriggered": "string | null — 'raid' | 'attack' | 'shield' | null",
+        "detailedResult": "string",
+        "spinsBonus": "number — extra spins from triple Spins row; 0 if none",
+        "reactionTimeMs": "number — ms since previous spin (UI metric)",
+        "condition": "string"
+      }
+    },
+    {
+      "name": "rival_interaction",
+      "replaces": [
+        "rival_encounter_started",
+        "action_attack",
+        "action_raid_travel",
+        "action_raid"
+      ],
+      "when": "Attack fully resolved, or raid finished (single event includes travel context).",
+      "payloadAttack": {
+        "type": "attack",
+        "targetUserId": "string",
+        "result": "string",
+        "reward": "number",
+        "buildingName": "string",
+        "rivalName": "string",
+        "detailedResult": "string",
+        "detailedResultTag": "string",
+        "condition": "string"
+      },
+      "payloadRaid": {
+        "type": "raid",
+        "rivalName": "string",
+        "maxRaidAmount": "number",
+        "travelMessage": "string",
+        "totalStolen": "number",
+        "perfectRaid": "boolean",
+        "detailedResult": "string",
+        "detailedResultTag": "string",
+        "condition": "string"
+      }
+    },
+    {
+      "name": "energy_update",
+      "replaces": [
+        "spin_refill_completed",
+        "spin_refill_applied",
+        "spin_timer_sync_applied",
+        "spins_out_modal_shown",
+        "dev_refill (direct Firestore only)"
+      ],
+      "when": "Timer grants a spin; out-of-spins modal opens; dev refill button.",
+      "payload": {
+        "kind": "string — 'refill' | 'depleted_modal' | 'dev_refill'",
+        "condition": "string",
+        "spinsBefore": "number — refill only",
+        "spinsAfter": "number",
+        "nextRefillTime": "number — epoch ms; refill and depleted_modal",
+        "spins": "number — depleted_modal only (current energy)"
+      }
+    },
+    {
+      "name": "tutorial_progress",
+      "replaces": ["tutorial_step", "tutorial_complete"],
+      "when": "Main guided tutorial step logging (logTutorialStep); mini-tutorial finished (finishMiniTutorial).",
+      "payload": {
+        "phase": "string — e.g. 'start', 'continue_click', 'skip_click', 'mini_complete', …",
+        "stepNumber": "number — optional, main tutorial",
+        "timeSpent": "number — optional ms on step",
+        "totalSpins": "number — optional, mini_complete only",
+        "condition": "string"
+      }
+    },
+    {
+      "name": "player_level_up",
+      "replaces": [],
+      "when": "XP crosses level threshold in gainXp().",
+      "payload": {
+        "newLevel": "number",
+        "condition": "string"
+      }
+    },
+    {
+      "name": "village_complete",
+      "replaces": [],
+      "when": "25★ collected for current village (finalizeVillageProgress).",
+      "payload": {
+        "villageId": "number",
+        "totalSpins": "number — totalSpinsToComplete",
+        "timeSpent": "number — seconds in village",
+        "condition": "string"
+      }
+    },
+    {
+      "name": "island_travel",
+      "replaces": ["island_travel_started", "island_travel_ended"],
+      "when": "Cloud travel sequence to/from rival island.",
+      "payload": {
+        "phase": "string — 'started' | 'ended'",
+        "targetBotName": "string",
+        "toRival": "boolean",
+        "condition": "string"
+      }
+    },
+    {
+      "name": "audit_stress_test",
+      "replaces": [],
+      "when": "runStressTest() dev harness only.",
+      "payload": {
+        "condition": "string",
+        "hasEconomy": "boolean",
+        "hasXpSettings": "boolean",
+        "hasLogger": "boolean",
+        "hasRunSpin": "boolean",
+        "hasAddStar": "boolean"
+      }
+    }
+  ],
+  "intentionallyRemoved": [
+    {
+      "name": "economy_config_loaded",
+      "reason": "Not required for research; config load remains console-only on failure."
+    },
+    {
+      "name": "upgrade_modal_opened",
+      "reason": "High-volume UI noise; use building_action / slot_action for behavioral signals."
+    }
+  ],
+  "eventNameIndex": [
+    "audit_stress_test",
+    "building_action",
+    "energy_update",
+    "island_travel",
+    "player_level_up",
+    "rival_interaction",
+    "session_start",
+    "slot_action",
+    "tutorial_progress",
+    "village_complete"
+  ],
+  "count": {
+    "distinctEventTypes": 10
+  }
+}

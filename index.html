@@ -4296,15 +4296,9 @@
             const parsed = await res.json();
             if (!parsed || typeof parsed !== "object") throw new Error("invalid JSON");
             window.ECONOMY_DATA = parsed;
-            logEvent("economy_config_loaded", { source: "remote_json", ok: true });
           } catch (err) {
             window.ECONOMY_DATA = DEFAULT_ECONOMY_DATA;
             console.warn("Using fallback economy config:", err);
-            logEvent("economy_config_loaded", {
-              source: "fallback_default",
-              ok: false,
-              error: String((err && err.message) || err || "unknown"),
-            });
           }
         }
         function getGameConfig() {
@@ -4348,7 +4342,10 @@
             gameState.xp -= required;
             gameState.level = Math.max(1, Math.round(Number(gameState.level) || 1) + 1);
             showLevelUpPopup(gameState.level);
-            logEvent("player_level_up", { newLevel: gameState.level });
+            logEvent("player_level_up", {
+              newLevel: gameState.level,
+              condition: gameState.condition,
+            });
           }
         }
         let GAME_CONFIG = getGameConfig();
@@ -4647,7 +4644,12 @@
         function playShieldGainSound() {}
         async function triggerTravelSequence(toRival) {
           const targetBotName = gameState.currentRivalName || "";
-          logEvent("island_travel_started", { targetBotName, toRival });
+          logEvent("island_travel", {
+            phase: "started",
+            targetBotName,
+            toRival,
+            condition: gameState.condition,
+          });
           if (cloudOverlayEl) cloudOverlayEl.classList.add("active");
           await sleep(800);
           if (toRival) {
@@ -4661,7 +4663,12 @@
           }
           await sleep(800);
           if (cloudOverlayEl) cloudOverlayEl.classList.remove("active");
-          logEvent("island_travel_ended", { targetBotName, toRival });
+          logEvent("island_travel", {
+            phase: "ended",
+            targetBotName,
+            toRival,
+            condition: gameState.condition,
+          });
           if (!toRival) gameState.currentRivalName = "";
         }
         function triggerScreenShake(durationMs) {
@@ -4970,7 +4977,7 @@
             hasRunSpin: typeof runSpin === "function",
             hasAddStar: typeof window.addStar === "function",
           };
-          logEvent("audit_stress_test", checks);
+          logEvent("audit_stress_test", { ...checks, condition: gameState.condition });
           if (typeof window.__appendVisualLog === "function") {
             window.__appendVisualLog({ eventType: "audit_stress_test", ...checks });
           }
@@ -5005,9 +5012,6 @@
           gameState.spins = gameState.energy;
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
 
-          logEvent("consent_given", { condition: gameState.condition });
-          logEvent("experiment_assigned", { condition: gameState.condition });
-
           loadState();
           updateSpinRefillTimer();
           if (!window.__energyTickInterval) {
@@ -5025,7 +5029,12 @@
           if (appLayoutEl) appLayoutEl.style.pointerEvents = "auto";
           if (tutorialOverlayEl && tutorialStep <= 0) tutorialOverlayEl.style.pointerEvents = "none";
 
-          logEvent("game_start", { initialSpins: energy, initialCoins: coins, condition: gameState.condition });
+          logEvent("session_start", {
+            initialSpins: energy,
+            initialCoins: coins,
+            condition: gameState.condition,
+            consent: true,
+          });
           initResearchDrawerAfterGameShow();
           initTutorial();
         }
@@ -5383,17 +5392,50 @@
           stage = clamp(Math.ceil((stars / 25) * MAX_STAGE), 1, MAX_STAGE);
           if (stars >= 25) {
             const timeSpent = Math.max(0, Math.round((Date.now() - villageStartedAtMs) / 1000));
-            logEvent("village_complete", { villageId, totalSpins: totalSpinsToComplete, timeSpent });
+            logEvent("village_complete", {
+              villageId,
+              totalSpins: totalSpinsToComplete,
+              timeSpent,
+              condition: gameState.condition,
+            });
             runVillageCompleteCelebration();
           }
         }
-        function upgradeVillageItem(item, cost, isFree) {
+        function upgradeVillageItem(item, cost, isFree, opts) {
           if (!VILLAGE_ITEMS.includes(item)) return;
           if (villageProgress[item] >= 5) return;
           villageProgress[item] += 1;
           gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerUpgrade) || 0, "upgrade");
-          logEvent("village_upgrade", { item, levelAfter: villageProgress[item], cost: Math.max(0, Number(cost || 0)) });
-          logEvent("building_evolved", { building: item, newLevel: villageProgress[item], isFree: !!isFree });
+          const levelAfter = villageProgress[item];
+          const o = opts || {};
+          const villageMaxStars = levelAfter >= 5;
+          const cannonMax =
+            item === "Cannon" &&
+            Number.isFinite(o.cannonIslandLevelAfter) &&
+            o.cannonIslandLevelAfter >= MAX_LEVEL;
+          const wallMax =
+            item === "Farm" &&
+            Number.isFinite(o.wallIslandLevelAfter) &&
+            o.wallIslandLevelAfter >= MAX_LEVEL;
+          const castleStageMax = !!o.castleStageMaxed;
+          const action =
+            villageMaxStars || cannonMax || wallMax || castleStageMax ? "max" : "success";
+          const payload = {
+            action,
+            building: item,
+            levelAfter,
+            cost: Math.max(0, Number(cost || 0)),
+            isFree: !!isFree,
+            condition: gameState.condition,
+          };
+          if (o.cannonIndex != null) payload.cannonIndex = o.cannonIndex;
+          if (o.levelBefore !== undefined) payload.levelBefore = o.levelBefore;
+          if (o.cannonIslandLevelAfter !== undefined) payload.cannonIslandLevelAfter = o.cannonIslandLevelAfter;
+          if (o.wallIslandLevelAfter !== undefined) payload.wallIslandLevelAfter = o.wallIslandLevelAfter;
+          if (o.castleStageBefore !== undefined) payload.castleStageBefore = o.castleStageBefore;
+          if (o.castleStageAfter !== undefined) payload.castleStageAfter = o.castleStageAfter;
+          if (o.wallUnlockPurchase) payload.source = "wall_unlock_purchase";
+          logEvent("building_action", payload);
           const targetMap = {
             Castle: castleVisualEl || castleEl,
             Cannon: cannonVisualEl || cannonEl,
@@ -5430,7 +5472,6 @@
           const targetUserId = "bot";
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
-          logEvent("rival_encounter_started", { rivalBotName: rivalName, actionType: "attack" });
           if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `${rivalName}'s Ghost Village`;
           setStatus(`Targeting ${rivalName}...`, false);
           await triggerTravelSequence(true);
@@ -5458,7 +5499,17 @@
             : `BOOM! Direct Hit on ${rivalName} for ${formatNumber(reward)} Coins!`;
           setStatus(detailedResult, false);
           const detailedResultTag = blocked ? `Attack_Blocked_${rivalName}` : `Attack_Hit_${rivalName}`;
-          logEvent("action_attack", { targetUserId, result, reward, buildingName, rivalName, detailedResult, detailedResultTag });
+          logEvent("rival_interaction", {
+            type: "attack",
+            targetUserId,
+            result,
+            reward,
+            buildingName,
+            rivalName,
+            detailedResult,
+            detailedResultTag,
+            condition: gameState.condition,
+          });
           gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerAttack) || 0, "attack");
           await sleep(2000);
           await triggerTravelSequence(false);
@@ -5483,12 +5534,10 @@
           if (!raidModalEl || !raidBoardEl) return;
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
-          logEvent("rival_encounter_started", { rivalBotName: rivalName, actionType: "raid" });
           const maxRaidAmount = getPayoutValue("raid_base", 100000);
           if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `${rivalName}'s Ghost Village`;
           const travelMessage = `Traveling to ${rivalName}'s Island...`;
           setStatus(travelMessage, false);
-          logEvent("action_raid_travel", { rivalName, maxRaidAmount, detailedResult: travelMessage });
           await triggerTravelSequence(true);
           playRaidSound();
           gameState.isRaidActive = true;
@@ -5525,7 +5574,17 @@
                 const perfectRaid = totalStolen >= 780;
                 const detailedResult = `Raid complete on ${rivalName}: stole ${formatNumber(totalStolen)} coins.`;
                 const detailedResultTag = `Raid_Complete_${rivalName}`;
-                logEvent("action_raid", { totalStolen, perfectRaid, rivalName, detailedResult, detailedResultTag });
+                logEvent("rival_interaction", {
+                  type: "raid",
+                  rivalName,
+                  maxRaidAmount,
+                  travelMessage,
+                  totalStolen,
+                  perfectRaid,
+                  detailedResult,
+                  detailedResultTag,
+                  condition: gameState.condition,
+                });
                 gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerRaid) || 0, "raid");
                 setStatus(detailedResult, false);
                 updateUI();
@@ -5595,7 +5654,12 @@
           if (!energyModalEl) return;
           energyModalEl.style.display = "grid";
           energyModalEl.classList.remove("hidden");
-          logEvent("spins_out_modal_shown", { spins: gameState.energy, nextRefillTime });
+          logEvent("energy_update", {
+            kind: "depleted_modal",
+            spins: gameState.energy,
+            nextRefillTime,
+            condition: gameState.condition,
+          });
         }
         function closeOutOfSpinsModal() {
           if (!energyModalEl) return;
@@ -5609,9 +5673,13 @@
             gameState.energy = clamp(gameState.energy + 1, 0, MAX_ENERGY);
             energy = gameState.energy;
             nextRefillTime = now + ENERGY_REFILL_INTERVAL_MS;
-            logEvent("spin_refill_completed", { spinsBefore: before, spinsAfter: gameState.energy });
-            logEvent("spin_refill_applied", { spinsBefore: before, spinsAfter: gameState.energy });
-            logEvent("spin_timer_sync_applied", { nextRefillTime, spinsAfter: gameState.energy });
+            logEvent("energy_update", {
+              kind: "refill",
+              spinsBefore: before,
+              spinsAfter: gameState.energy,
+              nextRefillTime,
+              condition: gameState.condition,
+            });
             if (energyFillEl) {
               energyFillEl.classList.remove("energy-refill-flash");
               void energyFillEl.offsetWidth;
@@ -5750,7 +5818,11 @@
           if (markCompleted) setMiniTutorialSeen();
         }
         function finishMiniTutorial() {
-          logEvent("tutorial_complete", { totalSpins: totalSpinsToComplete });
+          logEvent("tutorial_progress", {
+            phase: "mini_complete",
+            totalSpins: totalSpinsToComplete,
+            condition: gameState.condition,
+          });
           stopMiniTutorial(true);
         }
         function positionTutorialFingerOnly(targetEl) {
@@ -5848,7 +5920,12 @@
             tutorialStepShownAtMs === null
               ? 0
               : Math.max(0, performance.now() - tutorialStepShownAtMs);
-          logEvent("tutorial_step", { stepNumber, phase, timeSpent: spentMs });
+          logEvent("tutorial_progress", {
+            phase,
+            stepNumber,
+            timeSpent: spentMs,
+            condition: gameState.condition,
+          });
         }
 
         function hideTutorialPopup() {
@@ -6034,7 +6111,6 @@
           if (gameState.energy === 0) {
             setTimeout(() => showOutOfSpinsModal(), 1000);
           }
-          logEvent("slot_spin_started", { spinIndex, energyBefore, condition: gameState.condition });
           gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerSpin) || 0, "spin");
 
           let tutorialRigged = false;
@@ -6060,17 +6136,17 @@
           coins += coinsWon;
           const randomCoinParticles = 20 + Math.floor(Math.random() * 11);
           let spinsTripleTriggered = false;
+          let spinsBonusAwarded = 0;
           if (result.every((s) => s.name === "Spins")) {
             spinsTripleTriggered = true;
-            const beforeEnergy = gameState.energy;
             const energyReward = getPayoutValue("spins_triple", 10);
+            spinsBonusAwarded = energyReward;
             gameState.energy = clamp(gameState.energy + energyReward, 0, MAX_ENERGY);
             gameState.spins = gameState.energy;
             energy = gameState.energy;
             if (gameState.energy < MAX_ENERGY) {
               nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
             }
-            logEvent("spins_triple_reward", { spinsBefore: beforeEnergy, spinsAfter: gameState.energy, reward: energyReward, detailedResult: `Triple Spins! Gained ${formatNumber(energyReward)} spins.` });
             setStatus(`Triple Spins! Gained ${formatNumber(energyReward)} spins.`, false);
             const spinTrack = document.querySelector(".hud-bar-track--energy");
             if (spinTrack) {
@@ -6094,20 +6170,17 @@
           }
           setStatus(detailedResult, coinsWon <= 0 && !actionTriggered);
 
-          logEvent("slot_spin_result", {
-            symbols: result.map((s) => s.name),
-            payout: coinsWon,
-            actionTriggered,
-            condition: gameState.condition,
-            detailedResult,
-          });
-          logEvent("slot_spin_completed", {
+          logEvent("slot_action", {
             spinIndex,
+            energyBefore,
+            energyAfter: gameState.energy,
             symbols: result.map((s) => s.name),
-            payout: coinsWon,
-            actionTriggered,
-            condition: gameState.condition,
+            payoutCoins: coinsWon,
+            actionTriggered: actionTriggered || null,
             detailedResult,
+            spinsBonus: spinsBonusAwarded,
+            reactionTimeMs,
+            condition: gameState.condition,
           });
 
           if (coinsWon > 0) {
@@ -6146,12 +6219,9 @@
             return;
           }
 
-          const before = stage;
+          const beforeStage = stage;
           coins -= cost;
           stage = Math.min(MAX_STAGE, stage + 1);
-          if (stage >= MAX_LEVEL && before < MAX_LEVEL) {
-            logEvent("max_level_reached", { entityType: "castle" });
-          }
 
           const wrap = castleEl ? castleEl.closest(".castle-wrap") : null;
           if (wrap) {
@@ -6161,7 +6231,11 @@
             setTimeout(() => wrap.classList.remove("castle-upgraded"), 520);
           }
 
-          upgradeVillageItem("Castle", cost);
+          upgradeVillageItem("Castle", cost, false, {
+            castleStageBefore: beforeStage,
+            castleStageAfter: stage,
+            castleStageMaxed: stage >= MAX_LEVEL && beforeStage < MAX_LEVEL,
+          });
 
           persistState();
           updateUI();
@@ -6185,24 +6259,30 @@
           // Level gating: cannot exceed castle stage.
           if (before >= stage) {
             setStatus("Upgrade Castle first!", true);
-            logEvent("defense_upgrade_attempt", {
+            logEvent("building_action", {
+              action: "failure",
+              building: cannonIndex === 2 ? "Cannon2" : "Cannon",
+              reason: "capped_by_castle",
               levelBefore: before,
               levelAfter: before,
               cost,
-              success: false,
-              reason: "capped_by_castle",
+              cannonIndex,
+              condition: gameState.condition,
             });
             return;
           }
 
           if (coins < cost) {
             setStatus("Not enough coins to upgrade cannon.", true);
-            logEvent("defense_upgrade_attempt", {
+            logEvent("building_action", {
+              action: "failure",
+              building: cannonIndex === 2 ? "Cannon2" : "Cannon",
+              reason: "not_enough_coins",
               levelBefore: before,
               levelAfter: before,
               cost,
-              success: false,
-              reason: "not_enough_coins",
+              cannonIndex,
+              condition: gameState.condition,
             });
             return;
           }
@@ -6214,21 +6294,11 @@
 
           setStatus("Cannon upgraded!", false);
 
-          logEvent("defense_upgrade_attempt", {
-            levelBefore: before,
-            levelAfter: after,
-            cost,
-            success: true,
-            reason: "ok",
+          upgradeVillageItem("Cannon", cost, false, {
             cannonIndex,
+            levelBefore: before,
+            cannonIslandLevelAfter: after,
           });
-
-          upgradeVillageItem("Cannon", cost);
-
-          if (after === MAX_LEVEL) {
-            const entityType = cannonIndex === 2 ? "cannon2" : "cannon1";
-            logEvent("max_level_reached", { entityType });
-          }
 
           persistState();
           updateUI();
@@ -6240,11 +6310,14 @@
 
           if (!hasWall) {
             setStatus("Buy the Iron Wall in the Shop first.", true);
-            logEvent("wall_upgrade_attempt", {
+            logEvent("building_action", {
+              action: "failure",
+              building: "Statue",
+              reason: "wall_not_owned",
               levelBefore: before,
               levelAfter: before,
-              success: false,
               cost,
+              condition: gameState.condition,
             });
             return;
           }
@@ -6252,22 +6325,27 @@
           // Level cap: wallLevel cannot exceed castle stage.
           if (wallLevel >= stage) {
             setStatus("Upgrade Castle first!", true);
-            logEvent("wall_upgrade_attempt", {
+            logEvent("building_action", {
+              action: "failure",
+              building: "Farm",
+              reason: "capped_by_castle",
               levelBefore: before,
               levelAfter: before,
-              success: false,
               cost,
-              reason: "capped_by_castle",
+              condition: gameState.condition,
             });
             return;
           }
 
           if (wallLevel >= MAX_LEVEL) {
-            logEvent("wall_upgrade_attempt", {
+            logEvent("building_action", {
+              action: "failure",
+              building: "Farm",
+              reason: "already_max",
               levelBefore: before,
               levelAfter: before,
-              success: false,
               cost,
+              condition: gameState.condition,
             });
             setStatus("MAX LEVEL REACHED.", false);
             return;
@@ -6275,11 +6353,14 @@
 
           if (coins < cost) {
             setStatus("Not enough coins to upgrade wall.", true);
-            logEvent("wall_upgrade_attempt", {
+            logEvent("building_action", {
+              action: "failure",
+              building: "Farm",
+              reason: "not_enough_coins",
               levelBefore: before,
               levelAfter: before,
-              success: false,
               cost,
+              condition: gameState.condition,
             });
             return;
           }
@@ -6287,17 +6368,9 @@
           coins -= cost;
           wallLevel = Math.min(MAX_LEVEL, wallLevel + 1);
           setStatus("Wall upgraded!", false);
-          logEvent("wall_upgrade_attempt", {
-            levelBefore: before,
-            levelAfter: wallLevel,
-            success: true,
-            cost,
+          upgradeVillageItem("Farm", cost, false, {
+            wallIslandLevelAfter: wallLevel,
           });
-          upgradeVillageItem("Farm", cost);
-
-          if (wallLevel === MAX_LEVEL) {
-            logEvent("max_level_reached", { entityType: "wall" });
-          }
           persistState();
           updateUI();
         }
@@ -6307,16 +6380,6 @@
         function openUpgradeModal(type, index) {
           if (!upgradeModalEl) return;
           upgradeContext = { type, index: typeof index === "number" ? index : 0 };
-
-          logEvent("upgrade_modal_opened", {
-            type,
-            index: typeof index === "number" ? index : 0,
-            castleLevel: stage,
-            cannon1Level,
-            cannon2Level,
-            wallLevel: hasWall ? wallLevel : 0,
-            hasSecondCannon,
-          });
 
           let title = "Improve Village";
           let currentStat = "0 Stars";
@@ -6467,9 +6530,11 @@
           gameState.energy = GAME_CONFIG.maxEnergy;
           energy = gameState.energy;
           updateUI();
-          if (typeof window.saveToFirestore === "function") {
-            window.saveToFirestore("dev_refill", { spinsAfter: gameState.energy, condition: gameState.condition });
-          }
+          logEvent("energy_update", {
+            kind: "dev_refill",
+            spinsAfter: gameState.energy,
+            condition: gameState.condition,
+          });
           console.log("Spins Refilled");
         }
         function onDevResetClick() {
@@ -6495,8 +6560,7 @@
                   coins -= cost;
                   hasWall = true;
                   wallLevel = Math.max(1, wallLevel);
-                  logEvent("item_bought", { item: "wall_start", cost });
-                  upgradeVillageItem("Statue", cost);
+                  upgradeVillageItem("Statue", cost, false, { wallUnlockPurchase: true });
                   persistState();
                   updateUI();
                 }
