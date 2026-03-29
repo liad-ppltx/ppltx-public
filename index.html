@@ -2195,6 +2195,7 @@
         bottom: -18px;
         color: rgba(235, 244, 255, 0.85);
         opacity: 0;
+        pointer-events: none;
         transform: translateY(4px);
         transition: opacity 180ms ease, transform 180ms ease;
       }
@@ -2268,6 +2269,120 @@
         display: none !important;
         pointer-events: none !important;
       }
+
+      /* Lush forest clearing — composite village field (replaces bare island plateau) */
+      body.composite-village-mode .island {
+        width: min(420px, 90vw);
+        height: min(300px, 46vw);
+        min-height: 268px;
+        max-height: 320px;
+        margin: 16px auto 10px;
+        transform: perspective(820px) rotateX(11deg);
+        transform-origin: center top;
+        border-radius: 50% 50% 42% 42% / 18% 18% 12% 12%;
+        overflow: visible;
+        background:
+          radial-gradient(ellipse 85% 55% at 50% 8%, rgba(255, 252, 220, 0.45), transparent 58%),
+          radial-gradient(ellipse 40% 35% at 22% 18%, rgba(180, 255, 200, 0.22), transparent 55%),
+          radial-gradient(ellipse 38% 32% at 78% 22%, rgba(160, 230, 255, 0.18), transparent 52%),
+          radial-gradient(ellipse 120% 90% at 50% 100%, rgba(12, 28, 14, 0.92), rgba(18, 48, 28, 0.88) 42%, rgba(32, 72, 42, 0.95) 100%),
+          linear-gradient(180deg, rgba(45, 85, 52, 0.55) 0%, rgba(28, 58, 36, 0.92) 38%, rgba(16, 38, 24, 1) 100%);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.07),
+          inset 0 -24px 48px rgba(0, 0, 0, 0.35),
+          0 18px 36px rgba(0, 0, 0, 0.55);
+      }
+      body.composite-village-mode .island::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0.9;
+        background-image:
+          radial-gradient(circle at 8% 40%, rgba(0, 0, 0, 0.45) 0%, transparent 42%),
+          radial-gradient(circle at 92% 35%, rgba(0, 0, 0, 0.4) 0%, transparent 40%),
+          radial-gradient(circle at 18% 8%, rgba(20, 50, 28, 0.75) 0%, transparent 28%),
+          radial-gradient(circle at 82% 6%, rgba(18, 44, 26, 0.72) 0%, transparent 26%),
+          radial-gradient(circle at 50% 0%, rgba(30, 70, 40, 0.55) 0%, transparent 35%),
+          repeating-linear-gradient(
+            95deg,
+            transparent 0 11px,
+            rgba(0, 0, 0, 0.04) 11px 12px
+          ),
+          repeating-linear-gradient(
+            0deg,
+            rgba(255, 255, 255, 0.03) 0 2px,
+            transparent 2px 5px
+          );
+        mix-blend-mode: multiply;
+      }
+      body.composite-village-mode .island::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        background:
+          radial-gradient(ellipse 50% 28% at 30% 72%, rgba(90, 140, 70, 0.35), transparent 70%),
+          radial-gradient(ellipse 45% 24% at 70% 78%, rgba(70, 120, 80, 0.3), transparent 68%);
+        opacity: 0.85;
+      }
+      body.composite-village-mode .village-asset {
+        filter: drop-shadow(0 10px 14px rgba(0, 0, 0, 0.5));
+      }
+      body.composite-village-mode .village-asset .comp-svg {
+        width: 100%;
+        height: auto;
+        max-height: 100%;
+        display: block;
+        pointer-events: none;
+      }
+      /* Grand layout: castle center; statue TL; farm TR; cannon BR; boat bottom + pier */
+      body.composite-village-mode .castle-visual {
+        left: 50%;
+        top: 2%;
+        transform: translateX(-50%);
+        width: min(210px, 48%);
+        min-height: 168px;
+        z-index: 118;
+      }
+      body.composite-village-mode .statue-visual {
+        left: 1%;
+        top: 14%;
+        right: auto;
+        width: min(118px, 28%);
+        min-height: 132px;
+        z-index: 112;
+      }
+      body.composite-village-mode .farm-visual {
+        right: 0.5%;
+        left: auto;
+        top: 12%;
+        width: min(128px, 30%);
+        min-height: 138px;
+        z-index: 112;
+      }
+      body.composite-village-mode .cannon-visual {
+        right: 2%;
+        left: auto;
+        top: auto;
+        bottom: 12%;
+        width: min(142px, 33%);
+        min-height: 120px;
+        z-index: 116;
+      }
+      body.composite-village-mode .boat-visual {
+        left: 50%;
+        right: auto;
+        top: auto;
+        bottom: 2%;
+        transform: translateX(-50%);
+        width: min(168px, 40%);
+        min-height: 128px;
+        z-index: 114;
+      }
+
       .level-up-pop {
         position: fixed;
         left: 50%;
@@ -4638,50 +4753,150 @@
         }
         function renderCastleComposite(level) {
           const maxClass = level >= 5 ? "is-max" : "";
-          const roof = level >= 1 ? `<div class="layer" style="left:28px;top:12px;width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:24px solid #9d2f2f;"></div>` : "";
-          const door = level >= 1 ? `<div class="layer" style="left:44px;top:46px;width:20px;height:24px;border-radius:10px 10px 2px 2px;background:#5c3716;"></div>` : "";
-          const towers = level >= 3 ? `<div class="layer" style="left:12px;top:24px;width:18px;height:40px;background:#8e98ad;border-radius:4px"></div><div class="layer" style="left:80px;top:24px;width:18px;height:40px;background:#8e98ad;border-radius:4px"></div><div class="layer" style="left:28px;top:34px;width:54px;height:20px;background:#737f95;border-radius:3px"></div>` : "";
-          const keep = level >= 4 ? `<div class="layer" style="left:30px;top:20px;width:48px;height:44px;background:#a0adc7;border-radius:6px"></div>` : "";
-          const flag = level >= 4 ? `<div class="layer" style="left:56px;top:4px;width:2px;height:20px;background:#dce7ff"></div><div class="layer flag-cloth" style="left:58px;top:6px;width:16px;height:10px;background:#3f8cff;border-radius:0 2px 2px 0"></div>` : "";
-          const epic = level >= 5 ? `<div class="layer castle-aura"></div><svg class="layer" viewBox="0 0 120 70" style="left:18px;top:42px;width:82px;height:26px"><rect x="0" y="8" width="82" height="14" rx="4" fill="#b88728"/><rect x="4" y="0" width="74" height="10" rx="3" fill="#ffd97a"/></svg><div class="layer" style="left:8px;top:16px;width:16px;height:46px;background:#8f98ad;border-radius:4px"></div><div class="layer" style="left:94px;top:16px;width:16px;height:46px;background:#8f98ad;border-radius:4px"></div>` : "";
-          return `<div class="building-comp ${maxClass}"><div class="layer" style="left:22px;top:50px;width:66px;height:14px;background:#6a727f;border-radius:4px"></div>${roof}${door}${towers}${keep}${flag}${epic}</div>`;
+          const a = (n) => (level >= n ? 1 : 0);
+          return `<div class="building-comp ${maxClass}"><svg class="comp-svg" viewBox="0 0 280 248" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="cvStone" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8dee8"/><stop offset="0.45" stop-color="#8b96a8"/><stop offset="1" stop-color="#4a5362"/></linearGradient>
+<linearGradient id="cvRoof" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#6a1218"/><stop offset="1" stop-color="#a01822"/></linearGradient>
+<linearGradient id="cvGold" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#b8860b"/></linearGradient>
+<filter id="cvGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<ellipse cx="140" cy="228" rx="118" ry="14" fill="#1a3020" opacity="0.55"/>
+<path d="M48 198 L232 198 L220 132 L60 132 Z" fill="url(#cvStone)" stroke="#2a3140" stroke-width="2" opacity="${0.28 + a(1) * 0.72}"/>
+<rect x="52" y="118" width="176" height="22" rx="3" fill="url(#cvStone)" stroke="#1f2530" stroke-width="1.5" opacity="${a(3)}"/>
+<g opacity="${a(3)}">
+<rect x="58" y="88" width="28" height="42" rx="5" fill="url(#cvStone)" stroke="#2a3140" stroke-width="1.2"/>
+<rect x="194" y="88" width="28" height="42" rx="5" fill="url(#cvStone)" stroke="#2a3140" stroke-width="1.2"/>
+</g>
+<rect x="96" y="96" width="88" height="36" rx="4" fill="url(#cvStone)" stroke="#2a3140" stroke-width="1.2" opacity="${a(4)}"/>
+<path d="M96 96 L140 62 L184 96 Z" fill="url(#cvRoof)" opacity="${a(1)}" stroke="#3a0a0e" stroke-width="1"/>
+<rect x="118" y="128" width="44" height="52" rx="3" fill="#3d2814" stroke="#1a1008" stroke-width="1" opacity="${a(1)}"/>
+<path d="M124 128 Q140 108 156 128" fill="none" stroke="#1a1008" stroke-width="3" opacity="${a(1)}"/>
+<g opacity="${a(4)}">
+<line x1="72" y1="88" x2="72" y2="58" stroke="#4a3a2a" stroke-width="2"/>
+<path d="M72 58 L72 72 L92 66 Z" fill="#c41e2a" stroke="#5a0a10" stroke-width="0.8"/>
+<line x1="208" y1="88" x2="208" y2="54" stroke="#4a3a2a" stroke-width="2"/>
+<path d="M208 54 L208 68 L188 62 Z" fill="#1e4a9e" stroke="#0a2050" stroke-width="0.8"/>
+</g>
+<g opacity="${a(5)}" filter="url(#cvGlow)">
+<rect x="50" y="114" width="180" height="8" rx="2" fill="url(#cvGold)" opacity="0.85"/>
+<path d="M58 114 v-8 h12 v8 M82 114 v-8 h12 v8 M106 114 v-8 h12 v8 M130 114 v-8 h12 v8 M154 114 v-8 h12 v8 M178 114 v-8 h12 v8 M202 114 v-8 h12 v8" stroke="url(#cvGold)" stroke-width="6" fill="none"/>
+</g>
+</svg></div>`;
         }
         function renderCannonComposite(level) {
           const maxClass = level >= 5 ? "is-max" : "";
-          const base = level >= 1 ? `<div class="layer" style="left:20px;top:44px;width:52px;height:14px;background:#7b4a21;border-radius:4px"></div>` : `<div class="layer" style="left:22px;top:48px;width:48px;height:10px;background:#6a4e2e;border-radius:999px"></div>`;
-          const barrel = level >= 2 ? `<div class="layer" style="left:30px;top:28px;width:48px;height:14px;background:#3b414d;border-radius:8px"></div>` : "";
-          const balls = level >= 3 ? `<div class="layer" style="left:76px;top:44px;font-size:12px">⚫⚫</div>` : "";
-          const wheels = level >= 4 ? `<div class="layer" style="left:24px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:60px;top:50px;width:12px;height:12px;border-radius:50%;background:#1f2530"></div><div class="layer" style="left:28px;top:26px;width:52px;height:18px;border:2px solid #8ea4bf;border-radius:9px"></div>` : "";
-          const epic = level >= 5 ? `<svg class="layer" viewBox="0 0 120 70" style="left:14px;top:16px;width:84px;height:36px"><rect x="10" y="18" width="62" height="10" rx="5" fill="#c89b35"/><rect x="18" y="8" width="54" height="9" rx="4" fill="#d9ad49"/><path d="M72 18 L96 22 L72 28 Z" fill="#2d2f36"/><path d="M6 20 C10 8, 24 8, 28 20 C24 18,12 18,6 20 Z" fill="#2d2f36"/></svg><div class="layer smoke-particle" style="left:88px;top:14px"></div>` : "";
-          return `<div class="building-comp ${maxClass}">${base}${barrel}${balls}${wheels}${epic}</div>`;
+          const a = (n) => (level >= n ? 1 : 0);
+          return `<div class="building-comp ${maxClass}"><svg class="comp-svg" viewBox="0 0 240 168" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="cnWood" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#a0703a"/><stop offset="1" stop-color="#4a2c14"/></linearGradient>
+<linearGradient id="cnMetal" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#6a7078"/><stop offset="0.5" stop-color="#b8c0cc"/><stop offset="1" stop-color="#3a4048"/></linearGradient>
+</defs>
+<path d="M28 128 L212 128 L198 108 L42 108 Z" fill="url(#cnWood)" stroke="#2a180c" stroke-width="1.5" opacity="${0.35 + a(1) * 0.65}"/>
+<rect x="44" y="92" width="152" height="20" rx="4" fill="url(#cnWood)" stroke="#3a2414" stroke-width="1.2" opacity="${a(1)}"/>
+<rect x="118" y="38" width="10" height="62" rx="2" fill="#5a4a38" opacity="${a(2)}"/>
+<path d="M128 42 L210 50 L208 64 L128 56 Z" fill="url(#cnMetal)" stroke="#1a1e24" stroke-width="1.5" opacity="${a(2)}"/>
+<ellipse cx="206" cy="56" rx="10" ry="14" fill="#2a3038" stroke="#1a1e22" stroke-width="1" opacity="${a(2)}"/>
+<g opacity="${a(3)}">
+<circle cx="188" cy="118" r="7" fill="#1a1c20" stroke="#4a5058" stroke-width="1"/>
+<circle cx="204" cy="122" r="6" fill="#1a1c20" stroke="#4a5058" stroke-width="1"/>
+<circle cx="196" cy="108" r="5" fill="#1a1c20" stroke="#4a5058" stroke-width="1"/>
+</g>
+<g opacity="${a(4)}">
+<circle cx="62" cy="124" r="11" fill="#1a1e26" stroke="#3a4550" stroke-width="2"/>
+<circle cx="178" cy="124" r="11" fill="#1a1e26" stroke="#3a4550" stroke-width="2"/>
+<rect x="70" y="78" width="100" height="24" rx="6" fill="none" stroke="#8ea4bf" stroke-width="2.5" opacity="0.9"/>
+</g>
+<path d="M200 44 Q220 32 232 48" fill="none" stroke="#8899aa" stroke-width="2" opacity="${a(5) * 0.7}" stroke-linecap="round"/>
+</svg></div>`;
         }
         function renderStatueComposite(level) {
           const maxClass = level >= 5 ? "is-max" : "";
-          const pedestal = `<div class="layer" style="left:14px;top:42px;width:50px;height:18px;border-radius:4px;background:${level>=5?"linear-gradient(180deg,#ffd97a,#b8860b)":"#7d8698"}"></div>`;
-          const figure = level >= 1 ? `<div class="layer" style="left:28px;top:20px;width:22px;height:24px;border-radius:8px;background:${level>=5?"linear-gradient(180deg,#ffe6a3,#c9972a)":"#9aa2b1"}"></div>` : "";
-          const sword = level >= 3 ? `<div class="layer" style="left:46px;top:22px;width:3px;height:24px;background:#d8e0ed"></div>` : "";
-          const cape = level >= 4 ? `<div class="layer" style="left:24px;top:26px;width:24px;height:20px;background:#a22f2f;border-radius:0 0 8px 8px;opacity:.8"></div>` : "";
-          const shimmer = level >= 5 ? `<div class="layer statue-shimmer"></div>` : "";
-          return `<div class="building-comp ${maxClass}">${pedestal}${figure}${sword}${cape}${shimmer}</div>`;
+          const a = (n) => (level >= n ? 1 : 0);
+          return `<div class="building-comp ${maxClass}"><svg class="comp-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="stStone" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#aeb6c4"/><stop offset="1" stop-color="#5a6270"/></linearGradient>
+<linearGradient id="stGold" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#ffe6a0"/><stop offset="1" stop-color="#a67c00"/></linearGradient>
+<linearGradient id="stArmor" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#e8ecf4"/><stop offset="1" stop-color="#6a7488"/></linearGradient>
+</defs>
+<rect x="36" y="172" width="128" height="28" rx="4" fill="${level >= 5 ? "url(#stGold)" : "url(#stStone)"}" stroke="#2a3038" stroke-width="1.2"/>
+<rect x="52" y="148" width="96" height="26" rx="3" fill="url(#stStone)" stroke="#2a3038" stroke-width="1"/>
+<rect x="68" y="128" width="64" height="22" rx="3" fill="url(#stStone)" stroke="#2a3038" stroke-width="1" opacity="${a(1)}"/>
+<ellipse cx="100" cy="72" rx="22" ry="24" fill="url(#stArmor)" stroke="#3a4454" stroke-width="1.5" opacity="${a(1)}"/>
+<circle cx="100" cy="58" r="14" fill="url(#stArmor)" stroke="#2a3444" stroke-width="1.2" opacity="${a(1)}"/>
+<path d="M92 48 L108 48 L104 38 L96 38 Z" fill="#4a5464" opacity="${a(1)}"/>
+<rect x="86" y="96" width="28" height="36" rx="6" fill="url(#stArmor)" stroke="#3a4454" stroke-width="1" opacity="${a(1)}"/>
+<ellipse cx="78" cy="108" rx="14" ry="22" fill="#6a1a1a" opacity="${a(4) * 0.85}"/>
+<path d="M118 76 L118 118" stroke="#c8d4e8" stroke-width="3" stroke-linecap="round" opacity="${a(3)}"/>
+<path d="M118 76 L132 70 L128 82 Z" fill="#a8b4c8" opacity="${a(3)}"/>
+<rect x="102" y="92" width="20" height="26" rx="2" fill="#5a6a82" stroke="#2a3848" stroke-width="1" opacity="${a(1)}"/>
+<path d="M104 96 L118 102 L104 108 Z" fill="#8a9ab0" opacity="${a(1)}"/>
+<ellipse cx="100" cy="118" rx="24" ry="8" fill="url(#stStone)" opacity="${a(5) * 0.35}"/>
+</svg></div>`;
         }
         function renderFarmComposite(level) {
           const maxClass = level >= 5 ? "is-max" : "";
-          const ground = `<div class="layer" style="left:6px;top:36px;width:74px;height:24px;border-radius:8px;background:#6f512a"></div>`;
-          const fence = level >= 1 ? `<div class="layer" style="left:8px;top:34px;width:70px;height:26px;border:2px dashed #d3b27a;border-radius:8px"></div>` : "";
-          const crops = level >= 2 ? `<div class="layer" style="left:18px;top:42px;font-size:10px">🌱 🌱 🌱</div>` : "";
-          const barn = level >= 3 ? `<div class="layer" style="left:48px;top:18px;width:26px;height:20px;background:#8e3c2a;border-radius:4px"></div>` : "";
-          const animals = level >= 4 ? `<div class="layer" style="left:12px;top:18px;font-size:11px">🐔🐄</div>` : "";
-          const windmill = level >= 4 ? `<svg class="layer" viewBox="0 0 80 80" style="left:0;top:0;width:34px;height:34px"><rect x="37" y="28" width="6" height="36" fill="#e8ebf5"/><g class="windmill-blades"><polygon points="40,10 45,28 35,28" fill="#ffffff"/><polygon points="58,40 40,45 40,35" fill="#ffffff"/><polygon points="40,70 35,52 45,52" fill="#ffffff"/><polygon points="22,40 40,35 40,45" fill="#ffffff"/></g><circle cx="40" cy="40" r="4" fill="#cfd6e8"/></svg>` : "";
-          return `<div class="building-comp ${maxClass}">${ground}${fence}${crops}${barn}${animals}${windmill}</div>`;
+          const a = (n) => (level >= n ? 1 : 0);
+          return `<div class="building-comp ${maxClass}"><svg class="comp-svg" viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="fmSoil" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7a5832"/><stop offset="1" stop-color="#3d2814"/></linearGradient>
+<linearGradient id="fmBarn" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#b83a28"/><stop offset="1" stop-color="#5a1810"/></linearGradient>
+</defs>
+<rect x="16" y="120" width="208" height="56" rx="10" fill="url(#fmSoil)" stroke="#2a1c0c" stroke-width="1.2"/>
+<rect x="24" y="112" width="192" height="68" rx="8" fill="none" stroke="#d4b878" stroke-width="2.5" stroke-dasharray="10 6" opacity="${a(1)}"/>
+<g opacity="${a(2)}">
+<path d="M40 138 H200" stroke="#4a7a3a" stroke-width="2" opacity="0.7"/>
+<path d="M40 148 H200" stroke="#4a7a3a" stroke-width="2" opacity="0.55"/>
+<path d="M40 158 H200" stroke="#3a6a32" stroke-width="2" opacity="0.5"/>
+<path d="M48 134 v26 M64 134 v26 M80 134 v26" stroke="#5a9850" stroke-width="1.5" opacity="0.8"/>
+</g>
+<path d="M148 72 L148 118 L200 118 L200 88 L172 72 Z" fill="url(#fmBarn)" stroke="#3a1008" stroke-width="1.5" opacity="${a(3)}"/>
+<path d="M140 72 L180 56 L208 76 L168 88 Z" fill="#6a2018" stroke="#3a0c08" stroke-width="1" opacity="${a(3)}"/>
+<rect x="168" y="96" width="14" height="22" rx="1" fill="#2a1810" opacity="${a(3)}"/>
+<g opacity="${a(4)}">
+<rect x="38" y="28" width="8" height="52" fill="#d8dce8"/>
+<g class="windmill-blades" style="transform-origin:42px 28px">
+<polygon points="42,8 46,28 38,28" fill="#f4f6fa" stroke="#a8b0c0" stroke-width="0.8"/>
+<polygon points="62,28 42,32 42,24" fill="#f4f6fa" stroke="#a8b0c0" stroke-width="0.8"/>
+<polygon points="42,48 38,28 46,28" fill="#f4f6fa" stroke="#a8b0c0" stroke-width="0.8"/>
+<polygon points="22,28 42,24 42,32" fill="#f4f6fa" stroke="#a8b0c0" stroke-width="0.8"/>
+</g>
+<circle cx="42" cy="28" r="4" fill="#a0a8b8"/>
+</g>
+<ellipse cx="58" cy="108" rx="10" ry="6" fill="#e8d8c8" opacity="${a(4) * 0.6}"/>
+<ellipse cx="78" cy="112" rx="12" ry="7" fill="#d8c8b8" opacity="${a(4) * 0.55}"/>
+<circle cx="200" cy="44" r="16" fill="#fff6d0" opacity="${a(5) * 0.35}"/>
+</svg></div>`;
         }
         function renderBoatComposite(level) {
           const maxClass = level >= 5 ? "is-max" : "";
-          const raft = `<div class="layer" style="left:10px;top:40px;width:66px;height:14px;border-radius:0 0 12px 12px;background:#7a4f25"></div>`;
-          const mast = level >= 3 ? `<div class="layer" style="left:42px;top:14px;width:3px;height:28px;background:#d6dcec"></div>` : "";
-          const sail = level >= 3 ? `<svg class="layer" viewBox="0 0 50 40" style="left:44px;top:14px;width:28px;height:22px"><path d="M0 2 L20 10 L0 22 Z" fill="#f8fbff"/></svg>` : "";
-          const secondSail = level >= 4 ? `<svg class="layer" viewBox="0 0 50 40" style="left:30px;top:18px;width:20px;height:16px"><path d="M0 2 L14 8 L0 16 Z" fill="#eef5ff"/></svg>` : "";
-          const galleon = level >= 5 ? `<div class="layer" style="left:8px;top:34px;width:72px;height:18px;border-radius:0 0 16px 16px;background:#2a2b34"></div><div class="layer" style="left:56px;top:10px;font-size:16px">⚓</div><div class="layer" style="left:22px;top:8px;font-size:12px;color:#ffe08a">⛵⛵⛵</div>` : "";
-          return `<div class="building-comp ${maxClass}">${raft}${mast}${sail}${secondSail}${galleon}</div>`;
+          const a = (n) => (level >= n ? 1 : 0);
+          return `<div class="building-comp ${maxClass}"><svg class="comp-svg" viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+<defs>
+<linearGradient id="btWood" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#5a3820"/><stop offset="0.5" stop-color="#8a5830"/><stop offset="1" stop-color="#4a2818"/></linearGradient>
+<linearGradient id="btWater" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#2a5080"/><stop offset="1" stop-color="#0a1830"/></linearGradient>
+</defs>
+<rect x="0" y="150" width="280" height="50" fill="url(#btWater)" opacity="0.75"/>
+<g opacity="${0.4 + a(1) * 0.6}">
+<rect x="48" y="156" width="184" height="8" rx="2" fill="#6a4830" stroke="#3a2414" stroke-width="0.8"/>
+<rect x="56" y="160" width="14" height="6" fill="#8a6848" stroke="#4a3020" stroke-width="0.5"/>
+<rect x="88" y="160" width="14" height="6" fill="#8a6848" stroke="#4a3020" stroke-width="0.5"/>
+<rect x="120" y="160" width="14" height="6" fill="#8a6848" stroke="#4a3020" stroke-width="0.5"/>
+<rect x="152" y="160" width="14" height="6" fill="#8a6848" stroke="#4a3020" stroke-width="0.5"/>
+<rect x="184" y="160" width="14" height="6" fill="#8a6848" stroke="#4a3020" stroke-width="0.5"/>
+</g>
+<path d="M40 148 Q140 168 240 148 L228 124 Q140 138 52 124 Z" fill="url(#btWood)" stroke="#2a1408" stroke-width="1.5" opacity="${0.3 + a(1) * 0.7}"/>
+<path d="M52 124 Q140 112 228 124 L220 108 Q140 96 60 108 Z" fill="#3a2418" stroke="#1a0c04" stroke-width="1" opacity="${a(2)}"/>
+<line x1="140" y1="108" x2="140" y2="28" stroke="#5a4a38" stroke-width="4" stroke-linecap="round" opacity="${a(3)}"/>
+<path d="M142 36 L210 52 L142 72 Z" fill="#f2f6ff" stroke="#a8b4c8" stroke-width="1.2" opacity="${a(3)}"/>
+<path d="M138 48 L88 62 L138 78 Z" fill="#e8eef8" stroke="#98a4b8" stroke-width="1" opacity="${a(4)}"/>
+<g stroke="#8a98a8" stroke-width="0.8" fill="none" opacity="${a(4)}">
+<line x1="140" y1="36" x2="200" y2="50"/><line x1="140" y1="48" x2="195" y2="58"/><line x1="138" y1="56" x2="95" y2="66"/>
+</g>
+<path d="M200 118 L208 132 L196 128 Z" fill="#6a7078" stroke="#2a3038" stroke-width="0.8" opacity="${a(5)}"/>
+<line x1="200" y1="118" x2="200" y2="138" stroke="#4a5058" stroke-width="2" opacity="${a(5)}"/>
+<path d="M56 140 Q64 132 72 140" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="${a(5) * 0.4}"/>
+</svg></div>`;
         }
         function updateVillageVisuals() {
           document.body.classList.add("composite-village-mode");
@@ -5049,6 +5264,7 @@
           if (xpFillEl) xpFillEl.style.width = `${xpPct}%`;
           if (xpTextEl) xpTextEl.textContent = `${formatNumber(xpValue)}/${formatNumber(xpRequired)} XP`;
           updateVillageVisuals();
+          syncShopMiniTutorialHighlight();
         }
 
         function getRandomSymbol() {
@@ -5492,6 +5708,22 @@
           [spinBtn, document.getElementById("villageProgressBarContainer"), shopBtn].forEach((el) => {
             if (el) el.classList.remove("mini-tutorial-target");
           });
+          if (shopModalEl) {
+            shopModalEl.querySelectorAll(".shop-item.mini-tutorial-target").forEach((el) => {
+              el.classList.remove("mini-tutorial-target");
+            });
+          }
+        }
+        function syncShopMiniTutorialHighlight() {
+          if (!shopModalEl) return;
+          shopModalEl.querySelectorAll(".shop-item.mini-tutorial-target").forEach((el) => {
+            el.classList.remove("mini-tutorial-target");
+          });
+          const shopOpen = !shopModalEl.classList.contains("hidden");
+          if (miniTutorial.active && miniTutorial.step === 4 && shopOpen) {
+            const castleRow = shopModalEl.querySelector('.shop-item[data-item="Castle"]');
+            if (castleRow) castleRow.classList.add("mini-tutorial-target");
+          }
         }
         function miniTutorialSeen() {
           try {
@@ -5554,7 +5786,9 @@
             placement = "above";
           }
           if (!target) return;
-          target.classList.add("mini-tutorial-target");
+          if (stepNumber !== 4) {
+            target.classList.add("mini-tutorial-target");
+          }
           tutorialTextEl.textContent = msg;
           showTutorialPopup();
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Got it!";
@@ -5569,6 +5803,7 @@
           }
           positionTutorialFingerOnly(target);
           positionTutorialPopup(target, placement);
+          syncShopMiniTutorialHighlight();
         }
         function startMiniTutorial() {
           miniTutorial.active = true;
@@ -6176,6 +6411,7 @@
         function closeShopModal() {
           if (!shopModalEl) return;
           shopModalEl.classList.add("hidden");
+          syncShopMiniTutorialHighlight();
         }
 
         function onSpinClick() {
@@ -6344,6 +6580,7 @@
           if (!miniTutorial.active || miniTutorial.step !== 4) return;
           spawnConfettiBurst();
           miniTutorial.step = 5;
+          syncShopMiniTutorialHighlight();
           if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
           hideTutorialPopup();
           if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.remove("hidden");
