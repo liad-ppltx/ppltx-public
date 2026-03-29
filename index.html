@@ -3063,7 +3063,8 @@
         position: fixed;
         inset: 0;
         pointer-events: none;
-        z-index: 80;
+        /* Above .top-progress-stack (210), HUD, and modals so tutorial tooltip/finger stay visible */
+        z-index: 26000;
       }
 
       .spotlight.hidden {
@@ -6596,6 +6597,11 @@
         }
         function onTutorialContinueClick() {
             if (miniTutorial.active) {
+              if (miniTutorial.step === 1) {
+                miniTutorial.step = 2;
+                renderMiniTutorialStep(2);
+                return;
+              }
               if (miniTutorial.step === 2) {
                 miniTutorial.step = 3;
                 renderMiniTutorialStep(3);
