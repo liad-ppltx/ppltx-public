@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <title>PlayPltx</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
 
     <style>
       :root {
@@ -50,8 +53,10 @@
       body {
         margin: 0;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           sans-serif;
         color: var(--text-main);
@@ -59,7 +64,9 @@
           radial-gradient(circle at 30% 0%, rgba(120, 190, 255, 0.35), transparent 55%),
           radial-gradient(circle at 70% 10%, rgba(60, 120, 255, 0.25), transparent 60%),
           linear-gradient(180deg, #02102c, #000814 60%, #00030a);
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
       }
 
       body::before {
@@ -123,10 +130,10 @@
 
       .phone-frame {
         position: relative;
-        width: min(550px, 100vw - 32px);
-        min-height: min(820px, 100vh - 32px);
-        max-height: 840px;
-        padding: 14px 12px 90px;
+        width: min(550px, calc(100vw - 24px));
+        min-height: min(75dvh, 820px);
+        max-height: min(88dvh, 840px);
+        padding: 14px 12px max(90px, 12vw);
         border-radius: 32px;
         background:
           radial-gradient(circle at top, rgba(255, 255, 255, 0.14), transparent 65%),
@@ -144,38 +151,205 @@
       }
 
       .app-layout {
-        width: min(1180px, calc(100vw - 32px));
-        margin: 16px auto;
+        width: min(1180px, calc(100vw - 16px));
+        margin: 0 auto;
+        padding: clamp(72px, 11vh, 104px) 8px 16px;
         display: flex;
-        gap: 16px;
-        align-items: flex-start;
-        justify-content: center;
-        flex-wrap: nowrap !important;
+        flex-direction: column;
+        align-items: center;
+        box-sizing: border-box;
       }
       #appLayout {
-        flex-wrap: nowrap !important;
-        align-items: flex-start !important;
+        align-items: center !important;
+      }
+
+      .top-progress-stack {
+        position: fixed;
+        top: clamp(6px, 1.5vh, 12px);
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(560px, 94vw);
+        z-index: 210;
+        display: flex;
+        flex-direction: column;
+        gap: clamp(6px, 1.2vw, 10px);
+        pointer-events: none;
+      }
+
+      .village-progress-bar-container {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 999px;
+        background: rgba(12, 16, 30, 0.72);
+        padding: 5px 10px;
+        pointer-events: none;
+      }
+
+      .xp-hud-bar {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: clamp(6px, 2vw, 10px);
+        width: 100%;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(168, 120, 255, 0.35);
+        background: rgba(12, 10, 28, 0.88);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+      }
+
+      .xp-hud-level {
+        font-size: clamp(0.68rem, 2.8vw, 0.8rem);
+        font-weight: 900;
+        letter-spacing: 0.06em;
+        color: #e8d4ff;
+        white-space: nowrap;
+      }
+
+      .xp-hud-track {
+        position: relative;
+        height: clamp(10px, 2.8vw, 12px);
+        border-radius: 999px;
+        background: rgba(20, 14, 40, 0.95);
+        border: 1px solid rgba(180, 140, 255, 0.25);
+        overflow: hidden;
+      }
+
+      .xp-hud-fill {
+        background: linear-gradient(90deg, #7c3aed, #22d3ee 50%, #a78bfa);
+        box-shadow: 0 0 14px rgba(167, 139, 250, 0.55);
+      }
+
+      .xp-hud-xp-text {
+        font-size: clamp(0.65rem, 2.6vw, 0.74rem);
+        font-weight: 800;
+        color: #dce7ff;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .game-container {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+        gap: clamp(12px, 2vw, 16px);
+        width: 100%;
+        max-width: min(1180px, 100%);
+      }
+
+      .game-main {
+        flex: 0 1 auto;
+        min-width: 0;
       }
 
       #researchCapture {
-        width: min(360px, calc(100vw - 32px));
-        flex: 0 0 360px;
+        width: 100%;
+        flex: 0 0 auto;
         margin-top: 0;
       }
 
       .sidebar-right {
         display: flex;
         flex-direction: column;
-        width: min(360px, calc(100vw - 32px));
-        flex: 0 0 360px;
+        width: min(360px, 100%);
+        flex: 0 0 min(360px, 100%);
         position: sticky;
-        top: 16px;
+        top: clamp(96px, 14vh, 120px);
         align-self: flex-start;
+        max-height: calc(100dvh - 100px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .village-stats-panel {
+        margin-top: 12px;
+        padding: 12px 14px;
+        background: rgba(8, 10, 20, 0.92);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+      }
+
+      .village-stats-title {
+        font-size: 0.72rem;
+        font-weight: 900;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(220, 231, 255, 0.75);
+        margin-bottom: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 8px;
+      }
+
+      #researchCapture .log-preview {
+        min-height: min(28vh, 200px);
+        max-height: min(32vh, 260px);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .rune-btn,
+      #spinBtn,
+      #shopBtn.secondary,
+      .metal-btn,
+      .secondary.metal-btn,
+      .shop-item .wood-metal,
+      .shop-item .secondary.wood-metal {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 10px 16px;
+        touch-action: manipulation;
+      }
+
+      #spinBtn.rune-btn {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 900;
+      }
+
+      .dev-refill-btn,
+      .dev-reset-btn {
+        min-width: 44px;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      @media (max-width: 900px) {
+        .game-container {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .sidebar-right {
+          position: relative;
+          top: auto;
+          max-height: none;
+          width: 100%;
+          flex: 1 1 auto;
+        }
+        .phone-frame {
+          width: 100%;
+          max-width: 100%;
+          min-height: min(62dvh, 560px);
+          max-height: none;
+        }
+        .top-progress-stack {
+          width: min(96vw, 100%);
+        }
       }
 
       @media (max-width: 980px) {
-        .phone-frame { width: min(520px, calc(100vw - 32px)); }
-        #researchCapture { width: min(520px, calc(100vw - 32px)); }
+        .phone-frame {
+          width: min(520px, calc(100vw - 24px));
+        }
       }
 
       .phone-bezel-notch {
@@ -275,6 +449,7 @@
         align-items: center;
         margin-bottom: 8px;
         gap: 10px;
+        flex-wrap: wrap;
       }
       .hud-coin-pips {
         display: flex;
@@ -299,6 +474,10 @@
         position: relative;
         z-index: 1000;
         pointer-events: auto !important;
+      }
+      .hud-shop-btn {
+        font-size: clamp(0.68rem, 2.6vw, 0.78rem);
+        letter-spacing: 0.1em;
       }
 
       .hud-title {
@@ -429,47 +608,14 @@
       }
       .dev-refill-btn {
         margin-left: 6px;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-        background: rgba(255, 255, 255, 0.08);
-        color: #eaf3ff;
-        font-size: 13px;
-        font-weight: 900;
-        line-height: 1;
-        cursor: pointer;
       }
       .dev-reset-btn {
         margin-left: 6px;
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        border: 1px solid rgba(255, 120, 120, 0.45);
-        background: rgba(255, 80, 80, 0.12);
-        color: #ffd6d6;
-        font-size: 11px;
-        font-weight: 900;
-        line-height: 1;
-        cursor: pointer;
       }
       @keyframes hud-timer-pulse {
         0% { opacity: 0.9; }
         50% { opacity: 1; text-shadow: 0 0 10px rgba(255, 209, 102, 0.45); }
         100% { opacity: 0.9; }
-      }
-      .village-progress-bar-container {
-        position: fixed;
-        top: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: min(560px, 92vw);
-        z-index: 210;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        border-radius: 999px;
-        background: rgba(12, 16, 30, 0.72);
-        padding: 5px 10px;
-        pointer-events: none;
       }
       .village-progress-fill {
         position: absolute;
@@ -715,7 +861,7 @@
         transition: filter 1s ease;
       }
       body.rival-mode #shopBtn,
-      body.rival-mode #villageProgressBarContainer {
+      body.rival-mode .top-progress-stack {
         visibility: hidden !important;
         pointer-events: none !important;
       }
@@ -1974,49 +2120,33 @@
         filter: none !important;
       }
       .building-comp .layer { position: absolute; transform-origin: center; will-change: transform, opacity; }
-      .village-actions {
-        width: 100%;
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 10px;
-        min-height: 72px;
-        z-index: 120;
-        pointer-events: none;
+
+      #villageStars.village-stats-grid {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: transparent;
+        font-size: clamp(0.72rem, 2.8vw, 0.82rem);
+        color: rgba(220, 231, 255, 0.92);
       }
-      #villageStars {
-        width: min(90%, 420px);
-        margin: 0 auto;
-        border: 1px solid rgba(255,255,255,.12);
-        border-radius: 12px;
-        padding: 8px;
-        background: rgba(0,0,0,.38);
-        font-size: .78rem;
-        transform: none;
-        pointer-events: auto;
-      }
-      .xp-row {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        gap: 8px;
+      .village-stats-row--head {
+        display: flex;
+        justify-content: space-between;
         align-items: center;
-        margin-top: 8px;
-      }
-      .xp-level-label {
-        color: #ffe08a;
-        font-size: 0.74rem;
+        margin-bottom: 10px;
         font-weight: 900;
-        letter-spacing: 0.05em;
-        white-space: nowrap;
+        letter-spacing: 0.03em;
+        color: #f2f6ff;
       }
-      .xp-track {
-        position: relative;
-        height: 10px;
-        border-radius: 999px;
-        background: rgba(14, 20, 32, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        overflow: hidden;
+      .village-stats-grid-inner {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
       }
+      .village-stats-grid-inner > div {
+        font-variant-numeric: tabular-nums;
+      }
+
       .xp-fill {
         position: absolute;
         left: 0;
@@ -2024,15 +2154,18 @@
         bottom: 0;
         width: 0%;
         border-radius: 999px;
-        background: linear-gradient(90deg, #4de0ff, #79ffbe, #4de0ff);
-        box-shadow: 0 0 12px rgba(98, 238, 255, 0.45);
         transition: width 280ms ease;
       }
-      .xp-text {
-        color: #dce7ff;
-        font-size: 0.72rem;
-        font-weight: 800;
-        white-space: nowrap;
+
+      body.composite-village-mode .castle-wrap,
+      body.composite-village-mode .island-top,
+      body.composite-village-mode .island-side,
+      body.composite-village-mode .island-shadow {
+        display: none !important;
+      }
+      body.composite-village-mode .entity-tag {
+        display: none !important;
+        pointer-events: none !important;
       }
       .level-up-pop {
         position: fixed;
@@ -3047,11 +3180,14 @@
         animation: mini-gold-ring 950ms ease-in-out infinite;
       }
       #villageProgressBarContainer.mini-tutorial-target {
-        position: fixed !important;
-        top: 10px !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        z-index: 220 !important;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        transform: none !important;
+        z-index: 2 !important;
+      }
+      .top-progress-stack:has(#villageProgressBarContainer.mini-tutorial-target) {
+        z-index: 220;
       }
       #shopModal .shop-item.mini-tutorial-target {
         position: static !important;
@@ -3237,10 +3373,21 @@
     </div>
 
     <div id="appLayout" class="app-layout hidden">
-      <div id="villageProgressBarContainer" class="village-progress-bar-container">
-        <div id="villageProgressFill" class="village-progress-fill"></div>
-        <div id="villageProgressLabel" class="village-progress-label">Village 1 Progress: 0 / 25 Stars</div>
+      <div class="top-progress-stack" aria-hidden="false">
+        <div id="villageProgressBarContainer" class="village-progress-bar-container">
+          <div id="villageProgressFill" class="village-progress-fill"></div>
+          <div id="villageProgressLabel" class="village-progress-label">Village 1 Progress: 0 / 25 Stars</div>
+        </div>
+        <div id="xpHudBar" class="xp-hud-bar" role="group" aria-label="Player experience">
+          <span id="playerLevelLabel" class="xp-hud-level">Level 1</span>
+          <div class="xp-hud-track" aria-hidden="true">
+            <div id="xpFill" class="xp-fill xp-hud-fill"></div>
+          </div>
+          <span id="xpText" class="xp-hud-xp-text">0/100 XP</span>
+        </div>
       </div>
+      <div class="game-container">
+      <div class="game-main">
       <div class="phone-frame">
       <div class="phone-bezel-notch" aria-hidden="true"></div>
 
@@ -3255,7 +3402,7 @@
             <span id="hudCoinPip1" class="hud-coin-pip"></span>
             <span id="hudCoinPip2" class="hud-coin-pip"></span>
           </div>
-          <button id="shopBtn" type="button" class="secondary metal-btn" style="padding: 7px 10px; font-size: 0.72rem;">SHOP</button>
+          <button id="shopBtn" type="button" class="secondary metal-btn hud-shop-btn">SHOP</button>
         </div>
         <div class="hud-bars">
           <div class="hud-bar">
@@ -3346,24 +3493,6 @@
               <span class="entity-tag__label">Lv.</span> <span id="wallLevelTag">0</span>
             </button>
             <div class="island-shadow" aria-hidden="true"></div>
-          </div>
-
-          <div class="village-actions">
-            <div id="villageStars">
-              <div style="display:flex; justify-content:space-between; margin-bottom:6px;"><span>Village <span id="villageIdValue">1</span></span><span>Stars <span id="villageTotalStars">0</span>/25</span></div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:4px;">
-                <div>Castle: <span id="starCastle">0</span>/5</div>
-                <div>Cannon: <span id="starCannon">0</span>/5</div>
-                <div>Statue: <span id="starStatue">0</span>/5</div>
-                <div>Farm: <span id="starFarm">0</span>/5</div>
-                <div>Boat: <span id="starBoat">0</span>/5</div>
-              </div>
-              <div class="xp-row">
-                <span id="playerLevelLabel" class="xp-level-label">Level 1</span>
-                <div class="xp-track"><div id="xpFill" class="xp-fill"></div></div>
-                <span id="xpText" class="xp-text">0/100 XP</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -3478,7 +3607,8 @@
 
       <!-- legacy scroll dialog removed (tutorial uses tooltip popup below) -->
       </div>
-      <!-- research capture + status are stacked beside the phone -->
+      </div>
+      <!-- research capture + status + village stats (sidebar) -->
       <div class="sidebar-right">
         <aside id="researchCapture" class="floating-log panel-stone">
           <div class="floating-log-header">
@@ -3495,6 +3625,24 @@
         <div class="world-status world-status--sidebar" id="payoutText">
           Status: <span>Ready.</span>
         </div>
+
+        <aside id="villageStatsPanel" class="village-stats-panel" aria-label="Village collection stats">
+          <div class="village-stats-title">Village collection</div>
+          <div id="villageStars" class="village-stats-grid">
+            <div class="village-stats-row village-stats-row--head">
+              <span>Village <span id="villageIdValue">1</span></span>
+              <span>Stars <span id="villageTotalStars">0</span>/25</span>
+            </div>
+            <div class="village-stats-grid-inner">
+              <div>Castle: <span id="starCastle">0</span>/5</div>
+              <div>Cannon: <span id="starCannon">0</span>/5</div>
+              <div>Statue: <span id="starStatue">0</span>/5</div>
+              <div>Farm: <span id="starFarm">0</span>/5</div>
+              <div>Boat: <span id="starBoat">0</span>/5</div>
+            </div>
+          </div>
+        </aside>
+      </div>
       </div>
     </div>
     <div id="cfgLabel" class="cfg-label">CFG: -</div>
