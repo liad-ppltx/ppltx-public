@@ -323,17 +323,93 @@
         justify-content: center;
       }
 
+      /* Mobile research drawer: sidebar slides off-screen when #appLayout.sidebar-collapsed */
+      .research-drawer-toggle {
+        display: none;
+      }
+      .research-drawer-backdrop {
+        display: none;
+      }
+
       @media (max-width: 900px) {
         .game-container {
           flex-direction: column;
           align-items: stretch;
         }
         .sidebar-right {
-          position: relative;
-          top: auto;
-          max-height: none;
-          width: 100%;
-          flex: 1 1 auto;
+          position: fixed;
+          top: env(safe-area-inset-top, 0);
+          right: 0;
+          width: min(360px, 92vw);
+          height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+          max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+          z-index: 400;
+          flex: none !important;
+          margin: 0;
+          align-self: stretch;
+          padding: calc(12px + env(safe-area-inset-top, 0px)) 12px calc(16px + env(safe-area-inset-bottom, 0px));
+          background: rgba(10, 12, 22, 0.97);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          box-shadow: -12px 0 40px rgba(0, 0, 0, 0.5);
+          border-left: 1px solid rgba(255, 255, 255, 0.1);
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          transition: transform 0.3s ease-in-out;
+          transform: translateX(0);
+          pointer-events: auto;
+        }
+        #appLayout.sidebar-collapsed .sidebar-right {
+          transform: translateX(100%);
+          pointer-events: none;
+        }
+        .research-drawer-backdrop {
+          display: block;
+          position: fixed;
+          inset: 0;
+          z-index: 390;
+          background: rgba(4, 6, 14, 0.55);
+          backdrop-filter: blur(2px);
+          -webkit-backdrop-filter: blur(2px);
+          transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+          opacity: 0;
+          visibility: hidden;
+          pointer-events: none;
+        }
+        .research-drawer-backdrop.research-drawer-backdrop--open {
+          opacity: 1;
+          visibility: visible;
+          pointer-events: auto;
+        }
+        .research-drawer-toggle {
+          display: none;
+          position: fixed;
+          right: 0;
+          top: 50%;
+          transform: translateY(-50%);
+          z-index: 410;
+          width: 44px;
+          min-width: 44px;
+          height: 48px;
+          min-height: 44px;
+          padding: 0 4px 0 2px;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255, 255, 255, 0.22);
+          border-right: none;
+          border-radius: 12px 0 0 12px;
+          background: rgba(14, 18, 32, 0.52);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          color: #e8f0ff;
+          font-size: 1.1rem;
+          line-height: 1;
+          cursor: pointer;
+          touch-action: manipulation;
+          box-shadow: -4px 0 18px rgba(0, 0, 0, 0.35);
+        }
+        #appLayout:not(.hidden) .research-drawer-toggle {
+          display: inline-flex;
         }
         .phone-frame {
           width: 100%;
@@ -343,6 +419,28 @@
         }
         .top-progress-stack {
           width: min(96vw, 100%);
+        }
+        #researchCapture .log-preview {
+          max-height: min(40vh, 320px);
+        }
+        .modal {
+          z-index: 450;
+        }
+      }
+
+      @media (min-width: 901px) {
+        #appLayout.sidebar-collapsed .sidebar-right {
+          transform: none !important;
+          pointer-events: auto !important;
+        }
+        .research-drawer-toggle {
+          display: none !important;
+        }
+        .research-drawer-backdrop {
+          display: none !important;
+          pointer-events: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
         }
       }
 
@@ -2069,6 +2167,9 @@
         border-color: rgba(255, 215, 120, 0.7) !important;
         color: #2b1704 !important;
       }
+      .shop-item button.tutorial-free {
+        box-shadow: 0 0 0 2px rgba(120, 220, 160, 0.55), 0 4px 14px rgba(0, 0, 0, 0.25);
+      }
 
       .village-asset {
         position: absolute;
@@ -3644,7 +3745,22 @@
         </aside>
       </div>
       </div>
+      <button
+        type="button"
+        id="researchDrawerToggle"
+        class="research-drawer-toggle"
+        aria-label="Open research and stats"
+        aria-expanded="false"
+        title="Data"
+      >
+        📊
+      </button>
     </div>
+    <div
+      id="researchDrawerBackdrop"
+      class="research-drawer-backdrop"
+      aria-hidden="true"
+    ></div>
     <div id="cfgLabel" class="cfg-label">CFG: -</div>
     <div id="cloudOverlay" aria-hidden="true">
       <div class="cloud-layer layer-1"></div>
@@ -3882,6 +3998,101 @@
         const cfgLabelEl = document.getElementById("cfgLabel");
         const landingPageEl = document.getElementById("landingPage");
         const appLayoutEl = document.getElementById("appLayout");
+        const researchDrawerBackdropEl = document.getElementById("researchDrawerBackdrop");
+        const researchDrawerToggleEl = document.getElementById("researchDrawerToggle");
+        let researchDrawerLastViewportWide = null;
+
+        function isResearchDrawerMobile() {
+          return window.matchMedia("(max-width: 900px)").matches;
+        }
+
+        function syncResearchDrawerUI() {
+          const app = appLayoutEl;
+          const bd = researchDrawerBackdropEl;
+          const btn = researchDrawerToggleEl;
+          if (!app || app.classList.contains("hidden")) {
+            if (bd) {
+              bd.classList.remove("research-drawer-backdrop--open");
+              bd.setAttribute("aria-hidden", "true");
+            }
+            if (btn) {
+              btn.setAttribute("aria-expanded", "false");
+              btn.setAttribute("aria-label", "Open research and stats");
+            }
+            return;
+          }
+          if (!isResearchDrawerMobile()) {
+            if (bd) {
+              bd.classList.remove("research-drawer-backdrop--open");
+              bd.setAttribute("aria-hidden", "true");
+            }
+            if (btn) {
+              btn.setAttribute("aria-expanded", "false");
+              btn.setAttribute("aria-label", "Open research and stats");
+            }
+            return;
+          }
+          const collapsed = app.classList.contains("sidebar-collapsed");
+          const open = !collapsed;
+          if (bd) {
+            if (open) {
+              bd.classList.add("research-drawer-backdrop--open");
+              bd.setAttribute("aria-hidden", "false");
+            } else {
+              bd.classList.remove("research-drawer-backdrop--open");
+              bd.setAttribute("aria-hidden", "true");
+            }
+          }
+          if (btn) {
+            btn.setAttribute("aria-expanded", open ? "true" : "false");
+            btn.setAttribute(
+              "aria-label",
+              open ? "Close research and stats" : "Open research and stats"
+            );
+          }
+        }
+
+        function syncResearchDrawerViewport() {
+          if (!appLayoutEl || appLayoutEl.classList.contains("hidden")) {
+            researchDrawerLastViewportWide = null;
+            syncResearchDrawerUI();
+            return;
+          }
+          const wide = !isResearchDrawerMobile();
+          if (wide) {
+            appLayoutEl.classList.remove("sidebar-collapsed");
+          } else if (researchDrawerLastViewportWide === true) {
+            appLayoutEl.classList.add("sidebar-collapsed");
+          }
+          researchDrawerLastViewportWide = wide;
+          syncResearchDrawerUI();
+        }
+
+        function initResearchDrawerAfterGameShow() {
+          if (!appLayoutEl || appLayoutEl.classList.contains("hidden")) return;
+          researchDrawerLastViewportWide = !isResearchDrawerMobile();
+          if (isResearchDrawerMobile()) {
+            appLayoutEl.classList.add("sidebar-collapsed");
+          } else {
+            appLayoutEl.classList.remove("sidebar-collapsed");
+          }
+          syncResearchDrawerUI();
+        }
+
+        function onResearchDrawerToggleClick() {
+          if (!isResearchDrawerMobile() || !appLayoutEl) return;
+          appLayoutEl.classList.toggle("sidebar-collapsed");
+          syncResearchDrawerUI();
+        }
+
+        function onResearchDrawerBackdropClick() {
+          if (!isResearchDrawerMobile() || !appLayoutEl) return;
+          if (!appLayoutEl.classList.contains("sidebar-collapsed")) {
+            appLayoutEl.classList.add("sidebar-collapsed");
+            syncResearchDrawerUI();
+          }
+        }
+
         const consentStartBtn = document.getElementById("consentStartBtn");
 
         const gameState = { shields: 0, condition: "A", isRaidActive: false, energy: 0, spins: 0, currentRivalName: "", xp: 0, level: 1 };
@@ -3952,9 +4163,10 @@
           };
         }
         function calculateUpgradeCost(buildingName, currentStars) {
+          const stars = Math.max(0, Number(currentStars) || 0);
+          if (isCastleTutorialFreeStar(buildingName, stars)) return 0;
           const buildings = (getConditionEconomy() && getConditionEconomy().buildings) || {};
           const model = buildings[buildingName];
-          const stars = Math.max(0, Number(currentStars) || 0);
           const baseCost = model ? Number(model.baseCost) : 100;
           const multiplier = model ? Number(model.multiplier) : 1.4;
           if (!Number.isFinite(baseCost) || !Number.isFinite(multiplier)) {
@@ -4062,6 +4274,16 @@
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
         const miniTutorial = { active: false, step: 0 };
+
+        function isCastleTutorialFreeStar(item, currentStars) {
+          if (item !== "Castle") return false;
+          const stars = Math.max(0, Number(currentStars) || 0);
+          if (stars !== 0) return false;
+          return (
+            (miniTutorial.active && miniTutorial.step === 4) ||
+            tutorialStep === 4
+          );
+        }
 
         const SYMBOLS = [
           { name: "Hammer", icon: "hammer", weight: 16, base: 0 },
@@ -4589,6 +4811,7 @@
           if (tutorialOverlayEl && tutorialStep <= 0) tutorialOverlayEl.style.pointerEvents = "none";
 
           logEvent("game_start", { initialSpins: energy, initialCoins: coins, condition: gameState.condition });
+          initResearchDrawerAfterGameShow();
           initTutorial();
         }
         function handleConsent() {
@@ -4785,11 +5008,12 @@
           const setShopState = (item, btn, costEl) => {
             if (!btn || !costEl) return;
             const current = villageProgress[item] || 0;
-            const isFreeCastleTutorial = item === "Castle" && ((miniTutorial.active && miniTutorial.step === 4) || tutorialStep === 4);
+            const isFreeCastleTutorial = isCastleTutorialFreeStar(item, current);
             if (current >= 5) {
               btn.disabled = true;
               btn.textContent = "MAX";
               btn.classList.add("max-btn");
+              btn.classList.remove("tutorial-free");
               costEl.textContent = "Cost: MAX";
               costEl.classList.remove("poor");
               costEl.classList.remove("rich");
@@ -4799,6 +5023,7 @@
             const cost = isFreeCastleTutorial ? 0 : calculateUpgradeCost(item, current);
             const canAfford = coins >= cost;
             btn.disabled = (!canAfford && !isFreeCastleTutorial) || isVillageCelebrating;
+            btn.classList.toggle("tutorial-free", isFreeCastleTutorial);
             btn.textContent = "Add Star";
             costEl.textContent = isFreeCastleTutorial ? "Cost: FREE" : `Cost: ${formatNumber(cost)} Coins`;
             if (isFreeCastleTutorial) {
@@ -5937,11 +6162,11 @@
         function openShopModal() {
           if (!shopModalEl) return;
           shopModalEl.classList.remove("hidden");
-          updateUI();
           if (miniTutorial.active && miniTutorial.step === 3) {
             miniTutorial.step = 4;
             renderMiniTutorialStep(4);
           }
+          updateUI();
         }
         function openShop() {
           console.log("Shop clicked");
@@ -5981,7 +6206,7 @@
             setStatus(`${item} is already max stars.`, false);
             return;
           }
-          const isFreeCastleTutorial = item === "Castle" && ((miniTutorial.active && miniTutorial.step === 4) || tutorialStep === 4);
+          const isFreeCastleTutorial = isCastleTutorialFreeStar(item, current);
           const cost = isFreeCastleTutorial ? 0 : calculateUpgradeCost(item, current);
           if (coins < cost) {
             setStatus("Not enough coins.", true);
@@ -6160,8 +6385,13 @@
           setupListener("tutorialContinueBtn", onTutorialContinueClick);
           setupListener("skipTutorialBtn", onSkipTutorialClick);
           setupListener("miniTutorialPlayBtn", onMiniTutorialPlayClick);
+          setupListener("researchDrawerToggle", onResearchDrawerToggleClick);
+          if (researchDrawerBackdropEl) {
+            researchDrawerBackdropEl.addEventListener("click", onResearchDrawerBackdropClick);
+          }
           window.addEventListener("resize", function () {
             if (tutorialStep > 0) renderTutorialStep(tutorialStep);
+            syncResearchDrawerViewport();
           });
         });
       })();
