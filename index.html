@@ -4435,6 +4435,25 @@
           }
           return Math.max(1, Math.round(baseCost * Math.pow(multiplier, stars)));
         }
+        window.appVersion = "0.0.0-fallback";
+        window.__appVersionLoaded = false;
+        async function loadAppVersionConfig() {
+          try {
+            const res = await fetch("game-events.json", { cache: "no-store" });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const parsed = await res.json();
+            const versionFromConfig =
+              parsed && typeof parsed.currentAppVersion === "string"
+                ? parsed.currentAppVersion.trim()
+                : "";
+            window.appVersion = versionFromConfig || "0.0.0-fallback";
+          } catch (err) {
+            window.appVersion = "0.0.0-fallback";
+            console.warn("Using fallback app version:", err);
+          } finally {
+            window.__appVersionLoaded = true;
+          }
+        }
         async function loadGameEconomy() {
           try {
             const res = await fetch("game-economy.json", { cache: "no-store" });
@@ -5110,6 +5129,7 @@
             coins,
             spins: gameState.energy,
             villageId: gameState.villageId,
+            appVersion: String(window.appVersion || "0.0.0-fallback"),
             totalStars,
             villageProgress,
           };
@@ -5135,8 +5155,6 @@
         }
         window.runStressTest = runStressTest;
 
-        const APP_VERSION = "1.0.2"; // Manual update point for research/app versioning.
-
         function detectPlatformFromUserAgent() {
           const ua =
             typeof navigator !== "undefined" && navigator.userAgent
@@ -5149,7 +5167,7 @@
 
         async function initUserProperties() {
           window.userProperties = {
-            version: APP_VERSION,
+            version: String(window.appVersion || "0.0.0-fallback"),
             platform: detectPlatformFromUserAgent(),
             countryCode: "unknown",
             condition: gameState.condition,
@@ -5310,6 +5328,9 @@
         window.getSuperProperties = getSuperProperties;
         async function startGameAfterConsent() {
           if (gameBooted) return;
+          if (!window.__appVersionLoaded) {
+            await loadAppVersionConfig();
+          }
           gameBooted = true;
           EXPERIMENT_CONDITION = assignExperimentCondition();
           gameState.condition = EXPERIMENT_CONDITION;
@@ -7097,6 +7118,7 @@
           if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.remove("hidden");
         }
         document.addEventListener("DOMContentLoaded", async () => {
+          await loadAppVersionConfig();
           await loadGameEconomy();
           GAME_CONFIG = getGameConfig();
           MAX_ENERGY = GAME_CONFIG.maxEnergy;

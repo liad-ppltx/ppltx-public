@@ -5,6 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
+  "currentAppVersion": "1.0.2",
   "source": "index.html",
 
   "getSuperProperties": {
