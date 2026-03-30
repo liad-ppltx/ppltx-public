@@ -453,7 +453,7 @@
       }
       #raidBoard {
         position: relative;
-        z-index: 600;
+        z-index: 10000;
         pointer-events: auto !important;
       }
       #raidBoard.raid-board-cracked {
@@ -472,6 +472,7 @@
         align-items: center;
         justify-content: center;
         gap: 4px;
+        z-index: 10000;
       }
       .raid-dig-cell.raid-dug {
         filter: saturate(0.7) brightness(0.88);
@@ -5623,7 +5624,15 @@
           updateVillageVisuals();
           finalizeVillageProgress();
         }
-        async function resolveAttackMode() {
+        function resetRivalModeState() {
+          raidSession = null;
+          gameState.isRaidActive = false;
+          document.body.classList.remove("raid-active");
+          if (raidModalEl) raidModalEl.classList.add("hidden");
+        }
+
+        async function openAttackModal() {
+          resetRivalModeState();
           const targetUserId = "bot";
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
@@ -5739,7 +5748,7 @@
             travelMessage: raidSession.travelMessage,
             reward: raidSession.totalStolen,
             totalStolen: raidSession.totalStolen,
-            perfectRaid: true,
+            perfect: raidSession.totalStolen >= 1100000,
             detailedResult: `Raid complete on ${raidSession.rivalName}: stole ${formatNumber(raidSession.totalStolen)} coins.`,
             detailedResultTag: `Raid_Complete_${raidSession.rivalName}`,
           });
@@ -5753,13 +5762,14 @@
           await triggerTravelSequence(false);
         }
 
-        async function openRaidMode() {
+        async function openRaidStealModal() {
           if (!raidModalEl || !raidBoardEl) return;
+          resetRivalModeState();
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
           const maxRaidAmount = getPayoutValue("raid_base", 100000);
           if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `COIN STEAL from ${rivalName}`;
-          if (raidModalTitleEl) raidModalTitleEl.textContent = `COIN STEAL from ${rivalName}`;
+          if (raidModalTitleEl) raidModalTitleEl.textContent = "COIN STEAL! Dig for Treasure";
           if (raidInstructionEl) {
             raidInstructionEl.textContent = "Click a location to dig for treasure! (Shovels: 3/3)";
           }
@@ -6389,9 +6399,9 @@
             setStatus("Shield forged! Your defenses are empowered.", false);
             refreshShieldOrbitVisuals();
           } else if (actionTriggered === "attack") {
-            await resolveAttackMode();
+            await openAttackModal();
           } else if (actionTriggered === "raid") {
-            await openRaidMode();
+            await openRaidStealModal();
           }
           maybeBotCounterAttack();
 
