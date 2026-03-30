@@ -5482,10 +5482,10 @@
             Number.isFinite(o.farmLevelAfter) &&
             o.farmLevelAfter >= MAX_LEVEL;
           const castleStageMax = !!o.castleStageMaxed;
-          const action =
+          const status =
             villageMaxStars || cannonMax || farmMax || castleStageMax ? "max" : "success";
           const payload = {
-            action,
+            status,
             building: item,
             levelAfter,
             cost: Math.max(0, Number(cost || 0)),
@@ -5498,7 +5498,7 @@
           if (o.castleStageBefore !== undefined) payload.castleStageBefore = o.castleStageBefore;
           if (o.castleStageAfter !== undefined) payload.castleStageAfter = o.castleStageAfter;
           if (o.wallUnlockPurchase) payload.source = "wall_unlock_purchase";
-          logEvent("building_action", payload);
+          logEvent("building_upgrade", payload);
           const targetMap = {
             Castle: castleVisualEl || castleEl,
             Cannon: cannonVisualEl || cannonEl,
@@ -6320,8 +6320,8 @@
           // Level gating: cannot exceed castle stage.
           if (before >= stage) {
             setStatus("Upgrade Castle first!", true);
-            logEvent("building_action", {
-              action: "failure",
+            logEvent("building_upgrade", {
+              status: "failure",
               building: "Cannon",
               reason: "capped_by_castle",
               levelBefore: before,
@@ -6334,8 +6334,8 @@
 
           if (coins < cost) {
             setStatus("Not enough coins to upgrade cannon.", true);
-            logEvent("building_action", {
-              action: "failure",
+            logEvent("building_upgrade", {
+              status: "failure",
               building: "Cannon",
               reason: "not_enough_coins",
               levelBefore: before,
@@ -6369,8 +6369,8 @@
 
           if (!hasWall) {
             setStatus("Buy the Iron Wall in the Shop first.", true);
-            logEvent("building_action", {
-              action: "failure",
+            logEvent("building_upgrade", {
+              status: "failure",
               building: "Statue",
               reason: "wall_not_owned",
               levelBefore: before,
@@ -6383,8 +6383,8 @@
           // Level cap: wallLevel cannot exceed castle stage.
           if (wallLevel >= stage) {
             setStatus("Upgrade Castle first!", true);
-            logEvent("building_action", {
-              action: "failure",
+            logEvent("building_upgrade", {
+              status: "failure",
               building: "Farm",
               reason: "capped_by_castle",
               levelBefore: before,
@@ -6395,8 +6395,8 @@
           }
 
           if (wallLevel >= MAX_LEVEL) {
-            logEvent("building_action", {
-              action: "failure",
+            logEvent("building_upgrade", {
+              status: "failure",
               building: "Farm",
               reason: "already_max",
               levelBefore: before,
@@ -6409,8 +6409,8 @@
 
           if (coins < cost) {
             setStatus("Not enough coins to upgrade wall.", true);
-            logEvent("building_action", {
-              action: "failure",
+            logEvent("building_upgrade", {
+              status: "failure",
               building: "Farm",
               reason: "not_enough_coins",
               levelBefore: before,

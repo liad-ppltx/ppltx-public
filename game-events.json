@@ -120,10 +120,10 @@
         "consent": { "type": "boolean", "required": true, "description": "true on normal consent path" }
       }
     },
-    "building_action": {
-      "description": "Village stars, island cannon/wall/castle upgrades, failures, and wall unlock purchase.",
+    "building_upgrade": {
+      "description": "Triggered when a player attempts to add a star to a village building.",
       "properties": {
-        "action": { "type": "ActionResult", "required": true },
+        "status": { "type": "ActionResult", "required": true },
         "building": { "type": "BuildingId", "required": true, "description": "Strict canonical building ids only" },
         "levelAfter": { "type": "number", "required": false, "description": "Usually absent on failure" },
         "cost": { "type": "number", "required": false },
@@ -256,7 +256,7 @@
 
   "eventNames": [
     "audit_stress_test",
-    "building_action",
+    "building_upgrade",
     "energy_update",
     "island_travel",
     "player_level_up",
