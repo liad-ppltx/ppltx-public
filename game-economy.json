@@ -1,11 +1,19 @@
 {
   "condition_A": {
-    "initialEnergy": 10,
-    "maxEnergy": 10,
+    "initialSpins": 10,
+    "maxSpins": 10,
     "refillMinutes": 5,
-    "villageCompleteReward": { "coins": 500000, "energy": 20 },
+    "villageCompleteReward": { "coins": 500000, "spins": 20 },
+    "xpSettings": {
+      "xpPerSpin": 5,
+      "xpPerAttack": 50,
+      "xpPerRaid": 100,
+      "xpPerUpgrade": 500,
+      "baseXpRequired": 1000,
+      "xpMultiplierPerLevel": 1.2
+    },
     "slotWeights": {
-      "hammer": 20, "pig": 2, "shield": 3, "coin": 7, "bag": 6, "energy": 1
+      "hammer": 2, "pig": 200, "shield": 3, "coin": 7, "bag": 6, "spins": 1
     },
     "payouts": {
       "coin_single": 1000,
@@ -13,7 +21,7 @@
       "raid_base": 100000,
       "attack_hit": 150000,
       "attack_blocked": 50000,
-      "energy_triple": 10
+      "spins_triple": 10
     },
     "buildings": {
       "Boat":   { "baseCost": 5000,   "multiplier": 1.5 },
@@ -24,12 +32,20 @@
     }
   },
   "condition_B": {
-    "initialEnergy": 20,
-    "maxEnergy": 20,
+    "initialSpins": 20,
+    "maxSpins": 20,
     "refillMinutes": 3,
-    "villageCompleteReward": { "coins": 1000000, "energy": 50 },
+    "villageCompleteReward": { "coins": 1000000, "spins": 50 },
+    "xpSettings": {
+      "xpPerSpin": 20,
+      "xpPerAttack": 150,
+      "xpPerRaid": 300,
+      "xpPerUpgrade": 1500,
+      "baseXpRequired": 500,
+      "xpMultiplierPerLevel": 1.1
+    },
     "slotWeights": {
-      "hammer": 5, "pig": 5, "shield": 2, "coin": 4, "bag": 4, "energy": 3
+      "hammer": 5, "pig": 5, "shield": 2, "coin": 4, "bag": 4, "spins": 3
     },
     "payouts": {
       "coin_single": 2500,
@@ -37,7 +53,7 @@
       "raid_base": 300000,
       "attack_hit": 400000,
       "attack_blocked": 100000,
-      "energy_triple": 20
+      "spins_triple": 20
     },
     "buildings": {
       "Boat":   { "baseCost": 3000,   "multiplier": 1.3 },
