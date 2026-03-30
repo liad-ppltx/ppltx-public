@@ -107,8 +107,7 @@
     "BuildingId": "Castle | Cannon | Statue | Farm | Boat",
     "ActionResult": "success | failure | max",
     "EnergyKind": "refill | depleted_modal | dev_refill",
-    "TravelPhase": "started | ended",
-    "RivalType": "attack"
+    "TravelPhase": "started | ended"
   },
 
   "events": {
@@ -160,45 +159,35 @@
         "reactionTimeMs": { "type": "number", "required": true }
       }
     },
-    "rival_interaction": {
-      "description": "Attack resolution.",
+    "attack_start": {
+      "description": "Attack flow started after triple hammers.",
       "properties": {
-        "type": { "type": "RivalType", "required": true }
-      },
-      "variants": {
-        "attack": {
-          "when": "type === \"attack\"",
-          "properties": {
-            "targetUserId": { "type": "string", "required": true },
-            "result": { "type": "string", "required": true },
-            "reward": { "type": "number", "required": true },
-            "buildingName": { "type": "string", "required": true },
-            "rivalName": { "type": "string", "required": true },
-            "detailedResult": { "type": "string", "required": true },
-            "detailedResultTag": { "type": "string", "required": true }
-          }
-        }
+        "targetName": { "type": "string", "required": true },
+        "targetUserId": { "type": "string", "required": true }
+      }
+    },
+    "attack_end": {
+      "description": "Attack flow resolved after target selection.",
+      "properties": {
+        "targetName": { "type": "string", "required": true },
+        "result": { "type": "string", "required": true, "enum": ["hit", "blocked"] },
+        "reward": { "type": "number", "required": true },
+        "buildingName": { "type": "string", "required": true }
       }
     },
     "raid_start": {
-      "description": "Raid mode entered after travel to rival island.",
+      "description": "Raid mode entered after triple pigs.",
       "properties": {
         "rivalName": { "type": "string", "required": true },
-        "maxRaidAmount": { "type": "number", "required": true },
-        "travelMessage": { "type": "string", "required": true },
-        "shovels": { "type": "number", "required": true }
+        "maxPossible": { "type": "number", "required": true }
       }
     },
     "raid_end": {
-      "description": "Raid result after all shovel digs are consumed.",
+      "description": "Raid result after the third dig.",
       "properties": {
-        "rivalName": { "type": "string", "required": true },
-        "maxRaidAmount": { "type": "number", "required": true },
-        "travelMessage": { "type": "string", "required": true },
-        "reward": { "type": "number", "required": true },
+        "totalStolen": { "type": "number", "required": true },
         "perfectRaid": { "type": "boolean", "required": true },
-        "detailedResult": { "type": "string", "required": true },
-        "detailedResultTag": { "type": "string", "required": true }
+        "reward": { "type": "number", "required": false, "description": "Optional compatibility mirror of totalStolen" }
       }
     },
     "energy_update": {
@@ -256,13 +245,14 @@
 
   "eventNames": [
     "audit_stress_test",
+    "attack_end",
+    "attack_start",
     "building_upgrade",
     "energy_update",
     "island_travel",
     "player_level_up",
     "raid_end",
     "raid_start",
-    "rival_interaction",
     "session_start",
     "spin",
     "tutorial_progress",

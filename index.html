@@ -4347,6 +4347,7 @@
           shields: 0,
           condition: "A",
           isRaidActive: false,
+          mode: "slots",
           energy: 0,
           spins: 0,
           coins: 0,
@@ -5688,11 +5689,54 @@
           if (raidModalEl) raidModalEl.classList.add("hidden");
         }
 
+        function renderSlotMachine() {
+          if (!Array.isArray(reelEls) || reelEls.length < 3) return;
+          const defaults = ["hammer", "pig", "shield"];
+          reelEls.forEach((el, idx) => {
+            if (!el) return;
+            if (!el.innerHTML || !String(el.innerHTML).trim()) {
+              setReelIcon(el, defaults[idx] || "coin_compass");
+            }
+          });
+        }
+
+        function restoreMainGameView() {
+          gameState.mode = "slots";
+          document.body.classList.remove("modal-open");
+          const slotMachineContainer = document.getElementById("slot-machine-container");
+          if (slotMachineContainer) {
+            slotMachineContainer.style.setProperty("display", "block", "important");
+            slotMachineContainer.style.setProperty("visibility", "visible", "important");
+          }
+          const slotMachineArea = document.querySelector(".slot-machine-area");
+          if (slotMachineArea) {
+            slotMachineArea.style.setProperty("display", "block", "important");
+            slotMachineArea.style.setProperty("visibility", "visible", "important");
+          }
+          if (slotModalEl) {
+            slotModalEl.classList.remove("hidden");
+            slotModalEl.style.setProperty("display", "grid", "important");
+            slotModalEl.style.setProperty("visibility", "visible", "important");
+          }
+          const appRoot = document.getElementById("appLayout");
+          if (appRoot) {
+            appRoot.style.display = "";
+            appRoot.style.visibility = "visible";
+          }
+          updateUI();
+          renderSlotMachine();
+        }
+
         async function openAttackModal() {
+          closeAllModals();
           resetRivalModeState();
           const targetUserId = "bot";
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
+          logEvent("attack_start", {
+            targetName: rivalName,
+            targetUserId,
+          });
           if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `${rivalName}'s Ghost Village`;
           setStatus(`Targeting ${rivalName}...`, false);
           await triggerTravelSequence(true);
@@ -5719,21 +5763,19 @@
             ? `BLOCKED! ${rivalName} used a Shield. Still got ${formatNumber(reward)} Coins.`
             : `BOOM! Direct Hit on ${rivalName} for ${formatNumber(reward)} Coins!`;
           setStatus(detailedResult, false);
-          const detailedResultTag = blocked ? `Attack_Blocked_${rivalName}` : `Attack_Hit_${rivalName}`;
-          logEvent("rival_interaction", {
-            type: "attack",
-            targetUserId,
+          logEvent("attack_end", {
+            targetName: rivalName,
             result,
             reward,
             buildingName,
-            rivalName,
-            detailedResult,
-            detailedResultTag,
           });
           gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerAttack) || 0, "attack");
           await sleep(2000);
           await triggerTravelSequence(false);
+          document.querySelectorAll(".attack-modal").forEach((el) => el.remove());
+          document.getElementById("dedicated-raid-modal")?.remove();
           refreshShieldOrbitVisuals();
+          restoreMainGameView();
         }
         function maybeBotCounterAttack() {
           if (Math.random() >= 0.2) return;
@@ -5800,14 +5842,8 @@
           });
 
           logEvent("raid_end", {
-            rivalName: raidSession.rivalName,
-            maxRaidAmount: raidSession.maxRaidAmount,
-            travelMessage: raidSession.travelMessage,
-            reward: raidSession.totalStolen,
             totalStolen: raidSession.totalStolen,
-            perfect: raidSession.totalStolen >= 1100000,
-            detailedResult: `Raid complete on ${raidSession.rivalName}: stole ${formatNumber(raidSession.totalStolen)} coins.`,
-            detailedResultTag: `Raid_Complete_${raidSession.rivalName}`,
+            perfectRaid: raidSession.totalStolen >= 1100000,
           });
 
           gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerRaid) || 0, "raid");
@@ -5823,14 +5859,14 @@
           if (shopModalEl) shopModalEl.classList.add("hidden");
           if (upgradeModalEl) upgradeModalEl.classList.add("hidden");
           if (energyModalEl) energyModalEl.classList.add("hidden");
-          if (slotModalEl) slotModalEl.classList.add("hidden");
           if (raidModalEl) raidModalEl.classList.add("hidden");
           if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.add("hidden");
           document.body.classList.remove("raid-active");
           document.body.classList.remove("rival-mode");
           if (rivalVillageContainerEl) rivalVillageContainerEl.classList.add("hidden");
-          const existingRaid = document.getElementById("dedicated-raid-modal");
-          if (existingRaid && existingRaid.parentNode) existingRaid.parentNode.removeChild(existingRaid);
+          document.getElementById("dedicated-raid-modal")?.remove();
+          document.querySelectorAll(".attack-modal").forEach((el) => el.remove());
+          document.getElementById("shop-modal")?.remove();
         }
 
         async function executeRaidDig(index, ev) {
@@ -5866,15 +5902,16 @@
 
           setStatus("JACKPOT! (+1,000,000)", false);
           logEvent("raid_end", {
-            coins: 500000,
             totalStolen: raidSession.totalStolen,
-            perfect: raidSession.totalStolen >= 1100000,
+            perfectRaid: raidSession.totalStolen >= 1100000,
           });
-          if (modal.parentNode) modal.parentNode.removeChild(modal);
+          console.log("RAID FINISHED - Restoring Slots");
+          const dedicatedModal = document.getElementById("dedicated-raid-modal");
+          if (dedicatedModal) dedicatedModal.remove();
           raidSession = null;
           gameState.isRaidActive = false;
           await triggerTravelSequence(false);
-          updateUI();
+          restoreMainGameView();
           persistState();
         }
         window.executeRaidDig = executeRaidDig;
@@ -5889,8 +5926,7 @@
           await triggerTravelSequence(true);
           logEvent("raid_start", {
             rivalName,
-            shovels: 3,
-            travelMessage,
+            maxPossible: 1100000,
           });
           playRaidSound();
           raidSession = {
@@ -5914,6 +5950,10 @@
             </div>
           `;
           document.body.appendChild(modal);
+        }
+
+        async function openRaidModal() {
+          await initiateRaidFlow();
         }
 
         function animateReelsFast() {
@@ -6507,7 +6547,7 @@
           } else if (actionTriggered === "attack") {
             await openAttackModal();
           } else if (actionTriggered === "raid") {
-            await initiateRaidFlow();
+            await openRaidModal();
           }
           maybeBotCounterAttack();
 
