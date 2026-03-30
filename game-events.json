@@ -8,14 +8,18 @@
   "source": "index.html",
 
   "getSuperProperties": {
-    "description": "Returned from getSuperProperties(); passed as the third argument to saveToFirestore and written as top-level document fields (not inside eventParams).",
+    "description": "Returned from getSuperProperties(); merged from window.userProperties + dynamic fields and written as top-level document fields (not inside eventParams).",
     "properties": {
+      "version": { "type": "string", "source": "APP_VERSION constant in index.html (manual update point)" },
+      "platform": { "type": "string", "enum": ["Mobile", "Tablet", "Desktop"], "source": "navigator.userAgent classification" },
+      "countryCode": { "type": "string", "source": "ipapi country_code; fallback unknown" },
       "userId": { "type": "string", "source": "gameState.userId (initialized from USER_ID)" },
       "condition": { "type": "string", "source": "gameState.condition" },
       "currentLevel": { "type": "number", "source": "gameState.level" },
       "currentVillage": { "type": "number", "source": "gameState.villageId" },
-      "timestamp": { "type": "number", "source": "Date.now() epoch ms — stored as clientTimestampMs on the document" },
-      "platform": { "type": "string", "enum": ["web_mobile", "web_desktop"], "source": "matchMedia (max-width: 768px)" }
+      "timestamp": { "type": "string", "source": "new Date().toISOString() at event time" },
+      "clientTimestampMs": { "type": "number", "source": "Date.now() at event time" },
+      "sessionId": { "type": "string", "source": "window.__researchContext.sessionId" }
     }
   },
 
@@ -48,12 +52,7 @@
         "format": "ISO-8601",
         "source": "new Date().toISOString() at write time (ingest time)"
       },
-      {
-        "name": "eventType",
-        "type": "string",
-        "required": true,
-        "description": "Same as the event key in this file"
-      },
+      { "name": "eventName", "type": "string", "required": true, "description": "Same as the event key in this file" },
       {
         "name": "eventParams",
         "type": "string",
@@ -83,13 +82,25 @@
         "type": "string",
         "required": true,
         "source": "getSuperProperties().platform"
+      },
+      {
+        "name": "countryCode",
+        "type": "string",
+        "required": true,
+        "source": "getSuperProperties().countryCode"
+      },
+      {
+        "name": "version",
+        "type": "string",
+        "required": true,
+        "source": "getSuperProperties().version"
       }
     ]
   },
 
   "superProperties": {
-    "description": "Top-level Firestore fields from getSuperProperties; sessionId stays on __researchContext only.",
-    "list": ["userId", "sessionId", "condition", "timestamp", "eventType", "currentLevel", "currentVillage", "clientTimestampMs", "platform", "eventParams"]
+    "description": "Top-level Firestore fields merged from window.userProperties + dynamic runtime properties.",
+    "list": ["userId", "sessionId", "condition", "timestamp", "eventName", "currentLevel", "currentVillage", "clientTimestampMs", "platform", "countryCode", "version", "eventParams"]
   },
 
   "types": {
@@ -97,7 +108,7 @@
     "ActionResult": "success | failure | max",
     "EnergyKind": "refill | depleted_modal | dev_refill",
     "TravelPhase": "started | ended",
-    "RivalType": "attack | raid"
+    "RivalType": "attack"
   },
 
   "events": {
@@ -150,7 +161,7 @@
       }
     },
     "rival_interaction": {
-      "description": "Attack resolution or raid completion (raid payload includes travel fields).",
+      "description": "Attack resolution.",
       "properties": {
         "type": { "type": "RivalType", "required": true }
       },
@@ -166,19 +177,28 @@
             "detailedResult": { "type": "string", "required": true },
             "detailedResultTag": { "type": "string", "required": true }
           }
-        },
-        "raid": {
-          "when": "type === \"raid\"",
-          "properties": {
-            "rivalName": { "type": "string", "required": true },
-            "maxRaidAmount": { "type": "number", "required": true },
-            "travelMessage": { "type": "string", "required": true },
-            "totalStolen": { "type": "number", "required": true },
-            "perfectRaid": { "type": "boolean", "required": true },
-            "detailedResult": { "type": "string", "required": true },
-            "detailedResultTag": { "type": "string", "required": true }
-          }
         }
+      }
+    },
+    "raid_start": {
+      "description": "Raid mode entered after travel to rival island.",
+      "properties": {
+        "rivalName": { "type": "string", "required": true },
+        "maxRaidAmount": { "type": "number", "required": true },
+        "travelMessage": { "type": "string", "required": true },
+        "shovels": { "type": "number", "required": true }
+      }
+    },
+    "raid_end": {
+      "description": "Raid result after all shovel digs are consumed.",
+      "properties": {
+        "rivalName": { "type": "string", "required": true },
+        "maxRaidAmount": { "type": "number", "required": true },
+        "travelMessage": { "type": "string", "required": true },
+        "totalStolen": { "type": "number", "required": true },
+        "perfectRaid": { "type": "boolean", "required": true },
+        "detailedResult": { "type": "string", "required": true },
+        "detailedResultTag": { "type": "string", "required": true }
       }
     },
     "energy_update": {
@@ -240,6 +260,8 @@
     "energy_update",
     "island_travel",
     "player_level_up",
+    "raid_end",
+    "raid_start",
     "rival_interaction",
     "session_start",
     "slot_action",

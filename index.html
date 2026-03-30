@@ -3480,10 +3480,10 @@
       console.log("Targeting database: mt-game in project: ppltx-project-dev");
 
       // Unified BigQuery-friendly logger:
-      // saveToFirestore(eventType, eventParams, superProps)
+      // saveToFirestore(eventName, eventParams, superProps)
       // eventParams = JSON string of event-only fields (no user/condition/level duplication).
       // Super properties are top-level columns (merged with __researchContext for ids).
-      window.saveToFirestore = async function (eventType, eventParams, superProps) {
+      window.saveToFirestore = async function (eventName, eventParams, superProps) {
         const ctx = (window.__researchContext && typeof window.__researchContext === "object")
           ? window.__researchContext
           : {};
@@ -3498,15 +3498,17 @@
 
         const data = {
           userId: String(sp.userId || ctx.userId || ""),
-          sessionId: String(ctx.sessionId || ""),
+          sessionId: String(sp.sessionId || ctx.sessionId || ""),
           condition: String(sp.condition || ctx.condition || ""),
-          timestamp: new Date().toISOString(),
-          eventType: String(eventType || ""),
+          timestamp: String(sp.timestamp || new Date().toISOString()),
+          eventName: String(eventName || ""),
           eventParams: eventParamsStr,
           currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : 0,
           currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : 0,
-          clientTimestampMs: Number.isFinite(Number(sp.timestamp)) ? Math.round(Number(sp.timestamp)) : Date.now(),
+          clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
           platform: String(sp.platform || ""),
+          countryCode: String(sp.countryCode || "unknown"),
+          version: String(sp.version || ""),
         };
 
         if (typeof window.__appendVisualLog === "function") {
@@ -4990,12 +4992,40 @@
             hasAddStar: typeof window.addStar === "function",
           };
           logEvent("audit_stress_test", checks);
-          if (typeof window.__appendVisualLog === "function") {
-            window.__appendVisualLog({ eventType: "audit_stress_test", ...checks });
-          }
           return checks;
         }
         window.runStressTest = runStressTest;
+
+        const APP_VERSION = "1.0.2"; // Manual update point for research/app versioning.
+
+        function detectPlatformFromUserAgent() {
+          const ua =
+            typeof navigator !== "undefined" && navigator.userAgent
+              ? String(navigator.userAgent).toLowerCase()
+              : "";
+          if (/ipad|tablet|playbook|silk|(android(?!.*mobile))/i.test(ua)) return "Tablet";
+          if (/mobi|iphone|ipod|android|windows phone/i.test(ua)) return "Mobile";
+          return "Desktop";
+        }
+
+        async function initUserProperties() {
+          window.userProperties = {
+            version: APP_VERSION,
+            platform: detectPlatformFromUserAgent(),
+            countryCode: "unknown",
+            condition: gameState.condition,
+            userId: gameState.userId,
+          };
+          try {
+            const response = await fetch("https://ipapi.co/json/");
+            if (!response.ok) throw new Error(`ipapi_status_${response.status}`);
+            const payload = await response.json();
+            const rawCode = payload && payload.country_code ? String(payload.country_code) : "";
+            window.userProperties.countryCode = rawCode ? rawCode.toUpperCase() : "unknown";
+          } catch (e) {
+            window.userProperties.countryCode = "unknown";
+          }
+        }
 
         // Expose research context for the unified logger
         window.__researchContext = {
@@ -5005,34 +5035,38 @@
         };
 
         function getSuperProperties() {
+          const baseProps =
+            window.userProperties && typeof window.userProperties === "object" ? window.userProperties : {};
           return {
-            userId: gameState.userId,
-            condition: gameState.condition,
+            ...baseProps,
+            userId: gameState.userId || baseProps.userId || window.__researchContext.userId,
+            condition: gameState.condition || baseProps.condition || window.__researchContext.condition,
             currentLevel: gameState.level,
             currentVillage: gameState.villageId,
-            timestamp: Date.now(),
-            platform:
-              typeof window !== "undefined" &&
-              window.matchMedia &&
-              window.matchMedia("(max-width: 768px)").matches
-                ? "web_mobile"
-                : "web_desktop",
+            timestamp: new Date().toISOString(),
+            clientTimestampMs: Date.now(),
+            sessionId: window.__researchContext.sessionId,
           };
         }
 
-        function logEvent(eventType, params) {
+        function logEvent(eventName, params) {
           if (typeof window.saveToFirestore === "function") {
-            window.saveToFirestore(eventType, params || {}, getSuperProperties());
+            const mergedSuperProps = {
+              ...(window.userProperties && typeof window.userProperties === "object" ? window.userProperties : {}),
+              ...getSuperProperties(),
+            };
+            window.saveToFirestore(eventName, params || {}, mergedSuperProps);
           }
         }
         window.logEvent = logEvent;
         window.getSuperProperties = getSuperProperties;
-        function startGameAfterConsent() {
+        async function startGameAfterConsent() {
           if (gameBooted) return;
           gameBooted = true;
           EXPERIMENT_CONDITION = assignExperimentCondition();
           gameState.condition = EXPERIMENT_CONDITION;
           window.__researchContext.condition = gameState.condition;
+          initUserProperties();
           GAME_CONFIG = getGameConfig();
           MAX_ENERGY = GAME_CONFIG.maxEnergy;
           ENERGY_REFILL_INTERVAL_MS = Math.max(60000, GAME_CONFIG.refillMinutes * 60 * 1000);
@@ -5066,8 +5100,11 @@
           initResearchDrawerAfterGameShow();
           initTutorial();
         }
+        async function initGame() {
+          await startGameAfterConsent();
+        }
         function handleConsent() {
-          startGameAfterConsent();
+          initGame();
         }
 
         function upgradeCostForStage(s) {
@@ -5564,6 +5601,12 @@
           const travelMessage = `Traveling to ${rivalName}'s Island...`;
           setStatus(travelMessage, false);
           await triggerTravelSequence(true);
+          logEvent("raid_start", {
+            rivalName,
+            maxRaidAmount,
+            travelMessage,
+            shovels: 3,
+          });
           playRaidSound();
           gameState.isRaidActive = true;
           raidModalEl.classList.remove("hidden");
@@ -5599,8 +5642,7 @@
                 const perfectRaid = totalStolen >= 780;
                 const detailedResult = `Raid complete on ${rivalName}: stole ${formatNumber(totalStolen)} coins.`;
                 const detailedResultTag = `Raid_Complete_${rivalName}`;
-                logEvent("rival_interaction", {
-                  type: "raid",
+                logEvent("raid_end", {
                   rivalName,
                   maxRaidAmount,
                   travelMessage,
