@@ -445,22 +445,27 @@
       }
 
       #raidModal {
-        z-index: 26000 !important;
+        z-index: 600 !important;
       }
       #raidModal .modal-sheet {
         position: relative;
-        z-index: 26001;
+        z-index: 601;
+      }
+      #raidBoard {
+        position: relative;
+        z-index: 600;
+        pointer-events: auto !important;
       }
       #raidBoard.raid-board-cracked {
         animation: raid-board-crack 320ms ease-out;
       }
-      .raid-target,
-      .raid-target *,
-      .raid-target__label,
-      .raid-target__icon {
+      .raid-dig-cell,
+      .raid-dig-cell *,
+      .raid-dig-label,
+      .raid-dig-icon {
         pointer-events: auto !important;
       }
-      .raid-target {
+      .raid-dig-cell {
         min-height: 78px;
         display: flex;
         flex-direction: column;
@@ -468,10 +473,10 @@
         justify-content: center;
         gap: 4px;
       }
-      .raid-target.raid-dug {
+      .raid-dig-cell.raid-dug {
         filter: saturate(0.7) brightness(0.88);
       }
-      .raid-target.raid-treasure {
+      .raid-dig-cell.raid-treasure {
         animation: raid-treasure-pop 540ms ease-out;
       }
       @keyframes raid-board-crack {
@@ -3798,26 +3803,18 @@
       <div id="raidModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Raid mode">
         <div class="modal-sheet panel-stone">
           <div class="modal-header">
-            <div class="modal-title" id="raidModalTitle">Coin Steal</div>
+            <div class="modal-title" id="raidModalTitle">COIN STEAL</div>
             <button id="collectRaidBtn" type="button" class="secondary metal-btn hidden">COLLECT & EXIT</button>
           </div>
           <div id="raidInstruction" style="text-align:center; color:#eaf1ff; font-size:0.85rem; margin-top:8px;">
-            Dig up the 3 hidden treasure chests to steal coins!
+            Click a location to dig for treasure! (Shovels: 3/3)
           </div>
-          <div id="raidInfo" style="text-align:center; color:#dce7ff; margin-top:8px;">Shovels Left: 3/3</div>
-          <div id="raidBoard" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin:14px 0; padding:10px; border-radius:14px; background: radial-gradient(circle at 50% 20%, rgba(130,180,255,.24), transparent 55%), linear-gradient(180deg, rgba(40,35,55,.92), rgba(12,10,22,.96)); border:1px solid rgba(200,220,255,.18);">
-            <button class="secondary wood-metal raid-target" data-building="Cannon">
-              <span class="raid-target__icon">💣</span>
-              <span class="raid-target__label">Cannon</span>
-            </button>
-            <button class="secondary wood-metal raid-target" data-building="Castle">
-              <span class="raid-target__icon">🏰</span>
-              <span class="raid-target__label">Castle</span>
-            </button>
-            <button class="secondary wood-metal raid-target" data-building="Statue">
-              <span class="raid-target__icon">🗿</span>
-              <span class="raid-target__label">Statue</span>
-            </button>
+          <div id="raidInfo" style="text-align:center; color:#dce7ff; margin-top:8px;">Ready to steal!</div>
+          <div id="raidBoard" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin:14px 0; padding:10px; border-radius:14px; background: radial-gradient(circle at 50% 20%, rgba(130,180,255,.24), transparent 55%), linear-gradient(180deg, rgba(40,35,55,.92), rgba(12,10,22,.96)); border:1px solid rgba(200,220,255,.18);">
+            <button class="secondary wood-metal raid-dig-cell" data-slot="A"><span class="raid-dig-icon">🟫</span><span class="raid-dig-label">A</span></button>
+            <button class="secondary wood-metal raid-dig-cell" data-slot="B"><span class="raid-dig-icon">🟫</span><span class="raid-dig-label">B</span></button>
+            <button class="secondary wood-metal raid-dig-cell" data-slot="C"><span class="raid-dig-icon">🟫</span><span class="raid-dig-label">C</span></button>
+            <button class="secondary wood-metal raid-dig-cell" data-slot="D"><span class="raid-dig-icon">🟫</span><span class="raid-dig-label">D</span></button>
           </div>
         </div>
       </div>
@@ -4294,6 +4291,7 @@
           isRaidActive: false,
           energy: 0,
           spins: 0,
+          coins: 0,
           currentRivalName: "",
           xp: 0,
           level: 1,
@@ -4458,6 +4456,7 @@
         let spinIndex = 0;
         let lastSpinAtMs = null;
         let shields = 0;
+        let raidSession = null;
         let totalSpinsToComplete = 0;
         let villageStartedAtMs = Date.now();
         let isVillageCelebrating = false;
@@ -4726,6 +4725,7 @@
           return RIVAL_BOTS[Math.floor(Math.random() * RIVAL_BOTS.length)];
         }
         function playRaidSound() {}
+        function playDigSound() {}
         function playCoinFlySound() {}
         function playAttackSound() {}
         function playShieldGainSound() {}
@@ -5288,6 +5288,7 @@
           shields = gameState.shields;
           gameState.energy = clamp(energy, 0, MAX_ENERGY);
           gameState.spins = gameState.energy;
+          gameState.coins = coins;
           energy = gameState.energy;
           if (energyEl) energyEl.textContent = String(gameState.energy);
           if (energyMaxEl) energyMaxEl.textContent = String(GAME_CONFIG.maxEnergy);
@@ -5683,16 +5684,86 @@
             setStatus("Enemy attack damaged your island.", true);
           }
         }
+        async function handleRaidDigClick(event) {
+          if (!raidSession || !event || !event.currentTarget) return;
+          const btn = event.currentTarget;
+          if (btn.disabled || raidSession.shovelsLeft <= 0) return;
+          playDigSound();
+          const rect = btn.getBoundingClientRect();
+          particleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, "dirt");
+
+          raidSession.shovelsLeft -= 1;
+          raidSession.digCount += 1;
+          const digReward = raidSession.digCount < 3 ? 50000 : 1000000;
+          raidSession.totalStolen += digReward;
+          coins += digReward;
+          gameState.coins = coins;
+
+          const icon = btn.querySelector(".raid-dig-icon");
+          const label = btn.querySelector(".raid-dig-label");
+          if (raidSession.digCount < 3) {
+            if (icon) icon.textContent = "🪙";
+            if (label) label.textContent = "Small Bag! (+50,000)";
+            setStatus("Small Bag! (+50,000)", false);
+            spawnFlyingCoins(6);
+          } else {
+            if (icon) icon.textContent = "🧰";
+            if (label) label.textContent = "JACKPOT! (+1,000,000)";
+            setStatus("JACKPOT! (+1,000,000)", false);
+            spawnFlyingCoins(14);
+            triggerScreenShake(650);
+          }
+          btn.classList.add("raid-dug");
+          btn.disabled = true;
+
+          if (raidInstructionEl) {
+            raidInstructionEl.textContent = `Click a location to dig for treasure! (Shovels: ${raidSession.shovelsLeft}/3)`;
+          }
+          if (raidInfoEl) raidInfoEl.textContent = `Total Stolen: ${formatNumber(raidSession.totalStolen)}`;
+
+          updateUI();
+          persistState();
+
+          if (raidSession.shovelsLeft > 0) return;
+
+          if (raidBoardEl) raidBoardEl.classList.add("raid-board-cracked");
+          const cells = Array.from(raidBoardEl ? raidBoardEl.querySelectorAll(".raid-dig-cell") : []);
+          cells.forEach((cell) => {
+            cell.classList.add("raid-treasure");
+            cell.disabled = true;
+          });
+
+          logEvent("raid_end", {
+            rivalName: raidSession.rivalName,
+            maxRaidAmount: raidSession.maxRaidAmount,
+            travelMessage: raidSession.travelMessage,
+            reward: raidSession.totalStolen,
+            totalStolen: raidSession.totalStolen,
+            perfectRaid: true,
+            detailedResult: `Raid complete on ${raidSession.rivalName}: stole ${formatNumber(raidSession.totalStolen)} coins.`,
+            detailedResultTag: `Raid_Complete_${raidSession.rivalName}`,
+          });
+
+          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerRaid) || 0, "raid");
+
+          gameState.isRaidActive = false;
+          document.body.classList.remove("raid-active");
+          if (raidModalEl) raidModalEl.classList.add("hidden");
+          raidSession = null;
+          await triggerTravelSequence(false);
+        }
+
         async function openRaidMode() {
           if (!raidModalEl || !raidBoardEl) return;
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
           const maxRaidAmount = getPayoutValue("raid_base", 100000);
-          if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `Coin Steal from ${rivalName}!`;
-          if (raidModalTitleEl) raidModalTitleEl.textContent = `Coin Steal from ${rivalName}!`;
+          if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `COIN STEAL from ${rivalName}`;
+          if (raidModalTitleEl) raidModalTitleEl.textContent = `COIN STEAL from ${rivalName}`;
           if (raidInstructionEl) {
-            raidInstructionEl.textContent = `Dig up the 3 hidden treasure chests to steal ${rivalName}'s coins!`;
+            raidInstructionEl.textContent = "Click a location to dig for treasure! (Shovels: 3/3)";
           }
+          if (raidInfoEl) raidInfoEl.textContent = "Ready to steal!";
           const travelMessage = `Traveling to ${rivalName}'s Island...`;
           setStatus(travelMessage, false);
           await triggerTravelSequence(true);
@@ -5703,77 +5774,30 @@
             shovels: 3,
           });
           playRaidSound();
+          raidSession = {
+            rivalName,
+            maxRaidAmount,
+            travelMessage,
+            shovelsLeft: 3,
+            digCount: 0,
+            totalStolen: 0,
+          };
           gameState.isRaidActive = true;
           document.body.classList.add("raid-active");
           raidModalEl.classList.remove("hidden");
-          if (collectRaidBtn) collectRaidBtn.classList.add("hidden");
-          let shovels = 3;
-          let totalStolen = 0;
           raidBoardEl.classList.remove("raid-board-cracked");
-          const targets = Array.from(raidBoardEl.querySelectorAll(".raid-target"));
-          targets.forEach((btn) => {
+          if (collectRaidBtn) collectRaidBtn.classList.add("hidden");
+
+          const cells = Array.from(raidBoardEl.querySelectorAll(".raid-dig-cell"));
+          cells.forEach((btn) => {
             btn.disabled = false;
             btn.classList.remove("raid-dug", "raid-treasure");
-            const label = btn.querySelector(".raid-target__label");
-            const icon = btn.querySelector(".raid-target__icon");
-            if (label) label.textContent = String(btn.dataset.building || "Target");
-            if (icon) icon.textContent = "⛏️";
-            btn.onclick = function () {
-              if (shovels <= 0 || btn.disabled) return;
-              const rect = btn.getBoundingClientRect();
-              particleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, "dirt");
-              shovels -= 1;
-              const raidBase = getPayoutValue("raid_base", 100000);
-              const minPerDig = Math.max(1, Math.round((raidBase / 3) * 0.85));
-              const range = Math.max(1, Math.round((raidBase / 3) * 0.3));
-              const amount = minPerDig + Math.floor(Math.random() * range);
-              totalStolen += amount;
-              const label = btn.querySelector(".raid-target__label");
-              const icon = btn.querySelector(".raid-target__icon");
-              if (label) label.textContent = `+${formatNumber(amount)}`;
-              if (icon) icon.textContent = "💰";
-              btn.classList.add("raid-dug");
-              spawnFlyingCoins(8);
-              if (amount >= Math.round(raidBase / 3)) {
-                triggerScreenShake(500);
-              }
-              btn.disabled = true;
-              if (raidInfoEl) raidInfoEl.textContent = `Shovels Left: ${shovels}/3`;
-              if (shovels === 0) {
-                raidBoardEl.classList.add("raid-board-cracked");
-                targets.forEach((t) => {
-                  t.classList.add("raid-treasure");
-                  const ti = t.querySelector(".raid-target__icon");
-                  if (ti) ti.textContent = "🧰";
-                });
-                coins += totalStolen;
-                const perfectRaid = totalStolen >= 780;
-                const detailedResult = `Raid complete on ${rivalName}: stole ${formatNumber(totalStolen)} coins.`;
-                const detailedResultTag = `Raid_Complete_${rivalName}`;
-                logEvent("raid_end", {
-                  rivalName,
-                  maxRaidAmount,
-                  travelMessage,
-                  reward: totalStolen,
-                  perfectRaid,
-                  detailedResult,
-                  detailedResultTag,
-                });
-                gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerRaid) || 0, "raid");
-                setStatus(detailedResult, false);
-                updateUI();
-                persistState();
-                if (collectRaidBtn) collectRaidBtn.classList.add("hidden");
-                setTimeout(async () => {
-                  gameState.isRaidActive = false;
-                  document.body.classList.remove("raid-active");
-                  if (raidModalEl) raidModalEl.classList.add("hidden");
-                  await triggerTravelSequence(false);
-                }, 2000);
-              }
-            };
+            const icon = btn.querySelector(".raid-dig-icon");
+            const label = btn.querySelector(".raid-dig-label");
+            if (icon) icon.textContent = "🟫";
+            if (label) label.textContent = String(btn.dataset.slot || "?");
+            btn.onclick = handleRaidDigClick;
           });
-          if (raidInfoEl) raidInfoEl.textContent = "Shovels Left: 3/3";
         }
 
         function animateReelsFast() {
