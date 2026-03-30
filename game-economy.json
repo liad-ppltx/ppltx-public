@@ -13,7 +13,7 @@
       "xpMultiplierPerLevel": 1.2
     },
     "slotWeights": {
-      "hammer": 2, "pig": 200, "shield": 3, "coin": 7, "bag": 6, "spins": 1
+      "hammer": 2, "pig": 2, "shield": 300, "coin": 7, "bag": 6, "spins": 1
     },
     "payouts": {
       "coin_single": 1000,
