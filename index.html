@@ -3499,12 +3499,12 @@
         const data = {
           userId: String(sp.userId || ctx.userId || ""),
           sessionId: String(sp.sessionId || ctx.sessionId || ""),
-          condition: String(sp.condition || ctx.condition || ""),
+          condition: String(sp.condition || ctx.condition || gameState.condition || ""),
           timestamp: String(sp.timestamp || new Date().toISOString()),
           eventName: String(eventName || ""),
           eventParams: eventParamsStr,
-          currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : 0,
-          currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : 0,
+          currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : Number(gameState.level || 0),
+          currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gameState.villageId || 0),
           clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
           platform: String(sp.platform || ""),
           countryCode: String(sp.countryCode || "unknown"),
@@ -5475,15 +5475,15 @@
           const villageMaxStars = levelAfter >= 5;
           const cannonMax =
             item === "Cannon" &&
-            Number.isFinite(o.cannonIslandLevelAfter) &&
-            o.cannonIslandLevelAfter >= MAX_LEVEL;
-          const wallMax =
+            Number.isFinite(o.cannonLevelAfter) &&
+            o.cannonLevelAfter >= MAX_LEVEL;
+          const farmMax =
             item === "Farm" &&
-            Number.isFinite(o.wallIslandLevelAfter) &&
-            o.wallIslandLevelAfter >= MAX_LEVEL;
+            Number.isFinite(o.farmLevelAfter) &&
+            o.farmLevelAfter >= MAX_LEVEL;
           const castleStageMax = !!o.castleStageMaxed;
           const action =
-            villageMaxStars || cannonMax || wallMax || castleStageMax ? "max" : "success";
+            villageMaxStars || cannonMax || farmMax || castleStageMax ? "max" : "success";
           const payload = {
             action,
             building: item,
@@ -5493,8 +5493,8 @@
           };
           if (o.cannonIndex != null) payload.cannonIndex = o.cannonIndex;
           if (o.levelBefore !== undefined) payload.levelBefore = o.levelBefore;
-          if (o.cannonIslandLevelAfter !== undefined) payload.cannonIslandLevelAfter = o.cannonIslandLevelAfter;
-          if (o.wallIslandLevelAfter !== undefined) payload.wallIslandLevelAfter = o.wallIslandLevelAfter;
+          if (o.cannonLevelAfter !== undefined) payload.cannonLevelAfter = o.cannonLevelAfter;
+          if (o.farmLevelAfter !== undefined) payload.farmLevelAfter = o.farmLevelAfter;
           if (o.castleStageBefore !== undefined) payload.castleStageBefore = o.castleStageBefore;
           if (o.castleStageAfter !== undefined) payload.castleStageAfter = o.castleStageAfter;
           if (o.wallUnlockPurchase) payload.source = "wall_unlock_purchase";
@@ -5646,7 +5646,7 @@
                   rivalName,
                   maxRaidAmount,
                   travelMessage,
-                  totalStolen,
+                  reward: totalStolen,
                   perfectRaid,
                   detailedResult,
                   detailedResultTag,
@@ -6322,7 +6322,7 @@
             setStatus("Upgrade Castle first!", true);
             logEvent("building_action", {
               action: "failure",
-              building: cannonIndex === 2 ? "Cannon2" : "Cannon",
+              building: "Cannon",
               reason: "capped_by_castle",
               levelBefore: before,
               levelAfter: before,
@@ -6336,7 +6336,7 @@
             setStatus("Not enough coins to upgrade cannon.", true);
             logEvent("building_action", {
               action: "failure",
-              building: cannonIndex === 2 ? "Cannon2" : "Cannon",
+              building: "Cannon",
               reason: "not_enough_coins",
               levelBefore: before,
               levelAfter: before,
@@ -6356,7 +6356,7 @@
           upgradeVillageItem("Cannon", cost, false, {
             cannonIndex,
             levelBefore: before,
-            cannonIslandLevelAfter: after,
+            cannonLevelAfter: after,
           });
 
           persistState();
@@ -6424,7 +6424,7 @@
           wallLevel = Math.min(MAX_LEVEL, wallLevel + 1);
           setStatus("Wall upgraded!", false);
           upgradeVillageItem("Farm", cost, false, {
-            wallIslandLevelAfter: wallLevel,
+            farmLevelAfter: wallLevel,
           });
           persistState();
           updateUI();

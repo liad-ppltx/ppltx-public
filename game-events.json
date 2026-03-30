@@ -104,7 +104,7 @@
   },
 
   "types": {
-    "BuildingId": "Castle | Cannon | Statue | Farm | Boat | Cannon2 (failure paths only)",
+    "BuildingId": "Castle | Cannon | Statue | Farm | Boat",
     "ActionResult": "success | failure | max",
     "EnergyKind": "refill | depleted_modal | dev_refill",
     "TravelPhase": "started | ended",
@@ -124,7 +124,7 @@
       "description": "Village stars, island cannon/wall/castle upgrades, failures, and wall unlock purchase.",
       "properties": {
         "action": { "type": "ActionResult", "required": true },
-        "building": { "type": "string", "required": true, "description": "Village slot or Cannon2; Statue/Farm for wall paths" },
+        "building": { "type": "BuildingId", "required": true, "description": "Strict canonical building ids only" },
         "levelAfter": { "type": "number", "required": false, "description": "Usually absent on failure" },
         "cost": { "type": "number", "required": false },
         "isFree": { "type": "boolean", "required": false },
@@ -135,8 +135,8 @@
         },
         "levelBefore": { "type": "number", "required": false },
         "cannonIndex": { "type": "number", "required": false, "description": "1 | 2" },
-        "cannonIslandLevelAfter": { "type": "number", "required": false },
-        "wallIslandLevelAfter": { "type": "number", "required": false },
+        "cannonLevelAfter": { "type": "number", "required": false },
+        "farmLevelAfter": { "type": "number", "required": false },
         "castleStageBefore": { "type": "number", "required": false },
         "castleStageAfter": { "type": "number", "required": false },
         "source": { "type": "string", "required": false, "enum": ["wall_unlock_purchase"] }
@@ -195,7 +195,7 @@
         "rivalName": { "type": "string", "required": true },
         "maxRaidAmount": { "type": "number", "required": true },
         "travelMessage": { "type": "string", "required": true },
-        "totalStolen": { "type": "number", "required": true },
+        "reward": { "type": "number", "required": true },
         "perfectRaid": { "type": "boolean", "required": true },
         "detailedResult": { "type": "string", "required": true },
         "detailedResultTag": { "type": "string", "required": true }
