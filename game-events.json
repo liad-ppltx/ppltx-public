@@ -120,19 +120,12 @@
         "consent": { "type": "boolean", "required": true, "description": "true on normal consent path" }
       }
     },
-    "session_heartbeat": {
-      "description": "Background events for retention and duration analysis.",
-      "properties": {
-        "sessionDurationSec": { "type": "number", "required": true }
-      }
-    },
     "session_end": {
-      "description": "Background events for retention and duration analysis.",
+      "description": "Fired when the user leaves the page (best-effort). Session duration is derived in BigQuery from session_start vs session_end.",
       "properties": {
         "totalSessionTime": { "type": "number", "required": true },
         "finalLevel": { "type": "number", "required": true },
-        "finalCoins": { "type": "number", "required": true },
-        "reason": { "type": "string", "required": false }
+        "finalCoins": { "type": "number", "required": true }
       }
     },
     "building_upgrade": {
@@ -261,7 +254,6 @@
     "raid_end",
     "raid_start",
     "session_end",
-    "session_heartbeat",
     "session_start",
     "spin",
     "tutorial_progress",

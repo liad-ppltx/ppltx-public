@@ -5215,10 +5215,8 @@
             window.saveToFirestore(eventName, params || {}, mergedSuperProps);
           }
         }
-        let sessionStartedAtMs = Date.now();
-        let sessionTelemetryActive = false;
+        let sessionStartedAtMs = 0;
         let sessionEndedLogged = false;
-        let sessionHeartbeatInterval = null;
 
         function buildFirestoreWritePayload(eventName, eventParams, superProps) {
           const ctx = (window.__researchContext && typeof window.__researchContext === "object")
@@ -5261,68 +5259,44 @@
           return formattedData;
         }
 
-        function sendBackgroundEvent(eventName, eventParams, useBeacon) {
-          const sp = {
+        function logSessionEndWithBeacon() {
+          if (!gameBooted || sessionEndedLogged) return;
+          if (!sessionStartedAtMs) return;
+          sessionEndedLogged = true;
+          const params = {
+            totalSessionTime: Math.floor((Date.now() - sessionStartedAtMs) / 1000),
+            finalLevel: gameState.level,
+            finalCoins: gameState.coins,
+          };
+          const mergedSuperProps = {
             ...(window.userProperties && typeof window.userProperties === "object" ? window.userProperties : {}),
             ...getSuperProperties(),
           };
           const url = `https://firestore.googleapis.com/v1/projects/ppltx-project-dev/databases/mt-game/documents/game_results?key=${firebaseConfig.apiKey}`;
-          const payload = JSON.stringify(buildFirestoreWritePayload(eventName, eventParams, sp));
-          if (useBeacon && navigator && typeof navigator.sendBeacon === "function") {
+          const payload = JSON.stringify(buildFirestoreWritePayload("session_end", params, mergedSuperProps));
+          if (navigator && typeof navigator.sendBeacon === "function") {
             try {
               const blob = new Blob([payload], { type: "application/json" });
               if (navigator.sendBeacon(url, blob)) return;
             } catch (e) {
-              // fallback to keepalive fetch
+              // fall through to keepalive fetch
             }
           }
           fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: payload,
-            keepalive: !!useBeacon,
+            keepalive: true,
           }).catch(() => {});
-        }
-
-        function getSessionDurationSec() {
-          return Math.max(0, Math.round((Date.now() - sessionStartedAtMs) / 1000));
-        }
-
-        function startSessionTelemetry() {
-          if (sessionTelemetryActive) return;
-          sessionTelemetryActive = true;
-          sessionEndedLogged = false;
-          sessionStartedAtMs = Date.now();
-          if (sessionHeartbeatInterval) clearInterval(sessionHeartbeatInterval);
-          sessionHeartbeatInterval = setInterval(() => {
-            sendBackgroundEvent("session_heartbeat", {
-              sessionDurationSec: getSessionDurationSec(),
-            }, false);
-          }, 60000);
-        }
-
-        function sendSessionEndBestEffort(reason) {
-          if (!sessionTelemetryActive || sessionEndedLogged) return;
-          sessionEndedLogged = true;
-          if (sessionHeartbeatInterval) {
-            clearInterval(sessionHeartbeatInterval);
-            sessionHeartbeatInterval = null;
-          }
-          sendBackgroundEvent("session_end", {
-            totalSessionTime: getSessionDurationSec(),
-            finalLevel: Number(gameState.level || 1),
-            finalCoins: Number(coins || 0),
-            reason: String(reason || "unknown"),
-          }, true);
         }
 
         window.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "hidden") {
-            sendSessionEndBestEffort("visibility_hidden");
+            logSessionEndWithBeacon();
           }
         });
         window.addEventListener("pagehide", () => {
-          sendSessionEndBestEffort("pagehide");
+          logSessionEndWithBeacon();
         });
         window.logEvent = logEvent;
         window.getSuperProperties = getSuperProperties;
@@ -5361,12 +5335,12 @@
           if (appLayoutEl) appLayoutEl.style.pointerEvents = "auto";
           if (tutorialOverlayEl && tutorialStep <= 0) tutorialOverlayEl.style.pointerEvents = "none";
 
+          sessionStartedAtMs = Date.now();
           logEvent("session_start", {
             initialSpins: energy,
             initialCoins: coins,
             consent: true,
           });
-          startSessionTelemetry();
           initResearchDrawerAfterGameShow();
           initTutorial();
         }
