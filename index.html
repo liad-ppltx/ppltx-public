@@ -444,6 +444,63 @@
         }
       }
 
+      #raidModal {
+        z-index: 26000 !important;
+      }
+      #raidModal .modal-sheet {
+        position: relative;
+        z-index: 26001;
+      }
+      #raidBoard.raid-board-cracked {
+        animation: raid-board-crack 320ms ease-out;
+      }
+      .raid-target,
+      .raid-target *,
+      .raid-target__label,
+      .raid-target__icon {
+        pointer-events: auto !important;
+      }
+      .raid-target {
+        min-height: 78px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+      }
+      .raid-target.raid-dug {
+        filter: saturate(0.7) brightness(0.88);
+      }
+      .raid-target.raid-treasure {
+        animation: raid-treasure-pop 540ms ease-out;
+      }
+      @keyframes raid-board-crack {
+        0% { transform: scale(1); }
+        35% { transform: scale(1.01) rotate(-0.3deg); }
+        70% { transform: scale(0.995) rotate(0.3deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
+      @keyframes raid-treasure-pop {
+        0% { transform: scale(1); }
+        40% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+      }
+      .dirt-particle {
+        position: fixed;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #d7b992 0%, #7d5a35 70%, #3e2a1a 100%);
+        pointer-events: none;
+        z-index: 26010;
+      }
+      .raid-active .hud,
+      .raid-active .top-progress-stack,
+      .raid-active .sidebar-right,
+      .raid-active #researchCapture {
+        pointer-events: none !important;
+      }
+
       @media (max-width: 980px) {
         .phone-frame {
           width: min(520px, calc(100vw - 24px));
@@ -3741,16 +3798,27 @@
       <div id="raidModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Raid mode">
         <div class="modal-sheet panel-stone">
           <div class="modal-header">
-            <div class="modal-title">Raid: Coin Master Bot</div>
+            <div class="modal-title" id="raidModalTitle">Coin Steal</div>
             <button id="collectRaidBtn" type="button" class="secondary metal-btn hidden">COLLECT & EXIT</button>
           </div>
-          <div id="raidBoard" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin:14px 0; padding:10px; border-radius:14px; background: radial-gradient(circle at 50% 20%, rgba(130,180,255,.24), transparent 55%), linear-gradient(180deg, rgba(40,35,55,.92), rgba(12,10,22,.96)); border:1px solid rgba(200,220,255,.18);">
-            <button class="secondary wood-metal raid-x" data-idx="0">X</button>
-            <button class="secondary wood-metal raid-x" data-idx="1">X</button>
-            <button class="secondary wood-metal raid-x" data-idx="2">X</button>
-            <button class="secondary wood-metal raid-x" data-idx="3">X</button>
+          <div id="raidInstruction" style="text-align:center; color:#eaf1ff; font-size:0.85rem; margin-top:8px;">
+            Dig up the 3 hidden treasure chests to steal coins!
           </div>
-          <div id="raidInfo" style="text-align:center; color:#dce7ff;">Shovels: 3</div>
+          <div id="raidInfo" style="text-align:center; color:#dce7ff; margin-top:8px;">Shovels Left: 3/3</div>
+          <div id="raidBoard" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin:14px 0; padding:10px; border-radius:14px; background: radial-gradient(circle at 50% 20%, rgba(130,180,255,.24), transparent 55%), linear-gradient(180deg, rgba(40,35,55,.92), rgba(12,10,22,.96)); border:1px solid rgba(200,220,255,.18);">
+            <button class="secondary wood-metal raid-target" data-building="Cannon">
+              <span class="raid-target__icon">💣</span>
+              <span class="raid-target__label">Cannon</span>
+            </button>
+            <button class="secondary wood-metal raid-target" data-building="Castle">
+              <span class="raid-target__icon">🏰</span>
+              <span class="raid-target__label">Castle</span>
+            </button>
+            <button class="secondary wood-metal raid-target" data-building="Statue">
+              <span class="raid-target__icon">🗿</span>
+              <span class="raid-target__label">Statue</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -4080,6 +4148,8 @@
         const rivalTargetsEl = document.getElementById("rivalTargets");
         const rivalVillageTitleEl = document.getElementById("rivalVillageTitle");
         const raidModalEl = document.getElementById("raidModal");
+        const raidModalTitleEl = document.getElementById("raidModalTitle");
+        const raidInstructionEl = document.getElementById("raidInstruction");
         const collectRaidBtn = document.getElementById("collectRaidBtn");
         const energyModalEl = document.getElementById("energyModal");
         const closeEnergyBtn = document.getElementById("closeEnergyBtn");
@@ -4956,6 +5026,27 @@
           }
         }
 
+        function particleBurst(x, y, type) {
+          const flavor = String(type || "").toLowerCase();
+          const count = flavor === "dirt" ? 12 : 8;
+          for (let i = 0; i < count; i++) {
+            const p = document.createElement("div");
+            p.className = "dirt-particle";
+            p.style.left = `${Math.round(x)}px`;
+            p.style.top = `${Math.round(y)}px`;
+            document.body.appendChild(p);
+            const dx = (Math.random() * 56) - 28;
+            const dy = -12 - Math.random() * 42;
+            p.animate(
+              [
+                { transform: "translate(-50%, -50%) scale(1)", opacity: 0.95 },
+                { transform: `translate(${dx}px, ${dy}px) translate(-50%, -50%) scale(0.75)`, opacity: 0 },
+              ],
+              { duration: 520, easing: "cubic-bezier(0.2,0.8,0.2,1)", fill: "forwards" }
+            ).onfinish = () => p.remove();
+          }
+        }
+
         window.__appendVisualLog = function (eventObj) {
           if (!logPreviewEl) return;
           const now = new Date().toISOString();
@@ -5597,7 +5688,11 @@
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
           const maxRaidAmount = getPayoutValue("raid_base", 100000);
-          if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `${rivalName}'s Ghost Village`;
+          if (rivalVillageTitleEl) rivalVillageTitleEl.textContent = `Coin Steal from ${rivalName}!`;
+          if (raidModalTitleEl) raidModalTitleEl.textContent = `Coin Steal from ${rivalName}!`;
+          if (raidInstructionEl) {
+            raidInstructionEl.textContent = `Dig up the 3 hidden treasure chests to steal ${rivalName}'s coins!`;
+          }
           const travelMessage = `Traveling to ${rivalName}'s Island...`;
           setStatus(travelMessage, false);
           await triggerTravelSequence(true);
@@ -5609,36 +5704,49 @@
           });
           playRaidSound();
           gameState.isRaidActive = true;
+          document.body.classList.add("raid-active");
           raidModalEl.classList.remove("hidden");
           if (collectRaidBtn) collectRaidBtn.classList.add("hidden");
-          const emptyIdx = Math.floor(Math.random() * 4);
           let shovels = 3;
           let totalStolen = 0;
-          raidBoardEl.querySelectorAll(".raid-x").forEach((btn) => {
+          raidBoardEl.classList.remove("raid-board-cracked");
+          const targets = Array.from(raidBoardEl.querySelectorAll(".raid-target"));
+          targets.forEach((btn) => {
             btn.disabled = false;
-            btn.textContent = "X";
+            btn.classList.remove("raid-dug", "raid-treasure");
+            const label = btn.querySelector(".raid-target__label");
+            const icon = btn.querySelector(".raid-target__icon");
+            if (label) label.textContent = String(btn.dataset.building || "Target");
+            if (icon) icon.textContent = "⛏️";
             btn.onclick = function () {
               if (shovels <= 0 || btn.disabled) return;
-              const idx = Number(btn.dataset.idx);
+              const rect = btn.getBoundingClientRect();
+              particleBurst(rect.left + rect.width / 2, rect.top + rect.height / 2, "dirt");
               shovels -= 1;
-              if (idx === emptyIdx) {
-                btn.textContent = "EMPTY";
-              } else {
-                const raidBase = getPayoutValue("raid_base", 100000);
-                const minPerDig = Math.max(1, Math.round((raidBase / 3) * 0.85));
-                const range = Math.max(1, Math.round((raidBase / 3) * 0.3));
-                const amount = minPerDig + Math.floor(Math.random() * range);
-                totalStolen += amount;
-                coins += amount;
-                btn.textContent = `+${amount}`;
-                spawnFlyingCoins(8);
-                if (amount >= Math.round(raidBase / 3)) {
-                  triggerScreenShake(500);
-                }
+              const raidBase = getPayoutValue("raid_base", 100000);
+              const minPerDig = Math.max(1, Math.round((raidBase / 3) * 0.85));
+              const range = Math.max(1, Math.round((raidBase / 3) * 0.3));
+              const amount = minPerDig + Math.floor(Math.random() * range);
+              totalStolen += amount;
+              const label = btn.querySelector(".raid-target__label");
+              const icon = btn.querySelector(".raid-target__icon");
+              if (label) label.textContent = `+${formatNumber(amount)}`;
+              if (icon) icon.textContent = "💰";
+              btn.classList.add("raid-dug");
+              spawnFlyingCoins(8);
+              if (amount >= Math.round(raidBase / 3)) {
+                triggerScreenShake(500);
               }
               btn.disabled = true;
-              if (raidInfoEl) raidInfoEl.textContent = `Shovels: ${shovels}`;
+              if (raidInfoEl) raidInfoEl.textContent = `Shovels Left: ${shovels}/3`;
               if (shovels === 0) {
+                raidBoardEl.classList.add("raid-board-cracked");
+                targets.forEach((t) => {
+                  t.classList.add("raid-treasure");
+                  const ti = t.querySelector(".raid-target__icon");
+                  if (ti) ti.textContent = "🧰";
+                });
+                coins += totalStolen;
                 const perfectRaid = totalStolen >= 780;
                 const detailedResult = `Raid complete on ${rivalName}: stole ${formatNumber(totalStolen)} coins.`;
                 const detailedResultTag = `Raid_Complete_${rivalName}`;
@@ -5658,13 +5766,14 @@
                 if (collectRaidBtn) collectRaidBtn.classList.add("hidden");
                 setTimeout(async () => {
                   gameState.isRaidActive = false;
+                  document.body.classList.remove("raid-active");
                   if (raidModalEl) raidModalEl.classList.add("hidden");
                   await triggerTravelSequence(false);
                 }, 2000);
               }
             };
           });
-          if (raidInfoEl) raidInfoEl.textContent = "Shovels: 3";
+          if (raidInfoEl) raidInfoEl.textContent = "Shovels Left: 3/3";
         }
 
         function animateReelsFast() {
@@ -6232,7 +6341,7 @@
           }
           setStatus(detailedResult, coinsWon <= 0 && !actionTriggered);
 
-          logEvent("slot_action", {
+          logEvent("spin", {
             spinIndex,
             energyBefore,
             energyAfter: gameState.energy,
@@ -6738,6 +6847,7 @@
           setupListener("confirmUpgradeBtn", onConfirmUpgradeClick);
           setupListener("collectRaidBtn", async () => {
             gameState.isRaidActive = false;
+            document.body.classList.remove("raid-active");
             if (raidModalEl) raidModalEl.classList.add("hidden");
             await triggerTravelSequence(false);
           });

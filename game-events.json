@@ -142,8 +142,8 @@
         "source": { "type": "string", "required": false, "enum": ["wall_unlock_purchase"] }
       }
     },
-    "slot_action": {
-      "description": "One row per completed spin (after payout and triple-spins energy, before attack/raid minigames).",
+    "spin": {
+      "description": "The core gameplay event. Fired whenever a slot spin finishes and rewards are calculated.",
       "properties": {
         "spinIndex": { "type": "number", "required": true },
         "energyBefore": { "type": "number", "required": true },
@@ -264,7 +264,7 @@
     "raid_start",
     "rival_interaction",
     "session_start",
-    "slot_action",
+    "spin",
     "tutorial_progress",
     "village_complete"
   ],
