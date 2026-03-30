@@ -6754,6 +6754,30 @@
             syncResearchDrawerViewport();
           });
         });
+
+        // Global audit helper defined at script end so all game functions are already initialized.
+        window.runGameAudit = async function (options) {
+          const cfg = options && typeof options === "object" ? options : {};
+          const checks = {
+            hasRunSpin: typeof runSpin === "function",
+            hasLogEvent: typeof logEvent === "function",
+            hasSaveToFirestore: typeof window.saveToFirestore === "function",
+            hasRunStressTest: typeof runStressTest === "function",
+          };
+
+          if (checks.hasLogEvent) {
+            logEvent("audit_stress_test", {
+              source: "runGameAudit",
+              ...checks,
+            });
+          }
+
+          if (cfg.runSpinOnce === true && checks.hasRunSpin) {
+            await runSpin(false);
+          }
+
+          return checks;
+        };
       })();
     </script>
   </body>
