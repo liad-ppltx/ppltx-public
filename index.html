@@ -4789,12 +4789,6 @@
         function playAttackSound() {}
         function playShieldGainSound() {}
         async function triggerTravelSequence(toRival) {
-          const targetBotName = gameState.currentRivalName || "";
-          logEvent("island_travel", {
-            phase: "started",
-            targetBotName,
-            toRival,
-          });
           if (cloudOverlayEl) cloudOverlayEl.classList.add("active");
           await sleep(800);
           if (toRival) {
@@ -4808,11 +4802,6 @@
           }
           await sleep(800);
           if (cloudOverlayEl) cloudOverlayEl.classList.remove("active");
-          logEvent("island_travel", {
-            phase: "ended",
-            targetBotName,
-            toRival,
-          });
           if (!toRival) gameState.currentRivalName = "";
         }
         function triggerScreenShake(durationMs) {
@@ -5208,6 +5197,115 @@
             window.saveToFirestore(eventName, params || {}, mergedSuperProps);
           }
         }
+        let sessionStartedAtMs = Date.now();
+        let sessionTelemetryActive = false;
+        let sessionEndedLogged = false;
+        let sessionHeartbeatInterval = null;
+
+        function buildFirestoreWritePayload(eventName, eventParams, superProps) {
+          const ctx = (window.__researchContext && typeof window.__researchContext === "object")
+            ? window.__researchContext
+            : {};
+          const sp = superProps && typeof superProps === "object" ? superProps : {};
+          let eventParamsStr = "{}";
+          try {
+            eventParamsStr = JSON.stringify(eventParams ?? {});
+          } catch (e) {
+            eventParamsStr = JSON.stringify({ _stringifyError: String(e) });
+          }
+          const data = {
+            userId: String(sp.userId || ctx.userId || ""),
+            sessionId: String(sp.sessionId || ctx.sessionId || ""),
+            condition: String(sp.condition || ctx.condition || gameState.condition || ""),
+            timestamp: String(sp.timestamp || new Date().toISOString()),
+            eventName: String(eventName || ""),
+            eventParams: eventParamsStr,
+            currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : Number(gameState.level || 0),
+            currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gameState.villageId || 0),
+            clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
+            platform: String(sp.platform || ""),
+            countryCode: String(sp.countryCode || "unknown"),
+            version: String(sp.version || ""),
+          };
+          const formattedData = { fields: {} };
+          for (const key in data) {
+            if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
+            const value = data[key];
+            if (value === null || value === undefined) continue;
+            if (typeof value === "number") {
+              formattedData.fields[key] = Number.isInteger(value) ? { integerValue: value } : { doubleValue: value };
+            } else if (typeof value === "boolean") {
+              formattedData.fields[key] = { booleanValue: value };
+            } else {
+              formattedData.fields[key] = { stringValue: String(value) };
+            }
+          }
+          return formattedData;
+        }
+
+        function sendBackgroundEvent(eventName, eventParams, useBeacon) {
+          const sp = {
+            ...(window.userProperties && typeof window.userProperties === "object" ? window.userProperties : {}),
+            ...getSuperProperties(),
+          };
+          const url = `https://firestore.googleapis.com/v1/projects/ppltx-project-dev/databases/mt-game/documents/game_results?key=${firebaseConfig.apiKey}`;
+          const payload = JSON.stringify(buildFirestoreWritePayload(eventName, eventParams, sp));
+          if (useBeacon && navigator && typeof navigator.sendBeacon === "function") {
+            try {
+              const blob = new Blob([payload], { type: "application/json" });
+              if (navigator.sendBeacon(url, blob)) return;
+            } catch (e) {
+              // fallback to keepalive fetch
+            }
+          }
+          fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            keepalive: !!useBeacon,
+          }).catch(() => {});
+        }
+
+        function getSessionDurationSec() {
+          return Math.max(0, Math.round((Date.now() - sessionStartedAtMs) / 1000));
+        }
+
+        function startSessionTelemetry() {
+          if (sessionTelemetryActive) return;
+          sessionTelemetryActive = true;
+          sessionEndedLogged = false;
+          sessionStartedAtMs = Date.now();
+          if (sessionHeartbeatInterval) clearInterval(sessionHeartbeatInterval);
+          sessionHeartbeatInterval = setInterval(() => {
+            sendBackgroundEvent("session_heartbeat", {
+              sessionDurationSec: getSessionDurationSec(),
+            }, false);
+          }, 60000);
+        }
+
+        function sendSessionEndBestEffort(reason) {
+          if (!sessionTelemetryActive || sessionEndedLogged) return;
+          sessionEndedLogged = true;
+          if (sessionHeartbeatInterval) {
+            clearInterval(sessionHeartbeatInterval);
+            sessionHeartbeatInterval = null;
+          }
+          sendBackgroundEvent("session_end", {
+            totalSessionTime: getSessionDurationSec(),
+            finalLevel: Number(gameState.level || 1),
+            finalCoins: Number(coins || 0),
+            reason: String(reason || "unknown"),
+          }, true);
+        }
+
+        window.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "hidden") {
+            sendSessionEndBestEffort("visibility_hidden");
+          }
+        });
+        window.addEventListener("pagehide", () => {
+          sendSessionEndBestEffort("pagehide");
+        });
         window.logEvent = logEvent;
         window.getSuperProperties = getSuperProperties;
         async function startGameAfterConsent() {
@@ -5247,6 +5345,7 @@
             initialCoins: coins,
             consent: true,
           });
+          startSessionTelemetry();
           initResearchDrawerAfterGameShow();
           initTutorial();
         }
@@ -5922,12 +6021,12 @@
           const rivalName = getRandomBotName();
           gameState.currentRivalName = rivalName;
           const travelMessage = `Traveling to ${rivalName}'s Island...`;
-          setStatus(travelMessage, false);
-          await triggerTravelSequence(true);
           logEvent("raid_start", {
             rivalName,
             maxPossible: 1100000,
           });
+          setStatus(travelMessage, false);
+          await triggerTravelSequence(true);
           playRaidSound();
           raidSession = {
             rivalName,
