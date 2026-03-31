@@ -2,7 +2,7 @@ Here is a comprehensive **README.md** file in English, structured professionally
 
 ---
 
-# PlayPLTX Analytics & Research Framework (v1.0.3)
+# PlayPLTX Analytics & Research Framework (v1.0.4)
 
 ## 📝 Project Overview
 

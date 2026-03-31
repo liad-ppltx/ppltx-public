@@ -1,0 +1,106 @@
+-- Staging View
+
+SELECT
+  timestamp AS ts,
+  document_id AS eventId,
+  JSON_VALUE(data, '$.eventName') AS eventName,
+  JSON_VALUE(data, '$.userId') AS userId,
+  JSON_VALUE(data, '$.condition') AS condition,
+  JSON_VALUE(data, '$.version') AS version,
+  JSON_VALUE(data, '$.platform') AS platform,
+  CAST(JSON_VALUE(data, '$.currentLevel') AS INT64) AS currentLevel,
+  CAST(JSON_VALUE(data, '$.currentVillage') AS INT64) AS currentVillage,
+  -- כאן אנחנו משאירים את ה-params כ-JSON כדי לפרק אותם בהמשך לפי הצורך
+  JSON_QUERY(data, '$.eventParams') AS params
+FROM
+  `ppltx-project-dev.playpltx.raw_data_raw_changelog`
+WHERE
+  operation IN ('CREATE', 'INSERT', 'IMPORT')
+
+------------------------------------------------------------------------------
+
+-- Staging Flat View (From Previous View)
+
+SELECT
+  * EXCEPT(params),
+
+  -- 1. session_start
+  SAFE_CAST(JSON_VALUE(params, '$.initialSpins') AS INT64) AS initialSpins,
+  SAFE_CAST(JSON_VALUE(params, '$.initialCoins') AS INT64) AS initialCoins,
+  SAFE_CAST(JSON_VALUE(params, '$.consent') AS BOOL) AS consent,
+
+  -- 2. session_end
+  SAFE_CAST(JSON_VALUE(params, '$.totalSessionTime') AS INT64) AS totalSessionTime,
+  SAFE_CAST(JSON_VALUE(params, '$.finalLevel') AS INT64) AS finalLevel,
+  SAFE_CAST(JSON_VALUE(params, '$.finalCoins') AS INT64) AS finalCoins,
+
+  -- 3. building_upgrade
+  JSON_VALUE(params, '$.status') AS upgradeStatus,
+  JSON_VALUE(params, '$.building') AS buildingId,
+  SAFE_CAST(JSON_VALUE(params, '$.levelAfter') AS INT64) AS levelAfter,
+  SAFE_CAST(JSON_VALUE(params, '$.cost') AS INT64) AS upgradeCost,
+  SAFE_CAST(JSON_VALUE(params, '$.isFree') AS BOOL) AS isFree,
+  JSON_VALUE(params, '$.reason') AS upgradeFailedReason,
+  SAFE_CAST(JSON_VALUE(params, '$.levelBefore') AS INT64) AS levelBefore,
+  SAFE_CAST(JSON_VALUE(params, '$.cannonIndex') AS INT64) AS cannonIndex,
+  SAFE_CAST(JSON_VALUE(params, '$.cannonLevelAfter') AS INT64) AS cannonLevelAfter,
+  SAFE_CAST(JSON_VALUE(params, '$.farmLevelAfter') AS INT64) AS farmLevelAfter,
+  SAFE_CAST(JSON_VALUE(params, '$.castleStageBefore') AS INT64) AS castleStageBefore,
+  SAFE_CAST(JSON_VALUE(params, '$.castleStageAfter') AS INT64) AS castleStageAfter,
+  JSON_VALUE(params, '$.source') AS upgradeSource,
+
+  -- 4. spin
+  SAFE_CAST(JSON_VALUE(params, '$.spinIndex') AS INT64) AS spinIndex,
+  SAFE_CAST(JSON_VALUE(params, '$.energyBefore') AS INT64) AS energyBefore,
+  SAFE_CAST(JSON_VALUE(params, '$.energyAfter') AS INT64) AS energyAfter,
+  JSON_QUERY(params, '$.symbols') AS symbols, -- Array
+  SAFE_CAST(JSON_VALUE(params, '$.payoutCoins') AS INT64) AS payoutCoins,
+  JSON_VALUE(params, '$.actionTriggered') AS actionTriggered,
+  JSON_VALUE(params, '$.detailedResult') AS detailedResult,
+  SAFE_CAST(JSON_VALUE(params, '$.spinsBonus') AS INT64) AS spinsBonus,
+  SAFE_CAST(JSON_VALUE(params, '$.reactionTimeMs') AS INT64) AS reactionTimeMs,
+
+  -- 5. attack_start & attack_end
+  JSON_VALUE(params, '$.targetName') AS attackTargetName,
+  JSON_VALUE(params, '$.targetUserId') AS attackTargetUserId,
+  JSON_VALUE(params, '$.result') AS attackResult,
+  SAFE_CAST(JSON_VALUE(params, '$.reward') AS INT64) AS attackReward,
+  JSON_VALUE(params, '$.buildingName') AS attackedBuildingName,
+
+  -- 6. raid_start & raid_end
+  JSON_VALUE(params, '$.rivalName') AS raidRivalName,
+  SAFE_CAST(JSON_VALUE(params, '$.maxPossible') AS INT64) AS raidMaxPossible,
+  SAFE_CAST(JSON_VALUE(params, '$.totalStolen') AS INT64) AS totalStolen,
+  SAFE_CAST(JSON_VALUE(params, '$.perfectRaid') AS BOOL) AS perfectRaid,
+  -- הערה: reward ב-raid_end משוכפל ל-totalStolen לפי ה-Schema שלך
+  SAFE_CAST(JSON_VALUE(params, '$.reward') AS INT64) AS raidReward,
+
+  -- 7. energy_update
+  JSON_VALUE(params, '$.kind') AS energyUpdateKind,
+  SAFE_CAST(JSON_VALUE(params, '$.spinsBefore') AS INT64) AS spinsBeforeUpdate,
+  SAFE_CAST(JSON_VALUE(params, '$.spinsAfter') AS INT64) AS spinsAfterUpdate,
+  SAFE_CAST(JSON_VALUE(params, '$.nextRefillTime') AS INT64) AS nextRefillTime,
+  SAFE_CAST(JSON_VALUE(params, '$.spins') AS INT64) AS energyUpdateAmount,
+
+  -- 8. tutorial_progress
+  JSON_VALUE(params, '$.phase') AS tutorialPhase,
+  SAFE_CAST(JSON_VALUE(params, '$.stepNumber') AS INT64) AS tutorialStepNumber,
+  SAFE_CAST(JSON_VALUE(params, '$.timeSpent') AS INT64) AS tutorialTimeSpent,
+  SAFE_CAST(JSON_VALUE(params, '$.totalSpins') AS INT64) AS tutorialTotalSpins,
+
+  -- 9. player_level_up & village_complete
+  SAFE_CAST(JSON_VALUE(params, '$.newLevel') AS INT64) AS newLevel,
+  SAFE_CAST(JSON_VALUE(params, '$.villageId') AS INT64) AS villageId,
+  SAFE_CAST(JSON_VALUE(params, '$.timeSpent') AS INT64) AS villageTimeSpentSeconds,
+
+  -- 10. audit_stress_test
+  SAFE_CAST(JSON_VALUE(params, '$.hasEconomy') AS BOOL) AS audit_hasEconomy,
+  SAFE_CAST(JSON_VALUE(params, '$.hasXpSettings') AS BOOL) AS audit_hasXpSettings,
+  SAFE_CAST(JSON_VALUE(params, '$.hasLogger') AS BOOL) AS audit_hasLogger,
+  SAFE_CAST(JSON_VALUE(params, '$.hasRunSpin') AS BOOL) AS audit_hasRunSpin,
+  SAFE_CAST(JSON_VALUE(params, '$.hasAddStar') AS BOOL) AS audit_hasAddStar,
+
+  params AS raw_params
+
+FROM `ppltx-project-dev.playpltx.v_staging`
+ORDER BY ts DESC
