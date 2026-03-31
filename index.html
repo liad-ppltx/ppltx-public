@@ -3601,7 +3601,7 @@
 
       // Unified BigQuery-friendly logger:
       // saveToFirestore(eventName, eventParams, superProps)
-      // eventParams = JSON string of event-only fields (no user/condition/level duplication).
+      // eventParams is a plain object (no user/condition/level duplication).
       // Super properties are top-level columns (merged with __researchContext for ids).
       window.saveToFirestore = async function (eventName, eventParams, superProps) {
         const ctx = (window.__researchContext && typeof window.__researchContext === "object")
@@ -3609,20 +3609,13 @@
           : {};
         const sp = superProps && typeof superProps === "object" ? superProps : {};
 
-        let eventParamsStr = "{}";
-        try {
-          eventParamsStr = JSON.stringify(eventParams ?? {});
-        } catch (e) {
-          eventParamsStr = JSON.stringify({ _stringifyError: String(e) });
-        }
-
         const data = {
           userId: String(sp.userId || ctx.userId || ""),
           sessionId: String(sp.sessionId || ctx.sessionId || ""),
           condition: String(sp.condition || ctx.condition || gameState.condition || ""),
           timestamp: String(sp.timestamp || new Date().toISOString()),
           eventName: String(eventName || ""),
-          eventParams: eventParamsStr,
+          eventParams: eventParams && typeof eventParams === "object" ? eventParams : {},
           currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : Number(gameState.level || 0),
           currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gameState.villageId || 0),
           clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
@@ -3660,7 +3653,26 @@
           } else if (value instanceof Date) {
             formattedData.fields[key] = { timestampValue: value.toISOString() };
           } else if (typeof value === "object") {
-            formattedData.fields[key] = { stringValue: JSON.stringify(value) };
+            if (key === "eventParams") {
+              const mapFields = {};
+              for (const innerKey in value) {
+                if (!Object.prototype.hasOwnProperty.call(value, innerKey)) continue;
+                const innerVal = value[innerKey];
+                if (innerVal === null || innerVal === undefined) continue;
+                if (typeof innerVal === "number") {
+                  mapFields[innerKey] = Number.isInteger(innerVal)
+                    ? { integerValue: innerVal }
+                    : { doubleValue: innerVal };
+                } else if (typeof innerVal === "boolean") {
+                  mapFields[innerKey] = { booleanValue: innerVal };
+                } else {
+                  mapFields[innerKey] = { stringValue: String(innerVal) };
+                }
+              }
+              formattedData.fields[key] = { mapValue: { fields: mapFields } };
+            } else {
+              formattedData.fields[key] = { stringValue: JSON.stringify(value) };
+            }
           } else {
             formattedData.fields[key] = { stringValue: String(value) };
           }
