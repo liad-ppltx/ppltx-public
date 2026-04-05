@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.0.6",
+  "currentAppVersion": "1.0.7",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -15,6 +15,7 @@
       "platform": { "type": "string", "enum": ["Mobile", "Tablet", "Desktop"], "source": "navigator.userAgent classification" },
       "countryCode": { "type": "string", "source": "ipapi country_code; fallback unknown" },
       "userId": { "type": "string", "source": "gameState.userId (initialized from USER_ID)" },
+      "playerName": { "type": "string", "source": "gameState.playerName (persistent nickname via localStorage key playerName)" },
       "condition": { "type": "string", "source": "gameState.condition" },
       "currentLevel": { "type": "number", "source": "Alias of gameState.villageId (same value as currentVillage)" },
       "currentVillage": { "type": "number", "source": "gameState.villageId" },
@@ -45,6 +46,13 @@
         "required": true,
         "description": "CFG / A-B condition id",
         "source": "getSuperProperties().condition or __researchContext.condition"
+      },
+      {
+        "name": "playerName",
+        "type": "string",
+        "required": true,
+        "description": "Display nickname for leaderboard; persisted in localStorage",
+        "source": "getSuperProperties().playerName"
       },
       {
         "name": "timestamp",
@@ -101,7 +109,7 @@
 
   "superProperties": {
     "description": "Top-level Firestore fields merged from window.userProperties + dynamic runtime properties.",
-    "list": ["userId", "sessionId", "condition", "timestamp", "eventName", "currentLevel", "currentVillage", "clientTimestampMs", "platform", "countryCode", "version", "eventParams"]
+    "list": ["userId", "playerName", "sessionId", "condition", "timestamp", "eventName", "currentLevel", "currentVillage", "clientTimestampMs", "platform", "countryCode", "version", "eventParams"]
   },
 
   "types": {

@@ -2,7 +2,7 @@ Here is a comprehensive **README.md** file in English, structured professionally
 
 ---
 
-# PlayPLTX Analytics & Research Framework (v1.0.6)
+# PlayPLTX Analytics & Research Framework (v1.0.7)
 
 ## 📝 Project Overview
 
@@ -21,6 +21,7 @@ These fields are present at the top level of every database document. they allow
 | Property | Type | Source / Description |
 | --- | --- | --- |
 | **`userId`** | String | Persistent unique identifier for the participant. |
+| **`playerName`** | String | Display nickname for the in-game HUD and leaderboard context; persisted in **`localStorage`** under the key **`playerName`** (same tab/origin until cleared). |
 | **`sessionId`** | String | Unique ID for the current session (resets on page refresh). |
 | **`condition`** | String | Assigned A/B group (e.g., **A** or **B**). |
 | **`version`** | String | App version, controlled dynamically via `game-events.json`. |
@@ -119,6 +120,10 @@ To ensure data consistency across all study arms, building names in the `buildin
 ### Version Control
 
 The application version is managed centrally in `game-events.json`. Updating the `currentAppVersion` field in this JSON automatically updates the `version` super property across all subsequent logs, allowing for seamless longitudinal analysis across different game builds.
+
+### Player nickname persistence (v1.0.7+)
+
+After consent, new participants choose a nickname once; it is stored in **`localStorage`** as **`playerName`** and reloaded on refresh so they are not prompted again. The same value is sent on every analytics event as the top-level **`playerName`** field (with **`userId`**, **`currentVillage`**, etc.). Clearing site data or using a private/incognito session removes `localStorage`, so the nickname step appears again.
 
 ---
 

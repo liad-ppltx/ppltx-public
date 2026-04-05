@@ -646,6 +646,27 @@
         gap: 10px;
         flex-wrap: wrap;
       }
+      .hud-top-left {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        min-width: 0;
+        max-width: min(42%, 160px);
+      }
+      .hud-player-nick {
+        font-size: clamp(0.58rem, 2.4vw, 0.68rem);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: rgba(220, 230, 255, 0.88);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+      .hud-player-nick:empty {
+        display: none;
+      }
       .hud-coin-pips {
         display: flex;
         align-items: center;
@@ -931,6 +952,56 @@
         display: none !important;
         pointer-events: none !important;
       }
+      .nickname-gate-label {
+        display: block;
+        font-size: 0.95rem;
+        color: rgba(230, 236, 255, 0.92);
+        margin-bottom: 10px;
+        line-height: 1.45;
+      }
+      .nickname-gate-input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(8, 12, 28, 0.85);
+        color: #f2f6ff;
+        font-size: 1rem;
+        margin-bottom: 16px;
+      }
+      .nickname-gate-input:focus {
+        outline: 2px solid rgba(120, 180, 255, 0.45);
+        outline-offset: 2px;
+      }
+      .nickname-start-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+      .welcome-back-toast {
+        position: fixed;
+        left: 50%;
+        top: 22%;
+        transform: translate(-50%, -50%);
+        z-index: 520;
+        padding: 12px 20px;
+        border-radius: 12px;
+        border: 1px solid rgba(140, 200, 255, 0.35);
+        background: rgba(12, 18, 36, 0.94);
+        color: #dce8ff;
+        font-size: 0.95rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 280ms ease;
+      }
+      .welcome-back-toast.show {
+        opacity: 1;
+      }
+
       .landing-card {
         width: min(720px, 96vw);
         border-radius: 18px;
@@ -3575,18 +3646,23 @@
           ? window.__researchContext
           : {};
         const sp = superProps && typeof superProps === "object" ? superProps : {};
+        const gs =
+          typeof window.__playpltxGameState === "object" && window.__playpltxGameState !== null
+            ? window.__playpltxGameState
+            : {};
 
         const data = {
           userId: String(sp.userId || ctx.userId || ""),
           sessionId: String(sp.sessionId || ctx.sessionId || ""),
-          condition: String(sp.condition || ctx.condition || gameState.condition || ""),
+          condition: String(sp.condition || ctx.condition || gs.condition || ""),
           timestamp: String(sp.timestamp || new Date().toISOString()),
           eventName: String(eventName || ""),
           eventParams: eventParams && typeof eventParams === "object" ? eventParams : {},
           currentLevel: Number.isFinite(Number(sp.currentLevel))
             ? Math.round(Number(sp.currentLevel))
-            : Number(gameState.villageId || 0),
-          currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gameState.villageId || 0),
+            : Number(gs.villageId || 0),
+          currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gs.villageId || 0),
+          playerName: String(sp.playerName != null && sp.playerName !== undefined ? sp.playerName : gs.playerName || ""),
           clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
           platform: String(sp.platform || ""),
           countryCode: String(sp.countryCode || "unknown"),
@@ -3683,7 +3759,7 @@
   <body>
     <div class="ocean-waves" aria-hidden="true"></div>
     <div id="landingPage" class="landing-page">
-      <div class="landing-card">
+      <div id="landingConsentPanel" class="landing-card">
         <div class="landing-badge">🧪 University Research</div>
         <h1 class="landing-title">PlayPltx: Gaming Activity Study</h1>
         <p class="landing-copy">
@@ -3695,7 +3771,23 @@
         </p>
         <button id="consentStartBtn" type="button" class="rune-btn landing-cta">I AGREE &amp; START PLAYING</button>
       </div>
+      <div id="nicknameGatePanel" class="landing-card hidden">
+        <div class="landing-badge">Nickname</div>
+        <h1 class="landing-title">Almost there</h1>
+        <label class="nickname-gate-label" for="nicknameInput">Enter your Nickname (for the leaderboard)</label>
+        <input
+          id="nicknameInput"
+          type="text"
+          class="nickname-gate-input"
+          maxlength="32"
+          autocomplete="nickname"
+          placeholder="Your nickname"
+        />
+        <button id="nicknameStartBtn" type="button" class="rune-btn landing-cta nickname-start-btn" disabled>Start Game</button>
+      </div>
     </div>
+
+    <div id="welcomeBackToast" class="welcome-back-toast" role="status" aria-live="polite" aria-hidden="true"></div>
 
     <div id="appLayout" class="app-layout hidden">
       <div class="top-progress-stack" aria-hidden="false">
@@ -3716,7 +3808,10 @@
         <span class="hud-rivet hud-rivet--tl" aria-hidden="true"></span>
         <span class="hud-rivet hud-rivet--tr" aria-hidden="true"></span>
         <div class="hud-top">
-          <div class="hud-title">PlayPLTX</div>
+          <div class="hud-top-left">
+            <div id="hudPlayerNick" class="hud-player-nick" aria-label="Your nickname"></div>
+            <div class="hud-title">PlayPLTX</div>
+          </div>
           <div class="hud-level">Stage <span id="levelValue">1</span>/10</div>
           <div class="hud-coin-pips" aria-hidden="true">
             <span id="hudCoinPip0" class="hud-coin-pip"></span>
@@ -4218,8 +4313,16 @@
         const STORAGE_KEY_SAVE = "coinIslandState_v1";
         const STORAGE_KEY_TUTORIAL = "tutorialCompleted";
         const STORAGE_KEY_MINI_TUTORIAL = "miniTutorialCompleted";
+        // Display nickname for HUD + analytics. If the user clears browser data or uses a private/incognito window, localStorage is empty and the nickname gate appears again (expected).
+        const STORAGE_KEY_PLAYER_NAME = "playerName";
         const cfgLabelEl = document.getElementById("cfgLabel");
         const landingPageEl = document.getElementById("landingPage");
+        const landingConsentPanelEl = document.getElementById("landingConsentPanel");
+        const nicknameGatePanelEl = document.getElementById("nicknameGatePanel");
+        const nicknameInputEl = document.getElementById("nicknameInput");
+        const nicknameStartBtnEl = document.getElementById("nicknameStartBtn");
+        const welcomeBackToastEl = document.getElementById("welcomeBackToast");
+        const hudPlayerNickEl = document.getElementById("hudPlayerNick");
         const appLayoutEl = document.getElementById("appLayout");
         const researchDrawerBackdropEl = document.getElementById("researchDrawerBackdrop");
         const researchDrawerToggleEl = document.getElementById("researchDrawerToggle");
@@ -4327,9 +4430,40 @@
           spins: 0,
           coins: 0,
           currentRivalName: "",
+          playerName: "",
           userId: USER_ID,
           villageId: 1,
         };
+        window.__playpltxGameState = gameState;
+
+        function getStoredPlayerName() {
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY_PLAYER_NAME);
+            return typeof raw === "string" ? raw.trim() : "";
+          } catch (e) {
+            return "";
+          }
+        }
+        function savePlayerNameToStorage(name) {
+          try {
+            localStorage.setItem(STORAGE_KEY_PLAYER_NAME, name);
+          } catch (e) {}
+        }
+        function showWelcomeBackToast(displayName) {
+          if (!welcomeBackToastEl) return;
+          welcomeBackToastEl.textContent = `Welcome back, ${displayName}!`;
+          welcomeBackToastEl.setAttribute("aria-hidden", "false");
+          welcomeBackToastEl.classList.add("show");
+          window.setTimeout(() => {
+            welcomeBackToastEl.classList.remove("show");
+            welcomeBackToastEl.setAttribute("aria-hidden", "true");
+          }, 2000);
+        }
+        function syncNicknameStartEnabled() {
+          if (!nicknameStartBtnEl || !nicknameInputEl) return;
+          nicknameStartBtnEl.disabled = !nicknameInputEl.value.trim();
+        }
+
         const DEFAULT_ECONOMY_DATA = {
           condition_A: {
             villageScalingFactor: 1.5,
@@ -5103,6 +5237,7 @@
           logPreviewEl.classList.remove("log-preview-empty");
           const totalStars = VILLAGE_ITEMS.reduce((sum, item) => sum + (villageProgress[item] || 0), 0);
           const snapshot = {
+            playerName: gameState.playerName,
             coins,
             spins: gameState.energy,
             villageId: gameState.villageId,
@@ -5173,6 +5308,7 @@
           return {
             ...baseProps,
             userId: gameState.userId || baseProps.userId || window.__researchContext.userId,
+            playerName: String(gameState.playerName || ""),
             condition: gameState.condition || baseProps.condition || window.__researchContext.condition,
             currentLevel: gameState.villageId,
             currentVillage: gameState.villageId,
@@ -5216,6 +5352,7 @@
               ? Math.round(Number(sp.currentLevel))
               : Number(gameState.villageId || 0),
             currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gameState.villageId || 0),
+            playerName: String(sp.playerName != null && sp.playerName !== undefined ? sp.playerName : gameState.playerName || ""),
             clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
             platform: String(sp.platform || ""),
             countryCode: String(sp.countryCode || "unknown"),
@@ -5326,6 +5463,29 @@
           await startGameAfterConsent();
         }
         function handleConsent() {
+          if (consentStartBtn && consentStartBtn.disabled) return;
+          if (consentStartBtn) consentStartBtn.disabled = true;
+          if (landingConsentPanelEl) landingConsentPanelEl.classList.add("hidden");
+          const stored = getStoredPlayerName();
+          if (stored) {
+            gameState.playerName = stored;
+            showWelcomeBackToast(stored);
+            window.setTimeout(() => {
+              initGame();
+            }, 2000);
+          } else {
+            if (nicknameGatePanelEl) nicknameGatePanelEl.classList.remove("hidden");
+            syncNicknameStartEnabled();
+            if (nicknameInputEl) nicknameInputEl.focus();
+          }
+        }
+        function handleNicknameStart() {
+          if (!nicknameInputEl || !nicknameStartBtnEl || nicknameStartBtnEl.disabled) return;
+          const name = nicknameInputEl.value.trim();
+          if (!name) return;
+          gameState.playerName = name;
+          savePlayerNameToStorage(name);
+          if (nicknameGatePanelEl) nicknameGatePanelEl.classList.add("hidden");
           initGame();
         }
 
@@ -5420,6 +5580,7 @@
           if (energyEl) energyEl.textContent = String(gameState.energy);
           if (energyMaxEl) energyMaxEl.textContent = String(GAME_CONFIG.maxEnergy);
           if (coinsEl) coinsEl.textContent = formatNumber(coins);
+          if (hudPlayerNickEl) hudPlayerNickEl.textContent = gameState.playerName ? String(gameState.playerName) : "";
           if (stageEl) stageEl.textContent = String(stage);
           if (cannonLevelValueEl) cannonLevelValueEl.textContent = String(cannon1Level);
           if (castleLevelTagEl) castleLevelTagEl.textContent = String(stage);
@@ -7072,6 +7233,13 @@
           };
           setupListener("consentStartBtn", handleConsent);
           setupListener("agreeBtn", handleConsent);
+          if (nicknameStartBtnEl) nicknameStartBtnEl.onclick = handleNicknameStart;
+          if (nicknameInputEl) {
+            nicknameInputEl.addEventListener("input", syncNicknameStartEnabled);
+            nicknameInputEl.addEventListener("keydown", (ev) => {
+              if (ev.key === "Enter" && nicknameStartBtnEl && !nicknameStartBtnEl.disabled) handleNicknameStart();
+            });
+          }
           setupListener("spinBtn", onSpinClick);
           setupListener("upgradeBtn", handleUpgrade);
           setupListener("upgradeCannonBtn", () => handleCannonUpgrade());
