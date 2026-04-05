@@ -3,14 +3,21 @@
 Stateful synthetic event generator for PlayPLTX.
 Loads schemas from game-events.json + game-economy.json in this repository root.
 Persists user progress in users_state.json under the output directory.
+
+BigQuery: load local events_*.jsonl with the upload-bq subcommand, e.g.:
+  python generator.py upload-bq --config bq_config.json
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
+import shlex
 import string
+import subprocess
+import sys
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -29,6 +36,7 @@ ECONOMY_JSON = REPO_ROOT / "game-economy.json"
 # Contains users_state.json and events_YYYY-MM-DD.jsonl files.
 OUTPUT_DIR = (SIM_DIR / "../../temp/data/ppltx-public/simulation").resolve()
 STATE_FILENAME = "users_state.json"
+DEFAULT_BQ_CONFIG_PATH = SIM_DIR / "bq_config.json"
 
 VILLAGE_ITEMS = ("Castle", "Cannon", "Statue", "Farm", "Boat")
 SYMBOL_NAMES = ("Hammer", "Pig", "Shield", "Coin", "Bag", "Spins")
@@ -662,7 +670,127 @@ def parse_day_bounds(days_back: int) -> Tuple[datetime, datetime]:
     return start_dt, end_dt
 
 
+def load_bq_config(path: Path) -> Dict[str, Any]:
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"Missing config: {path}\nCopy simulation/bq_config.example.json to bq_config.json and edit."
+        )
+    with path.open(encoding="utf-8") as f:
+        return json.load(f)
+
+
+def resolve_bq_data_dir(cfg: Dict[str, Any]) -> Path:
+    raw = cfg.get("data_dir")
+    if raw is None or raw == "":
+        return OUTPUT_DIR
+    p = Path(raw)
+    if not p.is_absolute():
+        p = (SIM_DIR / p).resolve()
+    return p
+
+
+def collect_bq_jsonl_files(data_dir: Path) -> List[Path]:
+    if not data_dir.is_dir():
+        raise FileNotFoundError(f"Data directory does not exist: {data_dir}")
+    files = sorted(data_dir.glob("events_*.jsonl"))
+    return [f for f in files if f.is_file()]
+
+
+def build_bq_load_command(
+    *,
+    project_id: str,
+    dataset: str,
+    table: str,
+    source_files: List[Path],
+    replace_table: bool,
+) -> List[str]:
+    table_ref = f"{dataset}.{table}"
+    cmd: List[str] = [
+        "bq",
+        "load",
+        "--project_id",
+        project_id,
+        "--source_format=NEWLINE_DELIMITED_JSON",
+        "--autodetect",
+    ]
+    if replace_table:
+        cmd.append("--replace")
+    cmd.append(table_ref)
+    cmd.extend(str(p) for p in source_files)
+    return cmd
+
+
+def main_upload_bq() -> None:
+    parser = argparse.ArgumentParser(description="Upload simulation events_*.jsonl to BigQuery")
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=DEFAULT_BQ_CONFIG_PATH,
+        help=f"Path to JSON config (default: {DEFAULT_BQ_CONFIG_PATH})",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print bq command and exit without running",
+    )
+    args = parser.parse_args()
+    cfg_path = args.config.resolve()
+
+    cfg = load_bq_config(cfg_path)
+    project_id = (cfg.get("project_id") or os.environ.get("GOOGLE_CLOUD_PROJECT") or "").strip()
+    dataset = (cfg.get("dataset") or "").strip()
+    table = (cfg.get("table") or "").strip()
+    if not project_id:
+        print("Config error: project_id is required (or set GOOGLE_CLOUD_PROJECT).", file=sys.stderr)
+        sys.exit(1)
+    if not dataset or not table:
+        print("Config error: dataset and table are required.", file=sys.stderr)
+        sys.exit(1)
+
+    replace_table = bool(cfg.get("replace_table", False))
+    data_dir = resolve_bq_data_dir(cfg)
+    files = collect_bq_jsonl_files(data_dir)
+
+    if not files:
+        print(f"No events_*.jsonl files under {data_dir}; nothing to upload.", file=sys.stderr)
+        sys.exit(1)
+
+    cmd = build_bq_load_command(
+        project_id=project_id,
+        dataset=dataset,
+        table=table,
+        source_files=files,
+        replace_table=replace_table,
+    )
+
+    if args.dry_run:
+        print("Dry run — would execute:")
+        print(" ".join(shlex.quote(str(x)) for x in cmd))
+        return
+
+    print(f"Loading {len(files)} file(s) into `{project_id}.{dataset}.{table}` …")
+    try:
+        subprocess.run(cmd, check=True)
+    except FileNotFoundError:
+        print(
+            "Error: `bq` not found. Install Google Cloud SDK and ensure `bq` is on PATH.\n"
+            "https://cloud.google.com/sdk/docs/install",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"bq load failed with exit code {e.returncode}", file=sys.stderr)
+        sys.exit(e.returncode or 1)
+
+    print("Done.")
+
+
 def main() -> None:
+    if len(sys.argv) > 1 and sys.argv[1] == "upload-bq":
+        del sys.argv[1]
+        main_upload_bq()
+        return
+
     parser = argparse.ArgumentParser(description="PlayPLTX synthetic event generator")
     parser.add_argument(
         "--days-back",

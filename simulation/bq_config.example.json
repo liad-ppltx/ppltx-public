@@ -1,0 +1,7 @@
+{
+  "project_id": "YOUR_GCP_PROJECT_ID",
+  "dataset": "playpltx_sim",
+  "table": "synthetic_events",
+  "data_dir": null,
+  "replace_table": false
+}
