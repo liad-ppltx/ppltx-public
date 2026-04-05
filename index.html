@@ -189,11 +189,10 @@
         pointer-events: none;
       }
 
-      .xp-hud-bar {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
+      .village-hud-bar {
+        display: flex;
         align-items: center;
-        gap: clamp(6px, 2vw, 10px);
+        justify-content: center;
         width: 100%;
         padding: 6px 12px;
         border-radius: 999px;
@@ -202,34 +201,12 @@
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
       }
 
-      .xp-hud-level {
-        font-size: clamp(0.68rem, 2.8vw, 0.8rem);
+      .village-hud-label {
+        font-size: clamp(0.72rem, 2.9vw, 0.85rem);
         font-weight: 900;
         letter-spacing: 0.06em;
         color: #e8d4ff;
         white-space: nowrap;
-      }
-
-      .xp-hud-track {
-        position: relative;
-        height: clamp(10px, 2.8vw, 12px);
-        border-radius: 999px;
-        background: rgba(20, 14, 40, 0.95);
-        border: 1px solid rgba(180, 140, 255, 0.25);
-        overflow: hidden;
-      }
-
-      .xp-hud-fill {
-        background: linear-gradient(90deg, #7c3aed, #22d3ee 50%, #a78bfa);
-        box-shadow: 0 0 14px rgba(167, 139, 250, 0.55);
-      }
-
-      .xp-hud-xp-text {
-        font-size: clamp(0.65rem, 2.6vw, 0.74rem);
-        font-weight: 800;
-        color: #dce7ff;
-        white-space: nowrap;
-        font-variant-numeric: tabular-nums;
       }
 
       .game-container {
@@ -2369,16 +2346,6 @@
         font-variant-numeric: tabular-nums;
       }
 
-      .xp-fill {
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 0%;
-        border-radius: 999px;
-        transition: width 280ms ease;
-      }
-
       body.composite-village-mode .castle-wrap,
       body.composite-village-mode .island-top,
       body.composite-village-mode .island-side,
@@ -3734,12 +3701,8 @@
           <div id="villageProgressFill" class="village-progress-fill"></div>
           <div id="villageProgressLabel" class="village-progress-label">Village 1 Progress: 0 / 25 Stars</div>
         </div>
-        <div id="xpHudBar" class="xp-hud-bar" role="group" aria-label="Player experience">
-          <span id="playerLevelLabel" class="xp-hud-level">Level 1</span>
-          <div class="xp-hud-track" aria-hidden="true">
-            <div id="xpFill" class="xp-fill xp-hud-fill"></div>
-          </div>
-          <span id="xpText" class="xp-hud-xp-text">0/100 XP</span>
+        <div id="villageHudBar" class="village-hud-bar" role="status" aria-label="Current village">
+          <span id="playerLevelLabel" class="village-hud-label">Village 1</span>
         </div>
       </div>
       <div class="game-container">
@@ -4042,7 +4005,7 @@
         <button id="miniTutorialPlayBtn" type="button" class="rune-btn">Let's Play!</button>
       </div>
     </div>
-    <div id="levelUpPopup" class="level-up-pop" aria-hidden="true">LEVEL UP!</div>
+    <div id="levelUpPopup" class="level-up-pop" aria-hidden="true">New village!</div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
@@ -4197,8 +4160,6 @@
           document.getElementById("hudCoinPip2"),
         ];
         const playerLevelLabelEl = document.getElementById("playerLevelLabel");
-        const xpFillEl = document.getElementById("xpFill");
-        const xpTextEl = document.getElementById("xpText");
         const levelUpPopupEl = document.getElementById("levelUpPopup");
         const castleVisualEl = document.getElementById("castleVisual");
         const cannonVisualEl = document.getElementById("cannonVisual");
@@ -4364,7 +4325,6 @@
           spins: 0,
           coins: 0,
           currentRivalName: "",
-          xp: 0,
           level: 1,
           userId: USER_ID,
           villageId: 1,
@@ -4375,7 +4335,7 @@
             maxSpins: 10,
             refillMinutes: 5,
             villageCompleteReward: { coins: 500000, spins: 20 },
-            slotWeights: { hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, energy: 2 },
+            slotWeights: { hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, spins: 2 },
             payouts: {
               coin_single: 1000,
               bag_triple: 50000,
@@ -4397,7 +4357,7 @@
             maxSpins: 20,
             refillMinutes: 3,
             villageCompleteReward: { coins: 1000000, spins: 50 },
-            slotWeights: { hammer: 5, pig: 5, shield: 2, coin: 4, bag: 4, energy: 2 },
+            slotWeights: { hammer: 5, pig: 5, shield: 2, coin: 4, bag: 4, spins: 3 },
             payouts: {
               coin_single: 2500,
               bag_triple: 150000,
@@ -4480,49 +4440,25 @@
         }
         function getGameConfig() {
           const economy = getConditionEconomy();
-          const slotWeights = Object.assign({ hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, energy: 2 }, economy.slotWeights || {});
+          const slotWeights = Object.assign({ hammer: 2, pig: 2, shield: 3, coin: 7, bag: 6, spins: 2 }, economy.slotWeights || {});
           const initialSpins = Number(economy.initialSpins);
           const maxSpins = Number(economy.maxSpins);
           const refillMinutes = Number(economy.refillMinutes);
-          const rootXp = (window.ECONOMY_DATA && window.ECONOMY_DATA.xpSettings) || {};
-          const conditionXp = (economy && economy.xpSettings) || {};
-          const xpSource = Object.assign({}, rootXp, conditionXp);
-          const xpSettings = {
-            xpPerSpin: Math.max(0, Number(xpSource.xpPerSpin) || 5),
-            xpPerAttack: Math.max(0, Number(xpSource.xpPerAttack) || 12),
-            xpPerRaid: Math.max(0, Number(xpSource.xpPerRaid) || 15),
-            xpPerUpgrade: Math.max(0, Number(xpSource.xpPerUpgrade) || 10),
-            xpRequired: Math.max(1, Number(xpSource.xpRequired) || 100),
-          };
           return {
             slotWeights,
             initialEnergy: Number.isFinite(initialSpins) ? initialSpins : 10,
             maxEnergy: Number.isFinite(maxSpins) ? maxSpins : 10,
             refillMinutes: Number.isFinite(refillMinutes) ? refillMinutes : 5,
-            xpSettings,
           };
         }
-        function showLevelUpPopup(level) {
+        function showLevelUpPopup(villageNumber) {
           if (!levelUpPopupEl) return;
-          levelUpPopupEl.textContent = `LEVEL UP! LV ${level}`;
+          const n = Math.max(1, Math.round(Number(villageNumber) || 1));
+          levelUpPopupEl.textContent = `NEW VILLAGE! Village ${n}`;
           levelUpPopupEl.classList.remove("show");
           void levelUpPopupEl.offsetWidth;
           levelUpPopupEl.classList.add("show");
           setTimeout(() => levelUpPopupEl.classList.remove("show"), 1150);
-        }
-        function gainXp(amount, source) {
-          const gain = Math.max(0, Math.round(Number(amount) || 0));
-          if (gain <= 0) return;
-          const required = Math.max(1, Number((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpRequired) || 100));
-          gameState.xp = Math.max(0, Math.round(Number(gameState.xp) || 0)) + gain;
-          while (gameState.xp >= required) {
-            gameState.xp -= required;
-            gameState.level = Math.max(1, Math.round(Number(gameState.level) || 1) + 1);
-            showLevelUpPopup(gameState.level);
-            logEvent("player_level_up", {
-              newLevel: gameState.level,
-            });
-          }
         }
         let GAME_CONFIG = getGameConfig();
         let MAX_ENERGY = GAME_CONFIG.maxEnergy;
@@ -5137,7 +5073,6 @@
           const totalStars = VILLAGE_ITEMS.reduce((sum, item) => sum + (villageProgress[item] || 0), 0);
           const snapshot = {
             level: gameState.level,
-            xp: gameState.xp,
             coins,
             spins: gameState.energy,
             villageId: gameState.villageId,
@@ -5157,7 +5092,6 @@
         function runStressTest() {
           const checks = {
             hasEconomy: !!window.ECONOMY_DATA,
-            hasXpSettings: !!(GAME_CONFIG && GAME_CONFIG.xpSettings),
             hasLogger: typeof window.saveToFirestore === "function",
             hasRunSpin: typeof runSpin === "function",
             hasAddStar: typeof window.addStar === "function",
@@ -5402,7 +5336,6 @@
                 villageId: gameState.villageId,
                 totalSpinsToComplete,
                 villageProgress,
-                xp: gameState.xp,
                 level: gameState.level,
                 villageStartedAtMs,
                 lastEnergyRefillAt,
@@ -5435,7 +5368,6 @@
             }
             if (typeof s.villageId === "number") gameState.villageId = Math.max(1, s.villageId);
             if (typeof s.totalSpinsToComplete === "number") totalSpinsToComplete = Math.max(0, s.totalSpinsToComplete);
-            if (typeof s.xp === "number") gameState.xp = Math.max(0, Math.round(s.xp));
             if (typeof s.level === "number") gameState.level = Math.max(1, Math.round(s.level));
             if (s.villageProgress && typeof s.villageProgress === "object") {
               VILLAGE_ITEMS.forEach((item) => {
@@ -5445,10 +5377,12 @@
             if (typeof s.villageStartedAtMs === "number") villageStartedAtMs = s.villageStartedAtMs;
             if (typeof s.lastEnergyRefillAt === "number") lastEnergyRefillAt = s.lastEnergyRefillAt;
             if (typeof s.nextRefillTime === "number") nextRefillTime = s.nextRefillTime;
+            gameState.level = gameState.villageId;
           } catch (e) {}
         }
 
         function updateUI() {
+          gameState.level = gameState.villageId;
           gameState.shields = clamp(gameState.shields, 0, 3);
           shields = gameState.shields;
           gameState.energy = clamp(energy, 0, MAX_ENERGY);
@@ -5588,12 +5522,7 @@
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
           if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${formatNumber(gameState.villageId)} Progress: ${formatNumber(totalStars)} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
-          const xpRequired = Math.max(1, Number((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpRequired) || 100));
-          const xpValue = Math.max(0, Math.round(Number(gameState.xp) || 0));
-          const xpPct = Math.max(0, Math.min(100, Math.round((xpValue / xpRequired) * 100)));
-          if (playerLevelLabelEl) playerLevelLabelEl.textContent = `Level ${gameState.level}`;
-          if (xpFillEl) xpFillEl.style.width = `${xpPct}%`;
-          if (xpTextEl) xpTextEl.textContent = `${formatNumber(xpValue)}/${formatNumber(xpRequired)} XP`;
+          if (playerLevelLabelEl) playerLevelLabelEl.textContent = `Village ${formatNumber(gameState.villageId)}`;
           updateVillageVisuals();
           syncShopMiniTutorialHighlight();
         }
@@ -5701,6 +5630,8 @@
             worldInnerEl.style.filter = `hue-rotate(${(gameState.villageId % 6) * 28}deg) saturate(1.08)`;
           }
           gameState.villageId += 1;
+          gameState.level = gameState.villageId;
+          showLevelUpPopup(gameState.villageId);
           totalSpinsToComplete = 0;
           villageStartedAtMs = Date.now();
           villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
@@ -5714,10 +5645,14 @@
           stage = clamp(Math.ceil((stars / 25) * MAX_STAGE), 1, MAX_STAGE);
           if (stars >= 25) {
             const timeSpent = Math.max(0, Math.round((Date.now() - villageStartedAtMs) / 1000));
+            const completedVillageId = gameState.villageId;
             logEvent("village_complete", {
-              villageId: gameState.villageId,
+              villageId: completedVillageId,
               totalSpins: totalSpinsToComplete,
               timeSpent,
+            });
+            logEvent("player_level_up", {
+              newLevel: completedVillageId + 1,
             });
             runVillageCompleteCelebration();
           }
@@ -5726,7 +5661,6 @@
           if (!VILLAGE_ITEMS.includes(item)) return;
           if (villageProgress[item] >= 5) return;
           villageProgress[item] += 1;
-          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerUpgrade) || 0, "upgrade");
           const levelAfter = villageProgress[item];
           const o = opts || {};
           const villageMaxStars = levelAfter >= 5;
@@ -5875,7 +5809,6 @@
             reward,
             buildingName,
           });
-          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerAttack) || 0, "attack");
           await sleep(2000);
           await triggerTravelSequence(false);
           document.querySelectorAll(".attack-modal").forEach((el) => el.remove());
@@ -5951,8 +5884,6 @@
             totalStolen: raidSession.totalStolen,
             perfectRaid: raidSession.totalStolen >= 1100000,
           });
-
-          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerRaid) || 0, "raid");
 
           gameState.isRaidActive = false;
           document.body.classList.remove("raid-active");
@@ -6568,7 +6499,6 @@
           if (gameState.energy === 0) {
             setTimeout(() => showOutOfSpinsModal(), 1000);
           }
-          gainXp((GAME_CONFIG.xpSettings && GAME_CONFIG.xpSettings.xpPerSpin) || 0, "spin");
 
           let tutorialRigged = false;
           let result = [getRandomSymbol(), getRandomSymbol(), getRandomSymbol()];

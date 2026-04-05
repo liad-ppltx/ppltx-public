@@ -4,14 +4,6 @@
     "maxSpins": 10,
     "refillMinutes": 5,
     "villageCompleteReward": { "coins": 500000, "spins": 20 },
-    "xpSettings": {
-      "xpPerSpin": 5,
-      "xpPerAttack": 50,
-      "xpPerRaid": 100,
-      "xpPerUpgrade": 500,
-      "baseXpRequired": 1000,
-      "xpMultiplierPerLevel": 1.2
-    },
     "slotWeights": {
       "hammer": 2, "pig": 2, "shield": 3, "coin": 7, "bag": 6, "spins": 1
     },
@@ -36,14 +28,6 @@
     "maxSpins": 20,
     "refillMinutes": 3,
     "villageCompleteReward": { "coins": 1000000, "spins": 50 },
-    "xpSettings": {
-      "xpPerSpin": 20,
-      "xpPerAttack": 150,
-      "xpPerRaid": 300,
-      "xpPerUpgrade": 1500,
-      "baseXpRequired": 500,
-      "xpMultiplierPerLevel": 1.1
-    },
     "slotWeights": {
       "hammer": 5, "pig": 5, "shield": 2, "coin": 4, "bag": 4, "spins": 3
     },

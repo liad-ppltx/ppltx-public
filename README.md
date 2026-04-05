@@ -72,7 +72,7 @@ Each event contains an `eventParams` object which holds data specific to that pa
 
 ### Progression & Meta
 
-* **`player_level_up`**: Fired when an XP threshold is crossed. (`newLevel`).
+* **`player_level_up`**: Fired when a village is completed (25 stars); `newLevel` is the next village number (aligned with `village_complete`).
 * **`village_complete`**: Fired when all 25 stars in a village are collected. Includes `timeSpent` and `totalSpins`.
 * **`energy_update`**: Tracks changes in spin inventory (refills or depletions).
 

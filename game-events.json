@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.0.4",
+  "currentAppVersion": "1.0.5",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -16,7 +16,7 @@
       "countryCode": { "type": "string", "source": "ipapi country_code; fallback unknown" },
       "userId": { "type": "string", "source": "gameState.userId (initialized from USER_ID)" },
       "condition": { "type": "string", "source": "gameState.condition" },
-      "currentLevel": { "type": "number", "source": "gameState.level" },
+      "currentLevel": { "type": "number", "source": "gameState.level (kept in sync with gameState.villageId)" },
       "currentVillage": { "type": "number", "source": "gameState.villageId" },
       "timestamp": { "type": "string", "source": "new Date().toISOString() at event time" },
       "clientTimestampMs": { "type": "number", "source": "Date.now() at event time" },
@@ -219,7 +219,7 @@
       }
     },
     "player_level_up": {
-      "description": "XP threshold crossed.",
+      "description": "Village completed (25 stars); newLevel is the next village number (same milestone as village_complete).",
       "properties": {
         "newLevel": { "type": "number", "required": true }
       }
@@ -236,7 +236,6 @@
       "description": "Dev harness runStressTest only.",
       "properties": {
         "hasEconomy": { "type": "boolean", "required": true },
-        "hasXpSettings": { "type": "boolean", "required": true },
         "hasLogger": { "type": "boolean", "required": true },
         "hasRunSpin": { "type": "boolean", "required": true },
         "hasAddStar": { "type": "boolean", "required": true }
