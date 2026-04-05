@@ -2470,7 +2470,7 @@
         z-index: 114;
       }
 
-      .level-up-pop {
+      .village-advance-toast {
         position: fixed;
         left: 50%;
         top: 26%;
@@ -2488,10 +2488,10 @@
         pointer-events: none;
         opacity: 0;
       }
-      .level-up-pop.show {
-        animation: level-up-pop 1100ms cubic-bezier(0.2, 0.9, 0.2, 1);
+      .village-advance-toast.show {
+        animation: village-advance-toast-anim 1100ms cubic-bezier(0.2, 0.9, 0.2, 1);
       }
-      @keyframes level-up-pop {
+      @keyframes village-advance-toast-anim {
         0% { opacity: 0; transform: translate(-50%, -46%) scale(0.9); }
         18% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); }
         72% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
@@ -3583,7 +3583,9 @@
           timestamp: String(sp.timestamp || new Date().toISOString()),
           eventName: String(eventName || ""),
           eventParams: eventParams && typeof eventParams === "object" ? eventParams : {},
-          currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : Number(gameState.level || 0),
+          currentLevel: Number.isFinite(Number(sp.currentLevel))
+            ? Math.round(Number(sp.currentLevel))
+            : Number(gameState.villageId || 0),
           currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gameState.villageId || 0),
           clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
           platform: String(sp.platform || ""),
@@ -3683,11 +3685,11 @@
     <div id="landingPage" class="landing-page">
       <div class="landing-card">
         <div class="landing-badge">🧪 University Research</div>
-        <h1 class="landing-title">PlayPltx: Gaming Experience Study</h1>
+        <h1 class="landing-title">PlayPltx: Gaming Activity Study</h1>
         <p class="landing-copy">
           Welcome! You are invited to participate in a brief study on mobile gaming behavior.
           <br /><br />
-          Task: Play the game for 5-10 minutes. Build your village and explore the slot mechanics.
+          Task: Play the game for 5-10 minutes. Build your village and try the slot mechanics.
           <br /><br />
           Privacy: Your data is 100% anonymous. We collect only in-game actions (spins, builds, attacks). No personal info is stored.
         </p>
@@ -3702,7 +3704,7 @@
           <div id="villageProgressLabel" class="village-progress-label">Village 1 Progress: 0 / 25 Stars</div>
         </div>
         <div id="villageHudBar" class="village-hud-bar" role="status" aria-label="Current village">
-          <span id="playerLevelLabel" class="village-hud-label">Village 1</span>
+          <span id="villageHudLabel" class="village-hud-label">Village [1]</span>
         </div>
       </div>
       <div class="game-container">
@@ -4005,7 +4007,7 @@
         <button id="miniTutorialPlayBtn" type="button" class="rune-btn">Let's Play!</button>
       </div>
     </div>
-    <div id="levelUpPopup" class="level-up-pop" aria-hidden="true">New village!</div>
+    <div id="villageAdvanceToast" class="village-advance-toast" aria-hidden="true">New village!</div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
@@ -4078,7 +4080,7 @@
           }
         })();
 
-        function assignExperimentCondition() {
+        function assignCfgCondition() {
           const key = "match3Condition";
           const variants = ["A", "B"];
           try {
@@ -4091,7 +4093,7 @@
             return "A";
           }
         }
-        let EXPERIMENT_CONDITION = "A";
+        let CFG_CONDITION_LETTER = "A";
 
         const energyEl = document.getElementById("energyValue");
         const energyMaxEl = document.getElementById("energyMaxValue");
@@ -4159,8 +4161,8 @@
           document.getElementById("hudCoinPip1"),
           document.getElementById("hudCoinPip2"),
         ];
-        const playerLevelLabelEl = document.getElementById("playerLevelLabel");
-        const levelUpPopupEl = document.getElementById("levelUpPopup");
+        const villageHudLabelEl = document.getElementById("villageHudLabel");
+        const villageAdvanceToastEl = document.getElementById("villageAdvanceToast");
         const castleVisualEl = document.getElementById("castleVisual");
         const cannonVisualEl = document.getElementById("cannonVisual");
         const statueVisualEl = document.getElementById("statueVisual");
@@ -4325,7 +4327,6 @@
           spins: 0,
           coins: 0,
           currentRivalName: "",
-          level: 1,
           userId: USER_ID,
           villageId: 1,
         };
@@ -4481,14 +4482,14 @@
             refillMinutes: Number.isFinite(refillMinutes) ? refillMinutes : 5,
           };
         }
-        function showLevelUpPopup(villageNumber) {
-          if (!levelUpPopupEl) return;
+        function showVillageAdvanceToast(villageNumber) {
+          if (!villageAdvanceToastEl) return;
           const n = Math.max(1, Math.round(Number(villageNumber) || 1));
-          levelUpPopupEl.textContent = `NEW VILLAGE! Level ${n}`;
-          levelUpPopupEl.classList.remove("show");
-          void levelUpPopupEl.offsetWidth;
-          levelUpPopupEl.classList.add("show");
-          setTimeout(() => levelUpPopupEl.classList.remove("show"), 1150);
+          villageAdvanceToastEl.textContent = `NEW VILLAGE! Village [${n}]`;
+          villageAdvanceToastEl.classList.remove("show");
+          void villageAdvanceToastEl.offsetWidth;
+          villageAdvanceToastEl.classList.add("show");
+          setTimeout(() => villageAdvanceToastEl.classList.remove("show"), 1150);
         }
         let GAME_CONFIG = getGameConfig();
         let MAX_ENERGY = GAME_CONFIG.maxEnergy;
@@ -4830,7 +4831,7 @@
           rivalTargetsEl.appendChild(burst);
           setTimeout(() => burst.remove(), 780);
         }
-        function spawnCoinExplosionToHud(baseCoins, totalCoins, particles) {
+        function spawnCoinBurstToHud(baseCoins, totalCoins, particles) {
           const sourceEl = reelsWrap || spinBtn;
           if (!sourceEl || !coinsEl) return;
           const count = Math.max(20, Math.min(30, Number(particles) || 24));
@@ -5102,7 +5103,6 @@
           logPreviewEl.classList.remove("log-preview-empty");
           const totalStars = VILLAGE_ITEMS.reduce((sum, item) => sum + (villageProgress[item] || 0), 0);
           const snapshot = {
-            level: gameState.level,
             coins,
             spins: gameState.energy,
             villageId: gameState.villageId,
@@ -5160,7 +5160,7 @@
           }
         }
 
-        // Expose research context for the unified logger
+        // Publish research context for the unified logger
         window.__researchContext = {
           userId: USER_ID,
           sessionId: SESSION_ID,
@@ -5174,7 +5174,7 @@
             ...baseProps,
             userId: gameState.userId || baseProps.userId || window.__researchContext.userId,
             condition: gameState.condition || baseProps.condition || window.__researchContext.condition,
-            currentLevel: gameState.level,
+            currentLevel: gameState.villageId,
             currentVillage: gameState.villageId,
             timestamp: new Date().toISOString(),
             clientTimestampMs: Date.now(),
@@ -5212,7 +5212,9 @@
             timestamp: String(sp.timestamp || new Date().toISOString()),
             eventName: String(eventName || ""),
             eventParams: eventParamsStr,
-            currentLevel: Number.isFinite(Number(sp.currentLevel)) ? Math.round(Number(sp.currentLevel)) : Number(gameState.level || 0),
+            currentLevel: Number.isFinite(Number(sp.currentLevel))
+              ? Math.round(Number(sp.currentLevel))
+              : Number(gameState.villageId || 0),
             currentVillage: Number.isFinite(Number(sp.currentVillage)) ? Math.round(Number(sp.currentVillage)) : Number(gameState.villageId || 0),
             clientTimestampMs: Number.isFinite(Number(sp.clientTimestampMs)) ? Math.round(Number(sp.clientTimestampMs)) : Date.now(),
             platform: String(sp.platform || ""),
@@ -5241,7 +5243,7 @@
           sessionEndedLogged = true;
           const params = {
             totalSessionTime: Math.floor((Date.now() - sessionStartedAtMs) / 1000),
-            finalLevel: gameState.level,
+            finalLevel: gameState.villageId,
             finalCoins: gameState.coins,
           };
           const mergedSuperProps = {
@@ -5282,8 +5284,8 @@
             await loadAppVersionConfig();
           }
           gameBooted = true;
-          EXPERIMENT_CONDITION = assignExperimentCondition();
-          gameState.condition = EXPERIMENT_CONDITION;
+          CFG_CONDITION_LETTER = assignCfgCondition();
+          gameState.condition = CFG_CONDITION_LETTER;
           window.__researchContext.condition = gameState.condition;
           initUserProperties();
           GAME_CONFIG = getGameConfig();
@@ -5366,7 +5368,6 @@
                 villageId: gameState.villageId,
                 totalSpinsToComplete,
                 villageProgress,
-                level: gameState.level,
                 villageStartedAtMs,
                 lastEnergyRefillAt,
                 nextRefillTime,
@@ -5398,7 +5399,6 @@
             }
             if (typeof s.villageId === "number") gameState.villageId = Math.max(1, s.villageId);
             if (typeof s.totalSpinsToComplete === "number") totalSpinsToComplete = Math.max(0, s.totalSpinsToComplete);
-            if (typeof s.level === "number") gameState.level = Math.max(1, Math.round(s.level));
             if (s.villageProgress && typeof s.villageProgress === "object") {
               VILLAGE_ITEMS.forEach((item) => {
                 villageProgress[item] = clamp(Number(s.villageProgress[item] || 0), 0, 5);
@@ -5407,12 +5407,10 @@
             if (typeof s.villageStartedAtMs === "number") villageStartedAtMs = s.villageStartedAtMs;
             if (typeof s.lastEnergyRefillAt === "number") lastEnergyRefillAt = s.lastEnergyRefillAt;
             if (typeof s.nextRefillTime === "number") nextRefillTime = s.nextRefillTime;
-            gameState.level = gameState.villageId;
           } catch (e) {}
         }
 
         function updateUI() {
-          gameState.level = gameState.villageId;
           gameState.shields = clamp(gameState.shields, 0, 3);
           shields = gameState.shields;
           gameState.energy = clamp(energy, 0, MAX_ENERGY);
@@ -5552,7 +5550,7 @@
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
           if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${formatNumber(gameState.villageId)} Progress: ${formatNumber(totalStars)} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
-          if (playerLevelLabelEl) playerLevelLabelEl.textContent = `Level ${formatNumber(gameState.villageId)}`;
+          if (villageHudLabelEl) villageHudLabelEl.textContent = `Village [${formatNumber(gameState.villageId)}]`;
           updateVillageVisuals();
           syncShopMiniTutorialHighlight();
         }
@@ -5660,8 +5658,7 @@
             worldInnerEl.style.filter = `hue-rotate(${(gameState.villageId % 6) * 28}deg) saturate(1.08)`;
           }
           gameState.villageId += 1;
-          gameState.level = gameState.villageId;
-          showLevelUpPopup(gameState.villageId);
+          showVillageAdvanceToast(gameState.villageId);
           totalSpinsToComplete = 0;
           villageStartedAtMs = Date.now();
           villageProgress = { Castle: 0, Cannon: 0, Statue: 0, Farm: 0, Boat: 0 };
@@ -5988,7 +5985,7 @@
           const travelMessage = `Traveling to ${rivalName}'s Island...`;
           logEvent("raid_start", {
             rivalName,
-            maxPossible: raidMaxStolenTotal(),
+            raidStealCap: raidMaxStolenTotal(),
           });
           setStatus(travelMessage, false);
           await triggerTravelSequence(true);
@@ -6598,7 +6595,7 @@
 
           if (coinsWon > 0) {
             setHudCoinPips(3);
-            spawnCoinExplosionToHud(coins - coinsWon, coinsWon, randomCoinParticles);
+            spawnCoinBurstToHud(coins - coinsWon, coinsWon, randomCoinParticles);
           } else {
             setHudCoinPips(0);
           }
@@ -6653,7 +6650,7 @@
           persistState();
           updateUI();
 
-          // Tutorial no longer ends on upgrade; step 6 explains the castle then ends on Continue.
+          // Tutorial no longer ends on upgrade; step 6 covers the castle then ends on Continue.
         }
 
         function handleCannonUpgrade(cannonIndex = 1) {

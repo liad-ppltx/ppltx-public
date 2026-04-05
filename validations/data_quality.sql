@@ -51,11 +51,10 @@ SELECT
 
   -- 7. audit_stress_test
   COUNT(JSON_VALUE(params, '$.hasEconomy')) AS p_audit_economy,
-  COUNT(JSON_VALUE(params, '$.hasXpSettings')) AS p_audit_xp,
   COUNT(JSON_VALUE(params, '$.hasLogger')) AS p_audit_logger,
   COUNT(JSON_VALUE(params, '$.hasRunSpin')) AS p_audit_runSpin
 
 FROM `ppltx-project-dev.playpltx.v_staging`
-WHERE version = '1.0.4'
+WHERE version = '1.0.6'
 GROUP BY eventName
 ORDER BY total_events DESC

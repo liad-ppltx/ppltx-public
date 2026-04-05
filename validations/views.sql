@@ -69,7 +69,9 @@ SELECT
 
   -- 6. raid_start & raid_end
   JSON_VALUE(params, '$.rivalName') AS raidRivalName,
-  SAFE_CAST(JSON_VALUE(params, '$.maxPossible') AS INT64) AS raidMaxPossible,
+  SAFE_CAST(
+    COALESCE(JSON_VALUE(params, '$.raidStealCap'), JSON_VALUE(params, '$.maxPossible')) AS INT64
+  ) AS raidStealCap,
   SAFE_CAST(JSON_VALUE(params, '$.totalStolen') AS INT64) AS totalStolen,
   SAFE_CAST(JSON_VALUE(params, '$.perfectRaid') AS BOOL) AS perfectRaid,
   -- הערה: reward ב-raid_end משוכפל ל-totalStolen לפי ה-Schema שלך

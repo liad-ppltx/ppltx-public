@@ -16,7 +16,7 @@
       "countryCode": { "type": "string", "source": "ipapi country_code; fallback unknown" },
       "userId": { "type": "string", "source": "gameState.userId (initialized from USER_ID)" },
       "condition": { "type": "string", "source": "gameState.condition" },
-      "currentLevel": { "type": "number", "source": "gameState.level (kept in sync with gameState.villageId)" },
+      "currentLevel": { "type": "number", "source": "Alias of gameState.villageId (same value as currentVillage)" },
       "currentVillage": { "type": "number", "source": "gameState.villageId" },
       "timestamp": { "type": "string", "source": "new Date().toISOString() at event time" },
       "clientTimestampMs": { "type": "number", "source": "Date.now() at event time" },
@@ -43,7 +43,7 @@
         "name": "condition",
         "type": "string",
         "required": true,
-        "description": "Experiment / CFG condition id",
+        "description": "CFG / A-B condition id",
         "source": "getSuperProperties().condition or __researchContext.condition"
       },
       {
@@ -113,7 +113,7 @@
 
   "events": {
     "session_start": {
-      "description": "Session ready after consent; replaces legacy consent + experiment + game_start.",
+      "description": "Session ready after consent; replaces legacy consent + setup + game_start.",
       "properties": {
         "initialSpins": { "type": "number", "required": true },
         "initialCoins": { "type": "number", "required": true },
@@ -188,7 +188,7 @@
       "description": "Raid mode entered after triple pigs.",
       "properties": {
         "rivalName": { "type": "string", "required": true },
-        "maxPossible": { "type": "number", "required": true }
+        "raidStealCap": { "type": "number", "required": true, "description": "Scaled maximum coins stealable this raid (village-scaled)" }
       }
     },
     "raid_end": {

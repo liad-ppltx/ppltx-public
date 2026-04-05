@@ -6,7 +6,7 @@ Here is a comprehensive **README.md** file in English, structured professionally
 
 ## 📝 Project Overview
 
-**PlayPLTX** is a web-based game environment designed specifically for behavioral research and A/B testing. The system is engineered to collect high-fidelity interaction data, economic balance metrics, and player decision-making patterns under different experimental conditions. Data is captured in real-time via **Firebase Firestore** and streamed to **Google BigQuery** for advanced statistical analysis.
+**PlayPLTX** is a web-based game environment designed specifically for behavioral research and A/B testing. The system is engineered to collect high-fidelity interaction data, economic balance metrics, and player decision-making patterns under different assigned study conditions. Data is captured in real-time via **Firebase Firestore** and streamed to **Google BigQuery** for advanced statistical analysis.
 
 ---
 
@@ -22,12 +22,12 @@ These fields are present at the top level of every database document. they allow
 | --- | --- | --- |
 | **`userId`** | String | Persistent unique identifier for the participant. |
 | **`sessionId`** | String | Unique ID for the current session (resets on page refresh). |
-| **`condition`** | String | Experimental group (e.g., **A** or **B**). |
+| **`condition`** | String | Assigned A/B group (e.g., **A** or **B**). |
 | **`version`** | String | App version, controlled dynamically via `game-events.json`. |
 | **`platform`** | Enum | Device classification: `Mobile`, `Tablet`, or `Desktop`. |
 | **`countryCode`** | String | User's country code based on IP-to-Geo lookup. |
-| **`currentLevel`** | Integer | Mirrors the current village number (`gameState.level`, kept in sync with `gameState.villageId`). |
-| **`currentVillage`** | Integer | The active village ID the player is currently in. |
+| **`currentLevel`** | Integer | Same value as **`currentVillage`** — both come from `gameState.villageId`. |
+| **`currentVillage`** | Integer | The active village index the player is currently in. |
 | **`timestamp`** | ISO-8601 | Server-side write time. |
 | **`clientTimestampMs`** | Integer | Client-side Unix timestamp (used for precise latency/duration math). |
 
@@ -90,13 +90,13 @@ Each event contains an `eventParams` object which holds data specific to that pa
 
 
 * **`raid_start` / `raid_end**`: Tracks the coin-stealing (digging) mini-game.
-* *End Params:* `totalStolen`, `perfectRaid` (boolean), `maxPossible` on raid start (scaled cap for the current village).
+* *End Params:* `totalStolen`, `perfectRaid` (boolean); raid start also logs `raidStealCap` (scaled steal ceiling for the current village).
 
 
 
 ### Progression & Meta
 
-* **`village_complete`**: **Sole progression milestone** when all 25 stars in the current village are collected. The client then advances village/level. Params include **`villageId`** (completed village), **`totalSpins`**, and **`timeSpent`** (seconds in that village) for research analysis.
+* **`village_complete`**: **Sole progression milestone** when all 25 stars in the current village are collected. The client then advances `gameState.villageId` (and Firestore `currentLevel` / `currentVillage` track that same number). Params include **`villageId`** (completed village), **`totalSpins`**, and **`timeSpent`** (seconds in that village) for research analysis.
 * **`energy_update`**: Tracks changes in spin inventory (refills or depletions).
 
 Legacy **`player_level_up`** was removed in v1.0.6; downstream jobs should use **`village_complete`** only.
@@ -114,7 +114,7 @@ To maintain a "lean" pipeline and reduce Firestore write costs, periodic **Heart
 
 ### Building ID Canonicalization
 
-To ensure data consistency across all experimental groups, building names in the `building_upgrade` event are strictly mapped to: **Castle, Cannon, Statue, Farm, and Boat**. Legacy IDs (like "Wall") have been deprecated to maintain a clean data schema.
+To ensure data consistency across all study arms, building names in the `building_upgrade` event are strictly mapped to: **Castle, Cannon, Statue, Farm, and Boat**. Legacy IDs (like "Wall") have been deprecated to maintain a clean data schema.
 
 ### Version Control
 
