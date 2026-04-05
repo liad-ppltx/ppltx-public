@@ -4331,6 +4331,7 @@
         };
         const DEFAULT_ECONOMY_DATA = {
           condition_A: {
+            villageScalingFactor: 1.5,
             initialSpins: 10,
             maxSpins: 10,
             refillMinutes: 5,
@@ -4353,6 +4354,7 @@
             },
           },
           condition_B: {
+            villageScalingFactor: 1.5,
             initialSpins: 20,
             maxSpins: 20,
             refillMinutes: 3,
@@ -4388,10 +4390,37 @@
           const v = Number(payouts[key]);
           return Number.isFinite(v) ? v : fallback;
         }
+        function getVillageScalingFactor() {
+          const eco = getConditionEconomy();
+          const f = Number(eco && eco.villageScalingFactor);
+          return Number.isFinite(f) && f > 0 ? f : 1.5;
+        }
+        function getVillageCoinScale() {
+          const vid = Math.max(1, Math.round(Number(gameState.villageId) || 1));
+          return Math.pow(getVillageScalingFactor(), vid - 1);
+        }
+        function scaleCoinReward(baseCoins) {
+          const n = Number(baseCoins);
+          if (!Number.isFinite(n)) return 0;
+          return Math.max(0, Math.round(n * getVillageCoinScale()));
+        }
+        function getScaledCoinPayout(key, fallback) {
+          return scaleCoinReward(getPayoutValue(key, fallback));
+        }
+        function raidSmallDigLoot() {
+          return scaleCoinReward(50000);
+        }
+        function raidJackpotDigLoot() {
+          return scaleCoinReward(1000000);
+        }
+        function raidMaxStolenTotal() {
+          return raidSmallDigLoot() * 2 + raidJackpotDigLoot();
+        }
         function getVillageCompleteReward() {
           const reward = (getConditionEconomy() && getConditionEconomy().villageCompleteReward) || {};
+          const baseCoins = Number.isFinite(Number(reward.coins)) ? Number(reward.coins) : 500000;
           return {
-            coins: Number.isFinite(Number(reward.coins)) ? Number(reward.coins) : 500000,
+            coins: scaleCoinReward(baseCoins),
             spins: Number.isFinite(Number(reward.spins)) ? Number(reward.spins) : 20,
           };
         }
@@ -4402,10 +4431,11 @@
           const model = buildings[buildingName];
           const baseCost = model ? Number(model.baseCost) : 100;
           const multiplier = model ? Number(model.multiplier) : 1.4;
+          const villageScale = getVillageCoinScale();
           if (!Number.isFinite(baseCost) || !Number.isFinite(multiplier)) {
-            return Math.max(1, Math.round(100 * Math.pow(1.4, stars)));
+            return Math.max(1, Math.round(100 * villageScale * Math.pow(1.4, stars)));
           }
-          return Math.max(1, Math.round(baseCost * Math.pow(multiplier, stars)));
+          return Math.max(1, Math.round(baseCost * villageScale * Math.pow(multiplier, stars)));
         }
         window.appVersion = "0.0.0-fallback";
         window.__appVersionLoaded = false;
@@ -4454,7 +4484,7 @@
         function showLevelUpPopup(villageNumber) {
           if (!levelUpPopupEl) return;
           const n = Math.max(1, Math.round(Number(villageNumber) || 1));
-          levelUpPopupEl.textContent = `NEW VILLAGE! Village ${n}`;
+          levelUpPopupEl.textContent = `NEW VILLAGE! Level ${n}`;
           levelUpPopupEl.classList.remove("show");
           void levelUpPopupEl.offsetWidth;
           levelUpPopupEl.classList.add("show");
@@ -5522,7 +5552,7 @@
           if (villageProgressFillEl) villageProgressFillEl.style.width = `${Math.max(0, Math.min(100, (totalStars / 25) * 100))}%`;
           if (villageProgressLabelEl) villageProgressLabelEl.textContent = `Village ${formatNumber(gameState.villageId)} Progress: ${formatNumber(totalStars)} / 25 Stars`;
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
-          if (playerLevelLabelEl) playerLevelLabelEl.textContent = `Village ${formatNumber(gameState.villageId)}`;
+          if (playerLevelLabelEl) playerLevelLabelEl.textContent = `Level ${formatNumber(gameState.villageId)}`;
           updateVillageVisuals();
           syncShopMiniTutorialHighlight();
         }
@@ -5557,10 +5587,10 @@
           }, {});
           const entries = Object.entries(counts).sort((x, y) => y[1] - x[1]);
           const [topName, topCount] = entries[0];
-          const coinBase = getPayoutValue("coin_single", 1000);
+          const coinBase = getScaledCoinPayout("coin_single", 1000);
           if (topCount === 3 && topName === "Spins") return 0;
           if (topCount === 3 && topName === "Coin") return coinBase;
-          if (topCount === 3 && topName === "Bag") return getPayoutValue("bag_triple", 50000);
+          if (topCount === 3 && topName === "Bag") return getScaledCoinPayout("bag_triple", 50000);
           const coinLikeCount = names.filter((n) => n === "Coin" || n === "Bag").length;
           if (coinLikeCount > 0) {
             return Math.max(1, Math.round((coinBase * coinLikeCount) / 3));
@@ -5650,9 +5680,6 @@
               villageId: completedVillageId,
               totalSpins: totalSpinsToComplete,
               timeSpent,
-            });
-            logEvent("player_level_up", {
-              newLevel: completedVillageId + 1,
             });
             runVillageCompleteCelebration();
           }
@@ -5794,7 +5821,7 @@
           const buildingName = (chosen && chosen.dataset && chosen.dataset.building) || ATTACKABLE_TARGETS[Math.floor(Math.random() * ATTACKABLE_TARGETS.length)];
           const blocked = Math.random() < 0.35;
           const result = blocked ? "blocked" : "hit";
-          const reward = blocked ? getPayoutValue("attack_blocked", 120) : getPayoutValue("attack_hit", 700);
+          const reward = blocked ? getScaledCoinPayout("attack_blocked", 120) : getScaledCoinPayout("attack_hit", 700);
           spawnImpactEffect(chosen, blocked);
           playAttackSound();
           coins += reward;
@@ -5841,7 +5868,7 @@
 
           raidSession.shovelsLeft -= 1;
           raidSession.digCount += 1;
-          const digReward = raidSession.digCount < 3 ? 50000 : 1000000;
+          const digReward = raidSession.digCount < 3 ? raidSmallDigLoot() : raidJackpotDigLoot();
           raidSession.totalStolen += digReward;
           coins += digReward;
           gameState.coins = coins;
@@ -5850,13 +5877,13 @@
           const label = btn.querySelector(".raid-dig-label");
           if (raidSession.digCount < 3) {
             if (icon) icon.textContent = "🪙";
-            if (label) label.textContent = "Small Bag! (+50,000)";
-            setStatus("Small Bag! (+50,000)", false);
+            if (label) label.textContent = `Small Bag! (+${formatNumber(digReward)})`;
+            setStatus(`Small Bag! (+${formatNumber(digReward)})`, false);
             spawnFlyingCoins(6);
           } else {
             if (icon) icon.textContent = "🧰";
-            if (label) label.textContent = "JACKPOT! (+1,000,000)";
-            setStatus("JACKPOT! (+1,000,000)", false);
+            if (label) label.textContent = `JACKPOT! (+${formatNumber(digReward)})`;
+            setStatus(`JACKPOT! (+${formatNumber(digReward)})`, false);
             spawnFlyingCoins(14);
             triggerScreenShake(650);
           }
@@ -5882,7 +5909,7 @@
 
           logEvent("raid_end", {
             totalStolen: raidSession.totalStolen,
-            perfectRaid: raidSession.totalStolen >= 1100000,
+            perfectRaid: raidSession.totalStolen >= raidMaxStolenTotal(),
           });
 
           gameState.isRaidActive = false;
@@ -5919,7 +5946,7 @@
           spot.classList.add("is-dug");
           raidSession.shovelsUsed += 1;
           const isFinalDig = raidSession.shovelsUsed === 3;
-          const gain = isFinalDig ? 1000000 : 50000;
+          const gain = isFinalDig ? raidJackpotDigLoot() : raidSmallDigLoot();
           coins += gain;
           gameState.coins = coins;
           raidSession.totalStolen += gain;
@@ -5932,15 +5959,15 @@
           }
 
           if (!isFinalDig) {
-            setStatus("Small Bag! (+50,000)", false);
+            setStatus(`Small Bag! (+${formatNumber(gain)})`, false);
             updateUI();
             return;
           }
 
-          setStatus("JACKPOT! (+1,000,000)", false);
+          setStatus(`JACKPOT! (+${formatNumber(gain)})`, false);
           logEvent("raid_end", {
             totalStolen: raidSession.totalStolen,
-            perfectRaid: raidSession.totalStolen >= 1100000,
+            perfectRaid: raidSession.totalStolen >= raidMaxStolenTotal(),
           });
           console.log("RAID FINISHED - Restoring Slots");
           const dedicatedModal = document.getElementById("dedicated-raid-modal");
@@ -5961,7 +5988,7 @@
           const travelMessage = `Traveling to ${rivalName}'s Island...`;
           logEvent("raid_start", {
             rivalName,
-            maxPossible: 1100000,
+            maxPossible: raidMaxStolenTotal(),
           });
           setStatus(travelMessage, false);
           await triggerTravelSequence(true);
@@ -7081,6 +7108,25 @@
             syncResearchDrawerViewport();
           });
         });
+
+        (function setupDevMoneyCheat() {
+          let enabled = false;
+          try {
+            enabled = new URLSearchParams(window.location.search).get("dev") === "true";
+          } catch (e) {
+            enabled = false;
+          }
+          if (!enabled) return;
+          window.addEventListener("keydown", (ev) => {
+            if (ev.key !== "m" && ev.key !== "M") return;
+            const t = ev.target;
+            if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+            ev.preventDefault();
+            coins += 10000000;
+            updateUI();
+            persistState();
+          });
+        })();
 
         // Global audit helper defined at script end so all game functions are already initialized.
         window.runGameAudit = async function (options) {

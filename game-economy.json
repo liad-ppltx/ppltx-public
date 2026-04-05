@@ -1,5 +1,6 @@
 {
   "condition_A": {
+    "villageScalingFactor": 1.5,
     "initialSpins": 10,
     "maxSpins": 10,
     "refillMinutes": 5,
@@ -24,6 +25,7 @@
     }
   },
   "condition_B": {
+    "villageScalingFactor": 1.5,
     "initialSpins": 20,
     "maxSpins": 20,
     "refillMinutes": 3,

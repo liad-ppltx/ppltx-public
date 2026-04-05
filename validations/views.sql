@@ -88,14 +88,16 @@ SELECT
   SAFE_CAST(JSON_VALUE(params, '$.timeSpent') AS INT64) AS tutorialTimeSpent,
   SAFE_CAST(JSON_VALUE(params, '$.totalSpins') AS INT64) AS tutorialTotalSpins,
 
-  -- 9. player_level_up & village_complete
+  -- 9. village_complete (sole progression in v1.0.6+; newLevel only on legacy rows)
   SAFE_CAST(JSON_VALUE(params, '$.newLevel') AS INT64) AS newLevel,
   SAFE_CAST(JSON_VALUE(params, '$.villageId') AS INT64) AS villageId,
   SAFE_CAST(JSON_VALUE(params, '$.timeSpent') AS INT64) AS villageTimeSpentSeconds,
+  SAFE_CAST(
+    IF(eventName = 'village_complete', JSON_VALUE(params, '$.totalSpins'), NULL) AS INT64
+  ) AS villageComplete_totalSpins,
 
   -- 10. audit_stress_test
   SAFE_CAST(JSON_VALUE(params, '$.hasEconomy') AS BOOL) AS audit_hasEconomy,
-  SAFE_CAST(JSON_VALUE(params, '$.hasXpSettings') AS BOOL) AS audit_hasXpSettings,
   SAFE_CAST(JSON_VALUE(params, '$.hasLogger') AS BOOL) AS audit_hasLogger,
   SAFE_CAST(JSON_VALUE(params, '$.hasRunSpin') AS BOOL) AS audit_hasRunSpin,
   SAFE_CAST(JSON_VALUE(params, '$.hasAddStar') AS BOOL) AS audit_hasAddStar,

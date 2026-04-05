@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.0.5",
+  "currentAppVersion": "1.0.6",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -218,14 +218,8 @@
         "totalSpins": { "type": "number", "required": false, "description": "mini_complete" }
       }
     },
-    "player_level_up": {
-      "description": "Village completed (25 stars); newLevel is the next village number (same milestone as village_complete).",
-      "properties": {
-        "newLevel": { "type": "number", "required": true }
-      }
-    },
     "village_complete": {
-      "description": "25 stars collected for current village.",
+      "description": "Sole progression event: 25 stars collected for current village; client then advances level and next village.",
       "properties": {
         "villageId": { "type": "number", "required": true },
         "totalSpins": { "type": "number", "required": true },
@@ -249,7 +243,6 @@
     "attack_start",
     "building_upgrade",
     "energy_update",
-    "player_level_up",
     "raid_end",
     "raid_start",
     "session_end",
@@ -260,6 +253,10 @@
   ],
 
   "notEmitted": [
+    {
+      "name": "player_level_up",
+      "reason": "Removed in v1.0.6; progression is logged only via village_complete"
+    },
     {
       "name": "economy_config_loaded",
       "reason": "Removed from lean pipeline"

@@ -2,7 +2,7 @@ Here is a comprehensive **README.md** file in English, structured professionally
 
 ---
 
-# PlayPLTX Analytics & Research Framework (v1.0.4)
+# PlayPLTX Analytics & Research Framework (v1.0.6)
 
 ## 📝 Project Overview
 
@@ -26,10 +26,34 @@ These fields are present at the top level of every database document. they allow
 | **`version`** | String | App version, controlled dynamically via `game-events.json`. |
 | **`platform`** | Enum | Device classification: `Mobile`, `Tablet`, or `Desktop`. |
 | **`countryCode`** | String | User's country code based on IP-to-Geo lookup. |
-| **`currentLevel`** | Integer | The player's level at the moment of the event. |
+| **`currentLevel`** | Integer | Mirrors the current village number (`gameState.level`, kept in sync with `gameState.villageId`). |
 | **`currentVillage`** | Integer | The active village ID the player is currently in. |
 | **`timestamp`** | ISO-8601 | Server-side write time. |
 | **`clientTimestampMs`** | Integer | Client-side Unix timestamp (used for precise latency/duration math). |
+
+---
+
+## 🪙 Economy scaling (v1.0.6+)
+
+Per-condition config in `game-economy.json` includes **`villageScalingFactor`** (default **1.5**). For the current village index \(v =\) `gameState.villageId` (1-based):
+
+**Scale multiplier**
+
+\[
+\text{scale}(v) = \text{villageScalingFactor}^{\,v - 1}
+\]
+
+**Coin payouts** (slot coin/bag results, attack/raid coin rewards from payout tables, village completion coin bonus, and raid dig loot tiers) are multiplied by \(\text{scale}(v)\) after reading base values from config.
+
+**Building upgrade costs** use the same multiplier on each building’s **base** coin cost: effective cost is \(\text{baseCost} \times \text{scale}(v) \times \text{multiplier}^{\text{stars}}\) (stars are per-building star count, unchanged).
+
+Spin count rewards (e.g. triple-spins) are **not** scaled by this factor.
+
+---
+
+## 🧪 Local dev: money cheat
+
+With **`?dev=true`** in the page URL, press **`M`** to add **10,000,000** coins, refresh the HUD, and persist state. The shortcut is ignored while focus is in an `INPUT`, `TEXTAREA`, or content-editable field.
 
 ---
 
@@ -66,15 +90,16 @@ Each event contains an `eventParams` object which holds data specific to that pa
 
 
 * **`raid_start` / `raid_end**`: Tracks the coin-stealing (digging) mini-game.
-* *End Params:* `totalStolen`, `perfectRaid` (boolean).
+* *End Params:* `totalStolen`, `perfectRaid` (boolean), `maxPossible` on raid start (scaled cap for the current village).
 
 
 
 ### Progression & Meta
 
-* **`player_level_up`**: Fired when a village is completed (25 stars); `newLevel` is the next village number (aligned with `village_complete`).
-* **`village_complete`**: Fired when all 25 stars in a village are collected. Includes `timeSpent` and `totalSpins`.
+* **`village_complete`**: **Sole progression milestone** when all 25 stars in the current village are collected. The client then advances village/level. Params include **`villageId`** (completed village), **`totalSpins`**, and **`timeSpent`** (seconds in that village) for research analysis.
 * **`energy_update`**: Tracks changes in spin inventory (refills or depletions).
+
+Legacy **`player_level_up`** was removed in v1.0.6; downstream jobs should use **`village_complete`** only.
 
 ---
 
