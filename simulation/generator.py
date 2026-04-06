@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
 """
 Stateful synthetic event generator for PlayPLTX.
-Loads schemas from game-events.json + game-economy.json in this repository root.
-Persists user progress in users_state.json under the output directory.
+Loads game-events.json + game-economy.json using resolve_schema_json():
+  1) PPLTX_PUBLIC_DIR (if set) — absolute path to the ppltx-public repo root
+  2) <job>/game-events.json (optional local override)
+  3) <parent>/game-events.json (e.g. ppltx-public root when job is .../simulation/)
+  4) Walk upward from the job dir; first .../ppltx-public/game-events.json wins
+     (e.g. subpltx/jobs/playpltx_simulation/ → workspace/ppltx-public/game-events.json).
+
+Writes users_state.json and events_*.jsonl under ./data/ next to this script.
 
 BigQuery: load local events_*.jsonl with the upload-bq subcommand, e.g.:
-  python generator.py upload-bq --config bq_config.json
+  python simulation/generator.py upload-bq --config bq_config.json
+  
 """
 
 from __future__ import annotations
@@ -15,6 +22,7 @@ import json
 import os
 import random
 import shlex
+import shutil
 import string
 import subprocess
 import sys
@@ -25,18 +33,52 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 # -----------------------------------------------------------------------------
-# Paths: simulation/ is inside the ppltx-public repo (sibling to game-events.json).
+# Paths: all relative to this file's directory (the job folder).
 # -----------------------------------------------------------------------------
 SIM_DIR = Path(__file__).resolve().parent
-REPO_ROOT = SIM_DIR.parent  # ppltx-public repository root
-EVENTS_JSON = REPO_ROOT / "game-events.json"
-ECONOMY_JSON = REPO_ROOT / "game-economy.json"
 
-# Output (outside repo): <parent-of-repo>/temp/data/ppltx-public/simulation/
-# Contains users_state.json and events_YYYY-MM-DD.jsonl files.
-OUTPUT_DIR = (SIM_DIR / "../../temp/data/ppltx-public/simulation").resolve()
+# Generated data lives under ./data next to generator.py (copy-friendly).
+OUTPUT_DIR = (SIM_DIR / "data").resolve()
 STATE_FILENAME = "users_state.json"
 DEFAULT_BQ_CONFIG_PATH = SIM_DIR / "bq_config.json"
+
+
+def resolve_schema_json(filename: str) -> Path:
+    """
+    Resolve game-events.json / game-economy.json in order:
+    1) Next to this script (job-local override).
+    2) Parent of the job folder (ppltx-public root when job is .../simulation/).
+    3) First ancestor containing ppltx-public/<filename> (workspace sibling repo).
+    4) PPLTX_PUBLIC_DIR env if set.
+    """
+    env_root = (os.environ.get("PPLTX_PUBLIC_DIR") or "").strip()
+    if env_root:
+        env_path = Path(env_root).expanduser().resolve() / filename
+        if env_path.is_file():
+            return env_path
+
+    local = SIM_DIR / filename
+    if local.is_file():
+        return local
+    upward = SIM_DIR.parent / filename
+    if upward.is_file():
+        return upward
+
+    cur: Path = SIM_DIR.resolve()
+    for _ in range(32):
+        nested = cur / "ppltx-public" / filename
+        if nested.is_file():
+            return nested
+        parent = cur.parent
+        if parent == cur:
+            break
+        cur = parent
+
+    hint = (
+        f"place {filename} at {local}, at {upward}, "
+        f"or under a sibling ppltx-public/ folder; or set PPLTX_PUBLIC_DIR"
+    )
+    raise FileNotFoundError(f"Missing {filename}: {hint}")
 
 VILLAGE_ITEMS = ("Castle", "Cannon", "Statue", "Farm", "Boat")
 SYMBOL_NAMES = ("Hammer", "Pig", "Shield", "Coin", "Bag", "Spins")
@@ -673,7 +715,7 @@ def parse_day_bounds(days_back: int) -> Tuple[datetime, datetime]:
 def load_bq_config(path: Path) -> Dict[str, Any]:
     if not path.is_file():
         raise FileNotFoundError(
-            f"Missing config: {path}\nCopy simulation/bq_config.example.json to bq_config.json and edit."
+            f"Missing config: {path}\nCopy bq_config.example.json to bq_config.json in this folder and edit."
         )
     with path.open(encoding="utf-8") as f:
         return json.load(f)
@@ -694,6 +736,145 @@ def collect_bq_jsonl_files(data_dir: Path) -> List[Path]:
         raise FileNotFoundError(f"Data directory does not exist: {data_dir}")
     files = sorted(data_dir.glob("events_*.jsonl"))
     return [f for f in files if f.is_file()]
+
+
+def _python_path_usable_for_bq(path: Path) -> bool:
+    """Reject Microsoft Store stubs (often first on PATH) and other missing targets."""
+    try:
+        resolved = path.resolve()
+    except OSError:
+        return False
+    if not resolved.is_file():
+        return False
+    low = str(resolved).lower()
+    if "windowsapps" in low.replace("\\", "/"):
+        return False
+    return True
+
+
+def _py_launcher_executable(version: str) -> Optional[str]:
+    try:
+        out = subprocess.run(
+            ["py", f"-{version}", "-c", "import sys; print(sys.executable)"],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if out.returncode != 0:
+            return None
+        cand = (out.stdout or "").strip().strip('"')
+        if not cand:
+            return None
+        p = Path(cand)
+        return str(p.resolve()) if _python_path_usable_for_bq(p) else None
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+
+
+def _python_exe_for_bq() -> Optional[str]:
+    """
+    bq.cmd uses `where python` when CLOUDSDK_PYTHON is unset; on Windows the first hit is
+    often %LocalAppData%\\Microsoft\\WindowsApps\\python.exe (a broken store stub).
+
+    We set CLOUDSDK_PYTHON to a real interpreter. Prefer 3.10–3.12 for absl/bq stability;
+    fall back to py -3.13 / sys.executable / PATH so at least the store stub is avoided.
+    """
+    existing = (os.environ.get("CLOUDSDK_PYTHON") or "").strip().strip('"')
+    if existing:
+        p = Path(existing)
+        if _python_path_usable_for_bq(p):
+            return str(p.resolve())
+
+    if sys.platform == "win32":
+        for ver in ("3.12", "3.11", "3.10", "3.13", "3.9"):
+            hit = _py_launcher_executable(ver)
+            if hit:
+                return hit
+
+    se = Path(sys.executable)
+    if _python_path_usable_for_bq(se):
+        return str(se.resolve())
+
+    for name in ("python", "python3"):
+        w = shutil.which(name)
+        if not w:
+            continue
+        p = Path(w)
+        if _python_path_usable_for_bq(p):
+            return str(p.resolve())
+
+    if sys.platform == "win32":
+        for root in (
+            os.environ.get("ProgramFiles", r"C:\Program Files"),
+            os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)"),
+        ):
+            base = Path(root)
+            if not base.is_dir():
+                continue
+            try:
+                for child in sorted(base.glob("Python3*"), reverse=True):
+                    cand = child / "python.exe"
+                    if _python_path_usable_for_bq(cand):
+                        return str(cand.resolve())
+            except OSError:
+                continue
+
+    return None
+
+
+def resolve_bq_executable() -> Optional[str]:
+    """Path to bq CLI: BQ_PATH env, PATH, then common Windows Cloud SDK locations."""
+    override = (os.environ.get("BQ_PATH") or "").strip()
+    if override:
+        p = Path(override)
+        if p.is_file():
+            return str(p)
+    for name in ("bq", "bq.cmd"):
+        found = shutil.which(name)
+        if found:
+            return found
+    if sys.platform == "win32":
+        pf86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
+        pf = os.environ.get("ProgramFiles", r"C:\Program Files")
+        local = os.environ.get("LOCALAPPDATA", "")
+        for c in (
+            Path(pf86) / "Google" / "Cloud SDK" / "google-cloud-sdk" / "bin" / "bq.cmd",
+            Path(pf) / "Google" / "Cloud SDK" / "google-cloud-sdk" / "bin" / "bq.cmd",
+            Path(local) / "Google" / "Cloud SDK" / "google-cloud-sdk" / "bin" / "bq.cmd",
+        ):
+            if c.is_file():
+                return str(c)
+    return None
+
+
+def env_for_bq_subprocess(bq_exe: str) -> Dict[str, str]:
+    """
+    bq.cmd uses Python -S (no site) only when VIRTUAL_ENV is unset. Inside a venv,
+    -S is omitted and pip's absl-py 2.x is imported, which breaks bq:
+    AttributeError: module 'absl.flags' has no attribute 'FLAGS'.
+
+    Dropping VIRTUAL_ENV for this subprocess restores -S. Prefer Python 3.10–3.12 via
+    CLOUDSDK_PYTHON when bq breaks on 3.13+. Prepend the SDK bq third_party path last.
+    """
+    env = os.environ.copy()
+    env.pop("VIRTUAL_ENV", None)
+    py_for_bq = _python_exe_for_bq()
+    if py_for_bq:
+        env["CLOUDSDK_PYTHON"] = py_for_bq
+    try:
+        exe = Path(bq_exe).resolve()
+    except OSError:
+        return env
+    if exe.parent.name.lower() != "bin":
+        return env
+    sdk_root = exe.parent.parent
+    third_party = sdk_root / "platform" / "bq" / "third_party"
+    if not third_party.is_dir():
+        return env
+    prefix = str(third_party)
+    old = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = prefix + (os.pathsep + old if old else "")
+    return env
 
 
 def build_bq_load_command(
@@ -752,7 +933,12 @@ def main_upload_bq() -> None:
     files = collect_bq_jsonl_files(data_dir)
 
     if not files:
-        print(f"No events_*.jsonl files under {data_dir}; nothing to upload.", file=sys.stderr)
+        print(
+            f"No events_*.jsonl files under {data_dir}; nothing to upload.\n"
+            "Generate JSONL first from the same repo (example):\n"
+            "  python simulation/generator.py --days-back 7",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     cmd = build_bq_load_command(
@@ -763,23 +949,41 @@ def main_upload_bq() -> None:
         replace_table=replace_table,
     )
 
+    bq_exe = resolve_bq_executable()
+    if bq_exe:
+        cmd[0] = bq_exe
+
     if args.dry_run:
         print("Dry run — would execute:")
         print(" ".join(shlex.quote(str(x)) for x in cmd))
         return
 
+    if not bq_exe:
+        print(
+            "Error: `bq` not found. Install Google Cloud SDK, add "
+            "`...\\google-cloud-sdk\\bin` to PATH, or set BQ_PATH to bq / bq.cmd.\n"
+            "https://cloud.google.com/sdk/docs/install",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     print(f"Loading {len(files)} file(s) into `{project_id}.{dataset}.{table}` …")
     try:
-        subprocess.run(cmd, check=True)
+        subprocess.run(cmd, check=True, env=env_for_bq_subprocess(bq_exe))
     except FileNotFoundError:
         print(
-            "Error: `bq` not found. Install Google Cloud SDK and ensure `bq` is on PATH.\n"
+            "Error: could not run `bq` (missing executable). Check BQ_PATH or reinstall Cloud SDK.\n"
             "https://cloud.google.com/sdk/docs/install",
             file=sys.stderr,
         )
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         print(f"bq load failed with exit code {e.returncode}", file=sys.stderr)
+        print(
+            "If you saw absl/FLAGS: use Python 3.10–3.12 for `bq` (install 3.12 + `py` launcher, "
+            "or set CLOUDSDK_PYTHON), deactivate venvs that install absl-py 2.x, or `gcloud components update`.",
+            file=sys.stderr,
+        )
         sys.exit(e.returncode or 1)
 
     print("Done.")
@@ -801,14 +1005,17 @@ def main() -> None:
     args = parser.parse_args()
     days_back = max(1, args.days_back)
 
-    if not EVENTS_JSON.is_file() or not ECONOMY_JSON.is_file():
-        raise SystemExit(f"Missing config: {EVENTS_JSON} or {ECONOMY_JSON}")
+    try:
+        events_path = resolve_schema_json("game-events.json")
+        economy_path = resolve_schema_json("game-economy.json")
+    except FileNotFoundError as e:
+        raise SystemExit(str(e)) from e
 
     out_dir = ensure_output_dir()
     state_path = out_dir / STATE_FILENAME
 
-    catalog = EventCatalog(load_json(EVENTS_JSON))
-    eco = EconomyConfig(load_json(ECONOMY_JSON))
+    catalog = EventCatalog(load_json(events_path))
+    eco = EconomyConfig(load_json(economy_path))
 
     users, next_seq = load_state(state_path)
     rng = random.Random()

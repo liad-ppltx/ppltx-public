@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Backfill synthetic events for N days, then upload local JSONL to BigQuery (bq_config.json).
-# Usage: ./run_sim_backfill.sh 7
+# Run from jobs/playpltx_simulation (or any copy of this folder). Usage: ./run_sim_backfill.sh 7
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DAYS="${1:-7}"

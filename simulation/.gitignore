@@ -1,2 +1,5 @@
 # Local BigQuery upload targets (do not commit real project IDs if policy requires)
 bq_config.json
+
+# Generated simulation output (JSONL + users_state.json)
+data/
