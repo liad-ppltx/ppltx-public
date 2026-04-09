@@ -2,7 +2,7 @@ Here is a comprehensive **README.md** file in English, structured professionally
 
 ---
 
-# PlayPLTX Analytics & Research Framework (v1.0.7)
+# PlayPLTX Analytics & Research Framework (v1.0.8)
 
 ## 📝 Project Overview
 
@@ -23,6 +23,8 @@ These fields are present at the top level of every database document. they allow
 | **`userId`** | String | Persistent unique identifier for the participant. |
 | **`playerName`** | String | Display nickname for the in-game HUD and leaderboard context; persisted in **`localStorage`** under the key **`playerName`** (same tab/origin until cleared). |
 | **`sessionId`** | String | Unique ID for the current session (resets on page refresh). |
+| **`sessionIndex`** | Integer | Monotonic per-user session counter; increments on each new `session_start` and persists in `localStorage`. |
+| **`eventIndex`** | Integer | Per-session event sequence counter; starts at `1` on `session_start` and increments for each event in that session. |
 | **`condition`** | String | Assigned A/B group (e.g., **A** or **B**). |
 | **`version`** | String | App version, controlled dynamically via `game-events.json`. |
 | **`platform`** | Enum | Device classification: `Mobile`, `Tablet`, or `Desktop`. |
@@ -65,11 +67,12 @@ Each event contains an `eventParams` object which holds data specific to that pa
 ### Session Management
 
 * **`session_start`**: Fired upon game load and user consent.
-* *Params:* `initialSpins`, `initialCoins`, `consent`.
+* *Params:* `initialSpins`, `initialCoins`, `consent`. At this moment `sessionIndex` increments and `eventIndex` is set to `1`.
 
 
 * **`session_end`**: **(Best Effort)** Fired when the tab is closed or the user navigates away.
 * *Params:* `totalSessionTime` (seconds), `finalLevel`, `finalCoins`.
+* *Sequencing:* `eventIndex` continues incrementing within the same session until this event.
 
 
 

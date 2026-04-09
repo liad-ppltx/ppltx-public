@@ -160,6 +160,7 @@ class UserState:
     )
     total_spins_village: int = 0
     village_started_at: Optional[str] = None
+    lastSessionIndex: int = 0
 
     @classmethod
     def new_user(cls, seq: int, rng: random.Random) -> "UserState":
@@ -178,6 +179,7 @@ class UserState:
             building_stars={b: 0 for b in VILLAGE_ITEMS},
             total_spins_village=0,
             village_started_at=None,
+            lastSessionIndex=0,
         )
 
     def sync_stars(self) -> None:
@@ -286,12 +288,16 @@ def make_envelope_row(
     ts: datetime,
     platform: str,
     country: str,
+    session_index: int,
+    event_index: int,
 ) -> Dict[str, Any]:
     ms = int(ts.timestamp() * 1000)
     return {
         "userId": user.userId,
         "playerName": user.playerName,
         "sessionId": session_id,
+        "sessionIndex": int(session_index),
+        "eventIndex": int(event_index),
         "condition": user.condition,
         "timestamp": ts.isoformat().replace("+00:00", "Z"),
         "eventName": event_name,
@@ -368,8 +374,29 @@ def simulate_session(
 ) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     session_id = f"ses_{uuid.uuid4().hex[:16]}"
+    user.lastSessionIndex = int(getattr(user, "lastSessionIndex", 0)) + 1
+    session_index = user.lastSessionIndex
+    event_counter = 0
     platform = rng.choice(["Mobile", "Tablet", "Desktop"])
     country = rng.choice(["US", "IL", "DE", "GB", "unknown"])
+
+    def emit(event_name: str, event_params: Dict[str, Any], ts: datetime) -> None:
+      nonlocal event_counter
+      event_counter += 1
+      rows.append(
+          make_envelope_row(
+              catalog=catalog,
+              user=user,
+              session_id=session_id,
+              event_name=event_name,
+              event_params=event_params,
+              ts=ts,
+              platform=platform,
+              country=country,
+              session_index=session_index,
+              event_index=event_counter,
+          )
+      )
 
     max_e = eco.max_spins(user.condition)
     user.energy = min(user.energy, max_e)
@@ -378,21 +405,14 @@ def simulate_session(
 
     # session_start
     t = session_start
-    rows.append(
-        make_envelope_row(
-            catalog=catalog,
-            user=user,
-            session_id=session_id,
-            event_name="session_start",
-            event_params={
-                "initialSpins": init_spins,
-                "initialCoins": init_coins,
-                "consent": True,
-            },
-            ts=t,
-            platform=platform,
-            country=country,
-        )
+    emit(
+        "session_start",
+        {
+            "initialSpins": init_spins,
+            "initialCoins": init_coins,
+            "consent": True,
+        },
+        t,
     )
 
     if user.village_started_at is None:
@@ -411,31 +431,24 @@ def simulate_session(
             break
         if user.energy <= 0:
             refill = eco.max_spins(user.condition)
-            rows.append(
-                make_envelope_row(
-                    catalog=catalog,
-                    user=user,
-                    session_id=session_id,
-                    event_name="energy_update",
-                    event_params=dynamic_fill_params(
-                        "energy_update",
-                        catalog,
-                        rng,
-                        {
-                            "energy_update": {
-                                "kind": "refill",
-                                "spinsBefore": 0,
-                                "spinsAfter": refill,
-                                "nextRefillTime": int(
-                                    (cur + timedelta(minutes=5)).timestamp() * 1000
-                                ),
-                            }
-                        },
-                    ),
-                    ts=cur,
-                    platform=platform,
-                    country=country,
-                )
+            emit(
+                "energy_update",
+                dynamic_fill_params(
+                    "energy_update",
+                    catalog,
+                    rng,
+                    {
+                        "energy_update": {
+                            "kind": "refill",
+                            "spinsBefore": 0,
+                            "spinsAfter": refill,
+                            "nextRefillTime": int(
+                                (cur + timedelta(minutes=5)).timestamp() * 1000
+                            ),
+                        }
+                    },
+                ),
+                cur,
             )
             user.energy = refill
             cur += timedelta(seconds=rng.randint(1, 4))
@@ -450,27 +463,20 @@ def simulate_session(
         if spins_b:
             user.energy = min(max_e, user.energy + spins_b)
 
-        rows.append(
-            make_envelope_row(
-                catalog=catalog,
-                user=user,
-                session_id=session_id,
-                event_name="spin",
-                event_params={
-                    "spinIndex": user.spin_index,
-                    "energyBefore": eb,
-                    "energyAfter": user.energy,
-                    "symbols": symbols,
-                    "payoutCoins": pay,
-                    "actionTriggered": action,
-                    "detailedResult": det,
-                    "spinsBonus": spins_b,
-                    "reactionTimeMs": rng.randint(120, 2800),
-                },
-                ts=cur,
-                platform=platform,
-                country=country,
-            )
+        emit(
+            "spin",
+            {
+                "spinIndex": user.spin_index,
+                "energyBefore": eb,
+                "energyAfter": user.energy,
+                "symbols": symbols,
+                "payoutCoins": pay,
+                "actionTriggered": action,
+                "detailedResult": det,
+                "spinsBonus": spins_b,
+                "reactionTimeMs": rng.randint(120, 2800),
+            },
+            cur,
         )
 
         # Raid / attack side flows (short)
@@ -485,36 +491,22 @@ def simulate_session(
             )
             user.coins += stolen
             cur += timedelta(seconds=rng.randint(2, 6))
-            rows.append(
-                make_envelope_row(
-                    catalog=catalog,
-                    user=user,
-                    session_id=session_id,
-                    event_name="raid_start",
-                    event_params={
-                        "rivalName": rival,
-                        "raidStealCap": cap,
-                    },
-                    ts=cur,
-                    platform=platform,
-                    country=country,
-                )
+            emit(
+                "raid_start",
+                {
+                    "rivalName": rival,
+                    "raidStealCap": cap,
+                },
+                cur,
             )
             cur += timedelta(seconds=rng.randint(8, 20))
-            rows.append(
-                make_envelope_row(
-                    catalog=catalog,
-                    user=user,
-                    session_id=session_id,
-                    event_name="raid_end",
-                    event_params={
-                        "totalStolen": stolen,
-                        "perfectRaid": stolen >= int(cap * 0.85),
-                    },
-                    ts=cur,
-                    platform=platform,
-                    country=country,
-                )
+            emit(
+                "raid_end",
+                {
+                    "totalStolen": stolen,
+                    "perfectRaid": stolen >= int(cap * 0.85),
+                },
+                cur,
             )
 
         if action == "attack":
@@ -524,38 +516,24 @@ def simulate_session(
             rew = scaled_coin(float(payouts.get(rew_key, 50000)), factor, user.currentVillage)
             user.coins += rew
             cur += timedelta(seconds=rng.randint(2, 5))
-            rows.append(
-                make_envelope_row(
-                    catalog=catalog,
-                    user=user,
-                    session_id=session_id,
-                    event_name="attack_start",
-                    event_params={
-                        "targetName": tgt,
-                        "targetUserId": f"bot_{tgt.lower()}",
-                    },
-                    ts=cur,
-                    platform=platform,
-                    country=country,
-                )
+            emit(
+                "attack_start",
+                {
+                    "targetName": tgt,
+                    "targetUserId": f"bot_{tgt.lower()}",
+                },
+                cur,
             )
             cur += timedelta(seconds=rng.randint(5, 15))
-            rows.append(
-                make_envelope_row(
-                    catalog=catalog,
-                    user=user,
-                    session_id=session_id,
-                    event_name="attack_end",
-                    event_params={
-                        "targetName": tgt,
-                        "result": "blocked" if blocked else "hit",
-                        "reward": rew,
-                        "buildingName": rng.choice(list(VILLAGE_ITEMS)),
-                    },
-                    ts=cur,
-                    platform=platform,
-                    country=country,
-                )
+            emit(
+                "attack_end",
+                {
+                    "targetName": tgt,
+                    "result": "blocked" if blocked else "hit",
+                    "reward": rew,
+                    "buildingName": rng.choice(list(VILLAGE_ITEMS)),
+                },
+                cur,
             )
 
         cur += timedelta(seconds=rng.randint(3, 25))
@@ -570,44 +548,30 @@ def simulate_session(
                     user.coins -= cost
                     user.building_stars[b] = cur_st + 1
                     user.sync_stars()
-                    rows.append(
-                        make_envelope_row(
-                            catalog=catalog,
-                            user=user,
-                            session_id=session_id,
-                            event_name="building_upgrade",
-                            event_params={
-                                "status": "success",
-                                "building": b,
-                                "levelAfter": cur_st + 1,
-                                "cost": cost,
-                                "isFree": False,
-                            },
-                            ts=cur,
-                            platform=platform,
-                            country=country,
-                        )
+                    emit(
+                        "building_upgrade",
+                        {
+                            "status": "success",
+                            "building": b,
+                            "levelAfter": cur_st + 1,
+                            "cost": cost,
+                            "isFree": False,
+                        },
+                        cur,
                     )
                     if user.stars >= 25:
                         vstart = datetime.fromisoformat(
                             user.village_started_at.replace("Z", "+00:00")
                         )
                         time_spent = max(1, int((cur - vstart).total_seconds()))
-                        rows.append(
-                            make_envelope_row(
-                                catalog=catalog,
-                                user=user,
-                                session_id=session_id,
-                                event_name="village_complete",
-                                event_params={
-                                    "villageId": user.currentVillage,
-                                    "totalSpins": user.total_spins_village,
-                                    "timeSpent": time_spent,
-                                },
-                                ts=cur,
-                                platform=platform,
-                                country=country,
-                            )
+                        emit(
+                            "village_complete",
+                            {
+                                "villageId": user.currentVillage,
+                                "totalSpins": user.total_spins_village,
+                                "timeSpent": time_spent,
+                            },
+                            cur,
                         )
                         rc, rs = eco.village_complete_reward(user.condition)
                         user.coins += scaled_coin(rc, factor, user.currentVillage)
@@ -620,21 +584,14 @@ def simulate_session(
 
     # session_end
     total_sec = max(1, int((session_end - session_start).total_seconds()))
-    rows.append(
-        make_envelope_row(
-            catalog=catalog,
-            user=user,
-            session_id=session_id,
-            event_name="session_end",
-            event_params={
-                "totalSessionTime": total_sec,
-                "finalLevel": user.currentVillage,
-                "finalCoins": user.coins,
-            },
-            ts=min(session_end, cur + timedelta(seconds=1)),
-            platform=platform,
-            country=country,
-        )
+    emit(
+        "session_end",
+        {
+            "totalSessionTime": total_sec,
+            "finalLevel": user.currentVillage,
+            "finalCoins": user.coins,
+        },
+        min(session_end, cur + timedelta(seconds=1)),
     )
 
     user.lastPlayedTimestamp = session_end.isoformat().replace("+00:00", "Z")
@@ -670,6 +627,7 @@ def load_state(path: Path) -> Tuple[List[UserState], int]:
                     building_stars={b: int(bs.get(b, 0)) for b in VILLAGE_ITEMS},
                     total_spins_village=int(u.get("total_spins_village", 0)),
                     village_started_at=u.get("village_started_at"),
+                    lastSessionIndex=int(u.get("lastSessionIndex", u.get("last_session_index", 0))),
                 )
             )
         except (KeyError, TypeError, ValueError):
@@ -696,6 +654,7 @@ def save_state(path: Path, users: List[UserState], next_seq: int) -> None:
                 "building_stars": u.building_stars,
                 "total_spins_village": u.total_spins_village,
                 "village_started_at": u.village_started_at,
+                "lastSessionIndex": u.lastSessionIndex,
             }
             for u in users
         ],

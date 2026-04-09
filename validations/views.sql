@@ -2,20 +2,25 @@
 
 SELECT
   timestamp AS ts,
+  JSON_VALUE(data, '$.sessionId') AS sessionId,
   document_id AS eventId,
   JSON_VALUE(data, '$.eventName') AS eventName,
   JSON_VALUE(data, '$.userId') AS userId,
+  JSON_VALUE(data, '$.playerName') AS playerName,
   JSON_VALUE(data, '$.condition') AS condition,
   JSON_VALUE(data, '$.version') AS version,
   JSON_VALUE(data, '$.platform') AS platform,
-  CAST(JSON_VALUE(data, '$.currentLevel') AS INT64) AS currentLevel,
+  JSON_VALUE(data, '$.countryCode') AS countryCode,
+  JSON_VALUE(data, '$.sessionIndex') AS sessionIndex,
+  JSON_VALUE(data, '$.eventIndex') AS eventIndex,
+  -- CAST(JSON_VALUE(data, '$.currentLevel') AS INT64) AS currentLevel, -- SAME VALUE AS currentVillage AFTER VERSION 1.0.6
   CAST(JSON_VALUE(data, '$.currentVillage') AS INT64) AS currentVillage,
-  -- כאן אנחנו משאירים את ה-params כ-JSON כדי לפרק אותם בהמשך לפי הצורך
   JSON_QUERY(data, '$.eventParams') AS params
 FROM
   `ppltx-project-dev.playpltx.raw_data_raw_changelog`
 WHERE
   operation IN ('CREATE', 'INSERT', 'IMPORT')
+  ORDER BY ts DESC
 
 ------------------------------------------------------------------------------
 

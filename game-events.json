@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.0.7",
+  "currentAppVersion": "1.0.8",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -21,7 +21,9 @@
       "currentVillage": { "type": "number", "source": "gameState.villageId" },
       "timestamp": { "type": "string", "source": "new Date().toISOString() at event time" },
       "clientTimestampMs": { "type": "number", "source": "Date.now() at event time" },
-      "sessionId": { "type": "string", "source": "window.__researchContext.sessionId" }
+      "sessionId": { "type": "string", "source": "window.__researchContext.sessionId" },
+      "sessionIndex": { "type": "integer", "source": "gameState.currentSessionIndex; increments once per new session_start and persists in localStorage" },
+      "eventIndex": { "type": "integer", "source": "gameState.currentEventIndex; increments on every logged event within a session and resets at session_start" }
     }
   },
 
@@ -39,6 +41,18 @@
         "type": "string",
         "required": true,
         "source": "window.__researchContext.sessionId"
+      },
+      {
+        "name": "sessionIndex",
+        "type": "integer",
+        "required": true,
+        "description": "Global running session counter per user; increments once at each new session_start"
+      },
+      {
+        "name": "eventIndex",
+        "type": "integer",
+        "required": true,
+        "description": "Within-session event sequence number; starts at 1 and increments on each event"
       },
       {
         "name": "condition",
@@ -109,7 +123,7 @@
 
   "superProperties": {
     "description": "Top-level Firestore fields merged from window.userProperties + dynamic runtime properties.",
-    "list": ["userId", "playerName", "sessionId", "condition", "timestamp", "eventName", "currentLevel", "currentVillage", "clientTimestampMs", "platform", "countryCode", "version", "eventParams"]
+    "list": ["userId", "playerName", "sessionId", "sessionIndex", "eventIndex", "condition", "timestamp", "eventName", "currentLevel", "currentVillage", "clientTimestampMs", "platform", "countryCode", "version", "eventParams"]
   },
 
   "types": {

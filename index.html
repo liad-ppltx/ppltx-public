@@ -3654,6 +3654,8 @@
         const data = {
           userId: String(sp.userId || ctx.userId || ""),
           sessionId: String(sp.sessionId || ctx.sessionId || ""),
+          sessionIndex: Number.isFinite(Number(sp.sessionIndex)) ? Math.round(Number(sp.sessionIndex)) : 0,
+          eventIndex: Number.isFinite(Number(sp.eventIndex)) ? Math.round(Number(sp.eventIndex)) : 0,
           condition: String(sp.condition || ctx.condition || gs.condition || ""),
           timestamp: String(sp.timestamp || new Date().toISOString()),
           eventName: String(eventName || ""),
@@ -4315,6 +4317,7 @@
         const STORAGE_KEY_MINI_TUTORIAL = "miniTutorialCompleted";
         // Display nickname for HUD + analytics. If the user clears browser data or uses a private/incognito window, localStorage is empty and the nickname gate appears again (expected).
         const STORAGE_KEY_PLAYER_NAME = "playerName";
+        const STORAGE_KEY_SESSION_INDEX = "playpltxSessionIndex";
         const cfgLabelEl = document.getElementById("cfgLabel");
         const landingPageEl = document.getElementById("landingPage");
         const landingConsentPanelEl = document.getElementById("landingConsentPanel");
@@ -4433,6 +4436,8 @@
           playerName: "",
           userId: USER_ID,
           villageId: 1,
+          currentSessionIndex: 0,
+          currentEventIndex: 0,
         };
         window.__playpltxGameState = gameState;
 
@@ -5315,10 +5320,19 @@
             timestamp: new Date().toISOString(),
             clientTimestampMs: Date.now(),
             sessionId: window.__researchContext.sessionId,
+            sessionIndex: Number.isFinite(Number(gameState.currentSessionIndex))
+              ? Math.round(Number(gameState.currentSessionIndex))
+              : 0,
+            eventIndex: Number.isFinite(Number(gameState.currentEventIndex))
+              ? Math.round(Number(gameState.currentEventIndex))
+              : 0,
           };
         }
 
         function logEvent(eventName, params) {
+          gameState.currentEventIndex = Number.isFinite(Number(gameState.currentEventIndex))
+            ? Math.round(Number(gameState.currentEventIndex)) + 1
+            : 1;
           if (typeof window.saveToFirestore === "function") {
             const mergedSuperProps = {
               ...(window.userProperties && typeof window.userProperties === "object" ? window.userProperties : {}),
@@ -5344,6 +5358,8 @@
           const data = {
             userId: String(sp.userId || ctx.userId || ""),
             sessionId: String(sp.sessionId || ctx.sessionId || ""),
+            sessionIndex: Number.isFinite(Number(sp.sessionIndex)) ? Math.round(Number(sp.sessionIndex)) : 0,
+            eventIndex: Number.isFinite(Number(sp.eventIndex)) ? Math.round(Number(sp.eventIndex)) : 0,
             condition: String(sp.condition || ctx.condition || gameState.condition || ""),
             timestamp: String(sp.timestamp || new Date().toISOString()),
             eventName: String(eventName || ""),
@@ -5415,6 +5431,21 @@
         });
         window.logEvent = logEvent;
         window.getSuperProperties = getSuperProperties;
+        function bumpSessionIndexOnSessionStart() {
+          let nextIndex = 1;
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY_SESSION_INDEX);
+            const prev = Number.parseInt(raw || "0", 10);
+            nextIndex = Number.isFinite(prev) ? Math.max(0, prev) + 1 : 1;
+            localStorage.setItem(STORAGE_KEY_SESSION_INDEX, String(nextIndex));
+          } catch (e) {
+            nextIndex = Number.isFinite(Number(gameState.currentSessionIndex))
+              ? Math.max(0, Math.round(Number(gameState.currentSessionIndex))) + 1
+              : 1;
+          }
+          gameState.currentSessionIndex = nextIndex;
+          gameState.currentEventIndex = 0;
+        }
         async function startGameAfterConsent() {
           if (gameBooted) return;
           if (!window.__appVersionLoaded) {
@@ -5450,6 +5481,7 @@
           if (appLayoutEl) appLayoutEl.style.pointerEvents = "auto";
           if (tutorialOverlayEl && tutorialStep <= 0) tutorialOverlayEl.style.pointerEvents = "none";
 
+          bumpSessionIndexOnSessionStart();
           sessionStartedAtMs = Date.now();
           logEvent("session_start", {
             initialSpins: energy,
