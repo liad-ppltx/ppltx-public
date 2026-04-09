@@ -703,9 +703,12 @@
         color: var(--text-subtle);
       }
 
-      .hud-level {
+      .hud-village-name {
         font-weight: 700;
         color: var(--gold-light);
+        text-align: center;
+        min-width: 110px;
+        letter-spacing: 0.04em;
       }
 
       .hud-bars {
@@ -3008,6 +3011,33 @@
         align-items: center;
         margin-bottom: 8px;
       }
+      .modal-header--shop {
+        gap: 8px;
+      }
+      .shop-coin-display {
+        margin-left: auto;
+        margin-right: 4px;
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #ffe08a;
+        background: rgba(6, 10, 18, 0.65);
+        border: 1px solid rgba(255, 224, 138, 0.28);
+        border-radius: 999px;
+        padding: 5px 10px;
+      }
+      .shop-close-btn {
+        min-width: 44px;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        font-size: 1.3rem;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2;
+      }
 
       .modal-title {
         font-weight: 800;
@@ -3607,6 +3637,141 @@
           bottom: 6px;
         }
       }
+
+      @media (max-width: 768px) {
+        .top-progress-stack {
+          width: min(96vw, 100%);
+        }
+        .village-progress-bar-container {
+          padding: 4px 8px;
+        }
+        .village-progress-label {
+          font-size: 0.66rem;
+        }
+        .hud {
+          padding: 7px 8px 8px;
+          border-radius: 16px;
+        }
+        .hud::before {
+          inset: 6px;
+        }
+        .hud-top {
+          gap: 6px;
+          margin-bottom: 6px;
+          align-items: center;
+        }
+        .hud-top-left {
+          max-width: 42%;
+          gap: 1px;
+        }
+        .hud-player-nick {
+          font-size: 0.54rem;
+        }
+        .hud-title {
+          font-size: 0.72rem;
+          letter-spacing: 0.09em;
+        }
+        .hud-village-name {
+          font-size: 0.74rem;
+          min-width: 90px;
+        }
+        .hud-shop-btn {
+          font-size: 0.64rem;
+          letter-spacing: 0.08em;
+          padding: 6px 9px;
+        }
+        .hud-bars {
+          gap: 7px;
+          display: flex;
+          flex-direction: column;
+        }
+        .hud-bars .hud-bar:nth-child(2) {
+          order: 1;
+        }
+        .hud-bars .hud-bar:nth-child(1) {
+          order: 2;
+        }
+        .hud-bar {
+          grid-template-columns: 52px 1fr auto;
+          gap: 5px;
+        }
+        .hud-bar-label {
+          font-size: 0.62rem;
+        }
+        .hud-bar-track {
+          height: 8px;
+          min-width: 0;
+        }
+        .hud-bar-value {
+          font-size: 0.74rem;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          min-width: 0;
+        }
+        .hud-timer {
+          margin-left: 0;
+          font-size: 0.62rem;
+          white-space: nowrap;
+        }
+        #devRefillBtn,
+        #devResetBtn {
+          font-size: 0.62rem;
+          min-width: 24px;
+          min-height: 24px;
+          padding: 0 6px;
+        }
+
+        /* Keep energy bar visible even when timer shows "MAX" / "Next Spin". */
+        .hud-bar:first-child {
+          grid-template-columns: 48px 1fr;
+          grid-template-areas:
+            "label value"
+            "track track";
+        }
+        .hud-bar:first-child .hud-bar-label { grid-area: label; }
+        .hud-bar:first-child .hud-bar-track { grid-area: track; }
+        .hud-bar:first-child .hud-bar-value {
+          grid-area: value;
+          justify-self: end;
+          font-size: 0.7rem;
+          gap: 3px;
+        }
+
+        /* Village assets full visibility on narrow devices. */
+        .world-inner {
+          overflow: visible;
+          padding: 10px 2px 12px;
+        }
+        .island {
+          width: min(350px, 96vw);
+          margin: 12px auto 8px;
+          transform: perspective(860px) rotateX(14deg) scale(0.92);
+          transform-origin: center top;
+        }
+
+        /* Shop must sit above HUD and expose an easy-to-hit close button. */
+        #shopModal {
+          z-index: 22000 !important;
+        }
+        #shopModal .modal-sheet {
+          z-index: 22001 !important;
+          max-height: min(72vh, 620px);
+          padding-top: 8px;
+        }
+        #shopModal .modal-header {
+          position: sticky;
+          top: 0;
+          z-index: 3;
+          background: linear-gradient(180deg, rgba(12, 16, 26, 0.9), rgba(12, 16, 26, 0.6));
+          backdrop-filter: blur(4px);
+          padding: 2px 2px 8px;
+        }
+        .shop-coin-display {
+          font-size: 0.7rem;
+          padding: 4px 8px;
+        }
+      }
     </style>
 
     <!-- Firebase SDK - Compat Version + REST Firestore -->
@@ -3797,9 +3962,6 @@
           <div id="villageProgressFill" class="village-progress-fill"></div>
           <div id="villageProgressLabel" class="village-progress-label">Village 1 Progress: 0 / 25 Stars</div>
         </div>
-        <div id="villageHudBar" class="village-hud-bar" role="status" aria-label="Current village">
-          <span id="villageHudLabel" class="village-hud-label">Village [1]</span>
-        </div>
       </div>
       <div class="game-container">
       <div class="game-main">
@@ -3814,7 +3976,7 @@
             <div id="hudPlayerNick" class="hud-player-nick" aria-label="Your nickname"></div>
             <div class="hud-title">PlayPLTX</div>
           </div>
-          <div class="hud-level">Stage <span id="levelValue">1</span>/10</div>
+          <div id="villageHudLabel" class="hud-village-name" role="status" aria-label="Current village">Village [1]</div>
           <div class="hud-coin-pips" aria-hidden="true">
             <span id="hudCoinPip0" class="hud-coin-pip"></span>
             <span id="hudCoinPip1" class="hud-coin-pip"></span>
@@ -3971,9 +4133,10 @@
 
       <div id="shopModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Shop">
         <div class="modal-sheet panel-stone">
-          <div class="modal-header">
+          <div class="modal-header modal-header--shop">
             <div class="modal-title">BUILD YOUR VILLAGE</div>
-            <button id="closeShopBtn" type="button" class="secondary metal-btn">Close</button>
+            <div id="shopCoinDisplay" class="shop-coin-display" aria-live="polite">Coins: 0</div>
+            <button id="closeShopBtn" type="button" class="secondary metal-btn shop-close-btn" aria-label="Close shop">&times;</button>
           </div>
           <div class="shop-list">
             <div class="shop-item" data-item="Castle">
@@ -4195,7 +4358,7 @@
         const energyEl = document.getElementById("energyValue");
         const energyMaxEl = document.getElementById("energyMaxValue");
         const coinsEl = document.getElementById("coinsValue");
-        const stageEl = document.getElementById("levelValue");
+        const shopCoinDisplayEl = document.getElementById("shopCoinDisplay");
         const energyFillEl = document.getElementById("energyFill");
         const coinsFillEl = document.getElementById("coinsFill");
 
@@ -5612,8 +5775,8 @@
           if (energyEl) energyEl.textContent = String(gameState.energy);
           if (energyMaxEl) energyMaxEl.textContent = String(GAME_CONFIG.maxEnergy);
           if (coinsEl) coinsEl.textContent = formatNumber(coins);
+          if (shopCoinDisplayEl) shopCoinDisplayEl.textContent = `Coins: ${formatNumber(coins)}`;
           if (hudPlayerNickEl) hudPlayerNickEl.textContent = gameState.playerName ? String(gameState.playerName) : "";
-          if (stageEl) stageEl.textContent = String(stage);
           if (cannonLevelValueEl) cannonLevelValueEl.textContent = String(cannon1Level);
           if (castleLevelTagEl) castleLevelTagEl.textContent = String(stage);
           if (cannonLevelTagEl) cannonLevelTagEl.textContent = String(cannon1Level);
