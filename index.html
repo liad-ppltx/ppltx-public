@@ -3738,18 +3738,20 @@
           gap: 3px;
         }
 
-        /* Mobile full-screen restore: sticky HUD + vertical scroll sections. */
+        /* Mobile compact scroll: sticky HUD + natural content height. */
         body {
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
         }
         .app-layout {
-          min-height: 180vh;
+          min-height: auto;
+          padding-top: clamp(64px, 9vh, 84px);
+          padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
         }
         .phone-frame {
-          min-height: 180vh;
+          min-height: auto;
           max-height: none;
-          overflow-y: visible;
+          overflow: visible;
         }
         .hud {
           position: sticky;
@@ -3764,21 +3766,26 @@
           align-items: flex-start;
           width: 100%;
           margin-top: 4px;
+          margin-bottom: 4px;
         }
         .world-inner {
           overflow: visible;
           width: 100%;
-          min-height: 250px;
+          min-height: auto;
           display: flex;
           justify-content: center;
           align-items: flex-start;
-          padding: 8px 0 20px;
+          padding: 6px 0 8px;
         }
         .island {
           width: min(400px, 100vw);
+          height: 210px;
           margin: 0 auto;
-          transform: perspective(860px) rotateX(12deg) scale(0.7);
+          transform: perspective(860px) rotateX(12deg) scale(0.78);
           transform-origin: center top;
+        }
+        .village-asset .asset-label {
+          display: none !important;
         }
 
         /* Slot machine restored below village in normal document flow. */
@@ -3788,7 +3795,7 @@
           display: block;
           align-items: initial;
           z-index: auto !important;
-          margin: 8px 0 0;
+          margin: 0;
           padding: 0;
           pointer-events: auto;
         }
@@ -3798,13 +3805,14 @@
           overflow: visible;
           border-radius: 22px;
           margin: 0;
-          padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+          padding-top: 8px;
+          padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
         }
         #slotModal .reels-modal {
-          margin-bottom: 12px;
+          margin-bottom: 10px;
         }
         #slotModal .slot-controls {
-          padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+          padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
 
         /* Shop must sit above HUD and expose an easy-to-hit close button. */

@@ -2,11 +2,20 @@ Here is a comprehensive **README.md** file in English, structured professionally
 
 ---
 
-# PlayPLTX Analytics & Research Framework (v1.0.9)
+# PlayPLTX Analytics & Research Framework (v1.1.0)
 
 ## 📝 Project Overview
 
 **PlayPLTX** is a web-based game environment designed specifically for behavioral research and A/B testing. The system is engineered to collect high-fidelity interaction data, economic balance metrics, and player decision-making patterns under different assigned study conditions. Data is captured in real-time via **Firebase Firestore** and streamed to **Google BigQuery** for advanced statistical analysis.
+
+---
+
+## 📱 Mobile layout optimization (v1.1.0)
+
+- Reduced excessive mobile vertical spacing by removing forced tall container behavior.
+- Tightened the spacing between the village scene and slot machine tablet for natural scroll.
+- Kept HUD sticky and intact while preserving slot machine visibility and SPIN button access.
+- Hid decorative in-scene asset labels (e.g., BOAT/CANNON/FARM text) on mobile to reduce visual clutter.
 
 ---
 
