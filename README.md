@@ -1,157 +1,134 @@
-Here is a comprehensive **README.md** file in English, structured professionally for your GitHub repository or project documentation.
+# PlayPLTX Game & Analytics Framework (v1.1.0)
 
----
+PlayPLTX is a browser game used for behavioral research and product analytics. This repository contains:
 
-# PlayPLTX Analytics & Research Framework (v1.1.0)
+- the playable client (`index.html`)
+- event contract and telemetry schema (`game-events.json`)
+- economy tuning (`game-economy.json`)
+- simulation tooling (`simulation/`)
 
-## 📝 Project Overview
+This README explains gameplay configuration, analytics structure, and operational conventions.
 
-**PlayPLTX** is a web-based game environment designed specifically for behavioral research and A/B testing. The system is engineered to collect high-fidelity interaction data, economic balance metrics, and player decision-making patterns under different assigned study conditions. Data is captured in real-time via **Firebase Firestore** and streamed to **Google BigQuery** for advanced statistical analysis.
+## Repository Structure
 
----
+- `index.html`  
+  Main game client (UI, gameplay logic, persistence, analytics logging).
+- `game-events.json`  
+  Canonical analytics schema (event names, event params, super properties, current version).
+- `game-economy.json`  
+  Condition-based economy configuration (`condition_A` / `condition_B`).
+- `simulation/generator.py`  
+  Local synthetic data generator for JSONL output + optional BigQuery load.
+- `simulation/data/`  
+  Generated event files and persistent simulation user state.
 
-## 📱 Mobile layout optimization (v1.1.0)
+## Versioning
 
-- Reduced excessive mobile vertical spacing by removing forced tall container behavior.
-- Tightened the spacing between the village scene and slot machine tablet for natural scroll.
-- Kept HUD sticky and intact while preserving slot machine visibility and SPIN button access.
-- Hid decorative in-scene asset labels (e.g., BOAT/CANNON/FARM text) on mobile to reduce visual clutter.
+- Active analytics/game config version: `1.1.0`.
+- Version is defined in `game-events.json` and propagated to logged events as the top-level `version`.
+- Any contract or behavior change should update:
+  - `game-events.json`
+  - relevant client logic in `index.html`
+  - this README
 
----
+## Analytics Contract
 
-## 🏗️ Data Architecture
+PlayPLTX uses an event-envelope model:
 
-The logging system follows an **"Event Envelope"** pattern. Every user action is recorded as an "Event," which is automatically enriched with "Super Properties" that define the user's global context.
+- top-level context (super properties)
+- event identity (`eventName`)
+- event-specific payload (`eventParams`)
 
-### 1. Super Properties (Global Context)
+### Key Super Properties
 
-These fields are present at the top level of every database document. they allow for immediate segmentation in BigQuery without complex table joins.
+- identity/session: `userId`, `playerName`, `sessionId`
+- ordering: `sessionIndex`, `eventIndex`
+- context: `condition`, `platform`, `countryCode`, `version`
+- progression/time: `currentVillage` (`currentLevel` alias), `timestamp`, `clientTimestampMs`
 
-| Property | Type | Source / Description |
-| --- | --- | --- |
-| **`userId`** | String | Persistent unique identifier for the participant. |
-| **`playerName`** | String | Display nickname for the in-game HUD and leaderboard context; persisted in **`localStorage`** under the key **`playerName`** (same tab/origin until cleared). |
-| **`sessionId`** | String | Unique ID for the current session (resets on page refresh). |
-| **`sessionIndex`** | Integer | Monotonic per-user session counter; increments on each new `session_start` and persists in `localStorage`. |
-| **`eventIndex`** | Integer | Per-session event sequence counter; starts at `1` on `session_start` and increments for each event in that session. |
-| **`condition`** | String | Assigned A/B group (e.g., **A** or **B**). |
-| **`version`** | String | App version, controlled dynamically via `game-events.json`. |
-| **`platform`** | Enum | Device classification: `Mobile`, `Tablet`, or `Desktop`. |
-| **`countryCode`** | String | User's country code based on IP-to-Geo lookup. |
-| **`currentLevel`** | Integer | Same value as **`currentVillage`** — both come from `gameState.villageId`. |
-| **`currentVillage`** | Integer | The active village index the player is currently in. |
-| **`timestamp`** | ISO-8601 | Server-side write time. |
-| **`clientTimestampMs`** | Integer | Client-side Unix timestamp (used for precise latency/duration math). |
+### Session Ordering Rules
 
----
+- `sessionIndex` increments once per new `session_start` and persists in local storage.
+- `eventIndex` resets at session start and increments for each event in the session.
+- First event in a session (`session_start`) has `eventIndex = 1`.
 
-## 🪙 Economy scaling (v1.0.6+)
+## Event Families
 
-Per-condition config in `game-economy.json` includes **`villageScalingFactor`** (default **1.5**). For the current village index \(v =\) `gameState.villageId` (1-based):
+- Session lifecycle: `session_start`, `session_end`
+- Gameplay core: `spin`, `building_upgrade`, `energy_update`
+- Progression/meta: `tutorial_progress`, `village_complete`
+- PvP side flows: `attack_start`/`attack_end`, `raid_start`/`raid_end`
 
-**Scale multiplier**
+`village_complete` is the canonical progression milestone.
 
-\[
-\text{scale}(v) = \text{villageScalingFactor}^{\,v - 1}
-\]
+## Economy Configuration
 
-**Coin payouts** (slot coin/bag results, attack/raid coin rewards from payout tables, village completion coin bonus, and raid dig loot tiers) are multiplied by \(\text{scale}(v)\) after reading base values from config.
+Each condition block in `game-economy.json` defines:
 
-**Building upgrade costs** use the same multiplier on each building’s **base** coin cost: effective cost is \(\text{baseCost} \times \text{scale}(v) \times \text{multiplier}^{\text{stars}}\) (stars are per-building star count, unchanged).
+- resources: `initialSpins`, `maxSpins`, `refillMinutes`
+- rewards: `villageCompleteReward` (`coins`, `spins`)
+- slot behavior: `slotWeights`
+- payouts: `coin_single`, `bag_triple`, `raid_base`, `attack_hit`, `attack_blocked`, `spins_triple`
+- building growth model: `baseCost`, `multiplier` per building
 
-Spin count rewards (e.g. triple-spins) are **not** scaled by this factor.
+### Scaling
 
----
+`villageScalingFactor` scales economy pressure/reward with village progression:
 
-## 🧪 Local dev: money cheat
+- coin-like rewards scale with village
+- upgrade costs scale with village and per-building star depth
+- spin count rewards remain unscaled
 
-With **`?dev=true`** in the page URL, press **`M`** to add **10,000,000** coins, refresh the HUD, and persist state. The shortcut is ignored while focus is in an `INPUT`, `TEXTAREA`, or content-editable field.
+## UI & Mobile Notes (v1.1.0)
 
----
+Mobile behavior (`max-width: 768px`) focuses on compact playability:
 
-## 📅 Event Catalog
+- sticky top HUD
+- reduced artificial vertical gaps between world and slot area
+- natural vertical scroll only where needed
+- slot machine remains visible and SPIN button remains reachable above browser bars
+- decorative village asset labels are hidden on mobile to reduce clutter
 
-Each event contains an `eventParams` object which holds data specific to that particular action.
+Desktop layout remains unchanged by these mobile-specific adjustments.
 
-### Session Management
+## Persistence Behavior
 
-* **`session_start`**: Fired upon game load and user consent.
-* *Params:* `initialSpins`, `initialCoins`, `consent`. At this moment `sessionIndex` increments and `eventIndex` is set to `1`.
+- Nickname persisted in `localStorage` (`playerName`)
+- Session sequencing persisted in `localStorage` (`playpltxSessionIndex`)
+- Gameplay state persisted by the client save mechanism and restored on load
 
+## Local Development
 
-* **`session_end`**: **(Best Effort)** Fired when the tab is closed or the user navigates away.
-* *Params:* `totalSessionTime` (seconds), `finalLevel`, `finalCoins`.
-* *Sequencing:* `eventIndex` continues incrementing within the same session until this event.
+- `?dev=true` enables development shortcuts (including coin cheat keybinds).
+- To test analytics shape quickly, inspect payloads from `logEvent()` / Firestore write calls.
 
+## Simulation Overview
 
+`simulation/generator.py` can produce production-like telemetry:
 
-### Core Gameplay Loop
+- schema/economy resolution from repo or `PPLTX_PUBLIC_DIR`
+- persistent synthetic users in `simulation/data/users_state.json`
+- daily JSONL outputs: `simulation/data/events_YYYY-MM-DD.jsonl`
+- optional BigQuery upload via `upload-bq` subcommand
 
-* **`spin`**: Records every slot machine interaction.
-* *Params:* `spinIndex`, `energyAfter`, `symbols` (array of results), `payoutCoins`, `actionTriggered` (raid/attack/shield), `reactionTimeMs`.
-
-
-* **`building_upgrade`**: Records a star being added to a village building.
-* *Params:* `building` (Castle/Cannon/Statue/Farm/Boat), `status` (success/max), `cost`, `levelAfter`.
-
-
-
-### Social Interaction (PvP)
-
-* **`attack_start` / `attack_end**`: Tracks the process of attacking a rival island.
-* *End Params:* `result` (hit/blocked), `reward`, `buildingName`.
-
-
-* **`raid_start` / `raid_end**`: Tracks the coin-stealing (digging) mini-game.
-* *End Params:* `totalStolen`, `perfectRaid` (boolean); raid start also logs `raidStealCap` (scaled steal ceiling for the current village).
-
-
-
-### Progression & Meta
-
-* **`village_complete`**: **Sole progression milestone** when all 25 stars in the current village are collected. The client then advances `gameState.villageId` (and Firestore `currentLevel` / `currentVillage` track that same number). Params include **`villageId`** (completed village), **`totalSpins`**, and **`timeSpent`** (seconds in that village) for research analysis.
-* **`energy_update`**: Tracks changes in spin inventory (refills or depletions).
-
-Legacy **`player_level_up`** was removed in v1.0.6; downstream jobs should use **`village_complete`** only.
-
----
-
-## 🔬 Research Methodology & Optimization
-
-### Session Duration Calculation
-
-To maintain a "lean" pipeline and reduce Firestore write costs, periodic **Heartbeats have been removed**.
-
-* **Methodology:** Session duration is calculated in **BigQuery** by subtracting the `timestamp` of the first event (`session_start`) from the `timestamp` of the last recorded event for a specific `sessionId`.
-* **Benefit:** This ensures we only measure "Active Time," excluding periods where a user might have left the tab open without interacting.
-
-### Building ID Canonicalization
-
-To ensure data consistency across all study arms, building names in the `building_upgrade` event are strictly mapped to: **Castle, Cannon, Statue, Farm, and Boat**. Legacy IDs (like "Wall") have been deprecated to maintain a clean data schema.
-
-### Version Control
-
-The application version is managed centrally in `game-events.json`. Updating the `currentAppVersion` field in this JSON automatically updates the `version` super property across all subsequent logs, allowing for seamless longitudinal analysis across different game builds.
-
-### Player nickname persistence (v1.0.7+)
-
-After consent, new participants choose a nickname once; it is stored in **`localStorage`** as **`playerName`** and reloaded on refresh so they are not prompted again. The same value is sent on every analytics event as the top-level **`playerName`** field (with **`userId`**, **`currentVillage`**, etc.). Clearing site data or using a private/incognito session removes `localStorage`, so the nickname step appears again.
-
----
-
-## 🚀 How to Use This Data
-
-Data is synced from Firestore to BigQuery every 24 hours (or in real-time depending on your sync settings). Use the following SQL pattern to begin analysis:
+## Query Starter
 
 ```sql
-SELECT 
-  userId, 
-  condition, 
-  COUNTIF(eventName = 'spin') as total_spins,
-  MAX(currentLevel) as max_level_reached
+SELECT
+  userId,
+  condition,
+  COUNTIF(eventName = 'spin') AS total_spins,
+  MAX(currentVillage) AS max_village_reached
 FROM `your_project.events`
-GROUP BY userId, condition
-
+GROUP BY userId, condition;
 ```
 
----
+## Change Checklist
+
+When updating gameplay, telemetry, or UX:
+
+- update schema in `game-events.json` if needed
+- align logger fields in `index.html`
+- bump `currentAppVersion` when contract/behavior changes
+- update this README
+- regenerate simulation data if downstream consumers depend on new fields
