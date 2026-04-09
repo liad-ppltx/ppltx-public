@@ -3738,16 +3738,38 @@
           gap: 3px;
         }
 
-        /* Village assets full visibility on narrow devices. */
+        /* Village assets mobile visibility: larger, centered, and clear of slot tablet. */
+        .world {
+          position: relative;
+          z-index: 72;
+        }
         .world-inner {
+          position: relative;
+          z-index: 72;
           overflow: visible;
-          padding: 10px 2px 12px;
+          padding: 10px 2px 56px;
         }
         .island {
-          width: min(350px, 96vw);
-          margin: 12px auto 8px;
-          transform: perspective(860px) rotateX(14deg) scale(0.92);
+          width: min(366px, 98vw);
+          margin: 8px auto 34px;
+          transform: perspective(860px) rotateX(12deg) scale(1.08);
           transform-origin: center top;
+        }
+
+        /* Keep slot machine beneath enlarged assets while still fully usable. */
+        #slotModal {
+          z-index: 68 !important;
+          align-items: end;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        #slotModal .modal-sheet {
+          max-height: min(34vh, 290px);
+          margin-bottom: env(safe-area-inset-bottom, 0px);
+          padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+          overflow: visible;
+        }
+        #slotModal .slot-controls {
+          padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
         }
 
         /* Shop must sit above HUD and expose an easy-to-hit close button. */
