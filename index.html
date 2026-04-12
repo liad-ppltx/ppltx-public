@@ -44,6 +44,13 @@
         --success: #64f5c2;
 
         --bezier-snap: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+        /* Stacking: HUD < Shop overlay < Rewarded video < short-lived toasts */
+        --z-hud: 1000;
+        --z-shop-overlay: 2000;
+        --z-rewarded-video: 3000;
+        --z-rewarded-video-toast: 3100;
+        --z-iap-toast: 3200;
       }
 
       * {
@@ -169,7 +176,7 @@
         left: 50%;
         transform: translateX(-50%);
         width: min(560px, 94vw);
-        z-index: 210;
+        z-index: var(--z-hud);
         display: flex;
         flex-direction: column;
         gap: clamp(6px, 1.2vw, 10px);
@@ -577,7 +584,7 @@
       .hud-container,
       #shopBtn,
       #devRefillBtn {
-        z-index: 9999 !important;
+        z-index: var(--z-hud) !important;
         pointer-events: auto !important;
       }
 
@@ -688,7 +695,7 @@
       }
       #shopBtn {
         position: relative;
-        z-index: 1000;
+        z-index: var(--z-hud);
         pointer-events: auto !important;
       }
       .hud-shop-btn {
@@ -2952,10 +2959,25 @@
       .modal.hidden {
         pointer-events: none !important;
       }
+
+      /* Shop: fullscreen dimmer + always above HUD (--z-hud) */
+      #shopModal.modal {
+        z-index: var(--z-shop-overlay) !important;
+        align-items: end;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        padding: 0;
+        box-sizing: border-box;
+      }
       #shopModal,
       #shopModal .modal-sheet,
       #shopModal button {
         pointer-events: auto !important;
+      }
+      #shopModal .modal-sheet {
+        z-index: 1;
       }
 
       .modal.hidden {
@@ -3015,6 +3037,8 @@
         gap: 8px;
         flex-wrap: wrap;
         align-items: center;
+        padding-top: max(4px, env(safe-area-inset-top, 0px));
+        padding-bottom: 10px;
       }
       .shop-header-meta {
         display: flex;
@@ -3227,7 +3251,7 @@
         left: 50%;
         bottom: max(28px, env(safe-area-inset-bottom, 0px));
         transform: translateX(-50%);
-        z-index: 250010;
+        z-index: var(--z-iap-toast);
         max-width: min(92vw, 460px);
         padding: 14px 20px;
         border-radius: 14px;
@@ -3273,8 +3297,8 @@
         max-height: 100dvh;
         margin: 0;
         box-sizing: border-box;
-        /* Above shop modal (22000) and HUD; spec minimum 1000 — use high stack for this layout */
-        z-index: 250000;
+        /* Above shop overlay (--z-shop-overlay) */
+        z-index: var(--z-rewarded-video);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3382,7 +3406,7 @@
         left: 50%;
         bottom: max(28px, env(safe-area-inset-bottom, 0px));
         transform: translateX(-50%);
-        z-index: 200100;
+        z-index: var(--z-rewarded-video-toast);
         max-width: min(92vw, 440px);
         padding: 14px 20px;
         border-radius: 14px;
@@ -3649,7 +3673,7 @@
         position: fixed;
         inset: 0;
         pointer-events: none;
-        /* Above .top-progress-stack (210), HUD, and modals so tutorial tooltip/finger stay visible */
+        /* Above HUD (--z-hud), shop, and modals so tutorial tooltip/finger stay visible */
         z-index: 26000;
       }
 
@@ -3990,7 +4014,7 @@
         z-index: 2 !important;
       }
       .top-progress-stack:has(#villageProgressBarContainer.mini-tutorial-target) {
-        z-index: 220;
+        z-index: calc(var(--z-hud) + 1);
       }
       #shopModal .shop-item.mini-tutorial-target {
         position: static !important;
@@ -4159,7 +4183,7 @@
         .hud {
           position: sticky;
           top: max(0px, env(safe-area-inset-top, 0px));
-          z-index: 500;
+          z-index: var(--z-hud);
         }
 
         /* Village area: scale down to avoid right cutoff and center it cleanly. */
@@ -4218,22 +4242,31 @@
           padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
         }
 
-        /* Shop must sit above HUD and expose an easy-to-hit close button. */
-        #shopModal {
-          z-index: 22000 !important;
+        /* Shop: full-viewport sheet in front of HUD; dimmer covers status bars + sticky HUD */
+        #shopModal.modal:not(.hidden) {
+          align-items: stretch;
+          justify-content: stretch;
         }
-        #shopModal .modal-sheet {
-          z-index: 22001 !important;
-          max-height: min(72vh, 620px);
-          padding-top: 8px;
+        #shopModal .shop-modal-sheet.modal-sheet {
+          max-height: none;
+          height: 100%;
+          min-height: 100dvh;
+          max-width: 100%;
+          width: 100%;
+          margin: 0;
+          border-radius: 0;
+          padding: max(8px, env(safe-area-inset-top, 0px)) max(10px, env(safe-area-inset-right, 0px))
+            max(12px, env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px));
         }
         #shopModal .modal-header {
           position: sticky;
           top: 0;
           z-index: 3;
-          background: linear-gradient(180deg, rgba(12, 16, 26, 0.9), rgba(12, 16, 26, 0.6));
-          backdrop-filter: blur(4px);
-          padding: 2px 2px 8px;
+          background: linear-gradient(180deg, rgba(12, 16, 26, 0.97), rgba(12, 16, 26, 0.75));
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          padding-top: max(10px, env(safe-area-inset-top, 0px));
+          padding-bottom: 10px;
         }
         .shop-coin-display {
           font-size: 0.7rem;
