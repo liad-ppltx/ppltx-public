@@ -3086,7 +3086,7 @@
       #rewardedVideoModal .rewarded-video-chrome {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 12px;
         flex: 0 0 auto;
       }
@@ -3097,8 +3097,12 @@
         color: #ffe08a;
         text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
       }
-      #rewardedVideoModal .rewarded-video-close-btn {
-        flex-shrink: 0;
+      /* Exit (X): fixed to viewport corner inside overlay — always available */
+      #rewardedVideoModal .rewarded-video-exit-fab {
+        position: absolute;
+        top: max(12px, env(safe-area-inset-top, 0px));
+        right: max(12px, env(safe-area-inset-right, 0px));
+        z-index: 5;
         min-width: 52px;
         min-height: 52px;
         width: 52px;
@@ -3106,8 +3110,8 @@
         padding: 0;
         margin: 0;
         border-radius: 14px;
-        border: 2px solid rgba(255, 255, 255, 0.35);
-        background: linear-gradient(180deg, rgba(55, 62, 80, 0.95), rgba(22, 26, 36, 0.98));
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        background: linear-gradient(180deg, rgba(55, 62, 80, 0.96), rgba(22, 26, 36, 0.99));
         color: #fff;
         box-shadow:
           0 4px 0 rgba(0, 0, 0, 0.55),
@@ -3116,7 +3120,14 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transition: opacity 160ms ease, transform 160ms ease, border-color 160ms ease;
+        transition: filter 160ms ease, transform 160ms ease;
+      }
+      #rewardedVideoModal .rewarded-video-exit-fab:hover {
+        filter: brightness(1.1);
+        transform: translateY(-1px);
+      }
+      #rewardedVideoModal .rewarded-video-exit-fab:active {
+        transform: translateY(2px);
       }
       #rewardedVideoModal .rewarded-video-close-icon {
         font-size: 2rem;
@@ -3125,18 +3136,48 @@
         display: block;
         margin-top: -2px;
       }
-      #rewardedVideoModal .rewarded-video-close-btn.rewarded-video-close--locked {
-        opacity: 0.5;
+      #rewardedVideoModal .rewarded-video-claim-wrap {
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        padding: 6px 0 2px;
+      }
+      #rewardedVideoModal .rewarded-video-claim-btn {
+        width: 100%;
+        max-width: min(320px, 88vw);
+        min-height: 50px;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+      }
+      #rewardedVideoModal .rewarded-video-claim-btn.hidden {
+        display: none !important;
+      }
+      .rewarded-video-feedback-toast {
+        position: fixed;
+        left: 50%;
+        bottom: max(28px, env(safe-area-inset-bottom, 0px));
+        transform: translateX(-50%);
+        z-index: 200100;
+        max-width: min(92vw, 440px);
+        padding: 14px 20px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 209, 102, 0.38);
+        background: rgba(10, 12, 20, 0.96);
+        color: #eaf1ff;
+        font-size: 0.92rem;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 0.03em;
+        line-height: 1.35;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.7);
         pointer-events: none;
-        cursor: not-allowed;
-        border-color: rgba(255, 255, 255, 0.15);
+        opacity: 0;
+        transition: opacity 280ms ease;
       }
-      #rewardedVideoModal .rewarded-video-close-btn:not(:disabled):hover {
-        filter: brightness(1.08);
-        transform: translateY(-1px);
-      }
-      #rewardedVideoModal .rewarded-video-close-btn:not(:disabled):active {
-        transform: translateY(2px);
+      .rewarded-video-feedback-toast.show {
+        opacity: 1;
       }
       #rewardedVideoModal .rewarded-video-progress-track {
         height: 10px;
@@ -3156,7 +3197,7 @@
       #rewardedVideoModal .rewarded-video-player {
         width: 100%;
         max-width: 100%;
-        max-height: min(78vh, calc(90vh - 120px));
+        max-height: min(70vh, calc(90vh - 200px));
         height: auto;
         object-fit: contain;
         border-radius: 16px;
@@ -4472,6 +4513,13 @@
       </div>
     </div>
     <div id="villageAdvanceToast" class="village-advance-toast" aria-hidden="true">New village!</div>
+    <div
+      id="rewardedVideoFeedbackToast"
+      class="rewarded-video-feedback-toast"
+      role="status"
+      aria-live="polite"
+      aria-hidden="true"
+    ></div>
 
     <!-- Full-viewport rewarded video (must NOT live inside .phone-frame — avoids clip/blur) -->
     <div
@@ -4481,20 +4529,18 @@
       aria-modal="true"
       aria-label="Reward video"
     >
+      <button
+        type="button"
+        id="rewardedVideoCloseBtn"
+        class="rewarded-video-exit-fab"
+        aria-label="Exit video"
+      >
+        <span class="rewarded-video-close-icon" aria-hidden="true">&times;</span>
+      </button>
       <div class="rewarded-video-overlay-inner">
         <div class="rewarded-video-card">
           <div class="rewarded-video-chrome">
             <div id="rewardedVideoTimer" class="rewarded-video-timer" aria-live="polite">—</div>
-            <button
-              type="button"
-              id="rewardedVideoCloseBtn"
-              class="rewarded-video-close-btn"
-              aria-label="Close video"
-              disabled
-              aria-disabled="true"
-            >
-              <span class="rewarded-video-close-icon" aria-hidden="true">&times;</span>
-            </button>
           </div>
           <div class="rewarded-video-progress-track" aria-hidden="true">
             <div id="rewardedVideoProgressBar" class="rewarded-video-progress-fill"></div>
@@ -4506,6 +4552,16 @@
             preload="metadata"
             src="assets/videos/Analytics-Introduction.mp4"
           ></video>
+          <div class="rewarded-video-claim-wrap">
+            <button
+              type="button"
+              id="rewardedVideoClaimBtn"
+              class="rune-btn rewarded-video-claim-btn hidden"
+              aria-hidden="true"
+            >
+              GET REWARD
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -4660,8 +4716,10 @@
         const rewardedVideoModalEl = document.getElementById("rewardedVideoModal");
         const rewardedVideoEl = document.getElementById("rewardedVideoEl");
         const rewardedVideoCloseBtn = document.getElementById("rewardedVideoCloseBtn");
+        const rewardedVideoClaimBtn = document.getElementById("rewardedVideoClaimBtn");
         const rewardedVideoTimerEl = document.getElementById("rewardedVideoTimer");
         const rewardedVideoProgressBarEl = document.getElementById("rewardedVideoProgressBar");
+        const rewardedVideoFeedbackToastEl = document.getElementById("rewardedVideoFeedbackToast");
         const villageProgressFillEl = document.getElementById("villageProgressFill");
         const villageProgressLabelEl = document.getElementById("villageProgressLabel");
         const hudCoinPipEls = [
@@ -6239,6 +6297,8 @@
         const REWARD_ANALYTICS_VIDEO_NAME = "Analytics-Introduction";
         let shopRewardVideoTickInterval = null;
         let rewardedVideoRewardGranted = false;
+        let rewardedVideoPlaybackEnded = false;
+        let rewardedVideoFeedbackToastTimer = null;
 
         function formatRewardVideoWait(ms) {
           if (!Number.isFinite(ms) || ms <= 0) return "0:00";
@@ -6286,37 +6346,27 @@
           shopRewardVideoTickInterval = setInterval(updateRewardedVideoShopRow, 1000);
         }
 
-        function setRewardedVideoCloseLocked(locked) {
-          if (!rewardedVideoCloseBtn) return;
-          if (locked) {
-            rewardedVideoCloseBtn.disabled = true;
-            rewardedVideoCloseBtn.classList.add("rewarded-video-close--locked");
-            rewardedVideoCloseBtn.setAttribute("aria-disabled", "true");
-          } else {
-            rewardedVideoCloseBtn.disabled = false;
-            rewardedVideoCloseBtn.classList.remove("rewarded-video-close--locked");
-            rewardedVideoCloseBtn.setAttribute("aria-disabled", "false");
+        function showRewardedVideoFeedbackToast(message) {
+          const el = rewardedVideoFeedbackToastEl;
+          if (!el) return;
+          if (rewardedVideoFeedbackToastTimer) {
+            clearTimeout(rewardedVideoFeedbackToastTimer);
+            rewardedVideoFeedbackToastTimer = null;
           }
+          el.textContent = String(message || "");
+          el.setAttribute("aria-hidden", "false");
+          el.classList.remove("show");
+          void el.offsetWidth;
+          el.classList.add("show");
+          rewardedVideoFeedbackToastTimer = window.setTimeout(() => {
+            el.classList.remove("show");
+            el.setAttribute("aria-hidden", "true");
+            rewardedVideoFeedbackToastTimer = null;
+          }, 3200);
         }
 
-        function updateRewardedVideoProgressUi() {
-          if (!rewardedVideoEl || !rewardedVideoTimerEl || !rewardedVideoProgressBarEl) return;
-          const d = rewardedVideoEl.duration;
-          const t = rewardedVideoEl.currentTime;
-          if (!Number.isFinite(d) || d <= 0) {
-            rewardedVideoProgressBarEl.style.width = "0%";
-            rewardedVideoTimerEl.textContent = rewardedVideoRewardGranted ? "Complete" : "Loading…";
-            return;
-          }
-          const left = Math.max(0, d - t);
-          const m = Math.floor(left / 60);
-          const s = Math.floor(left % 60);
-          rewardedVideoTimerEl.textContent = `${m}:${String(s).padStart(2, "0")} until reward`;
-          const pct = Math.min(100, Math.max(0, (t / d) * 100));
-          rewardedVideoProgressBarEl.style.width = pct + "%";
-        }
-
-        function onRewardedVideoEnded() {
+        function grantRewardedVideoRewardAndClose(options) {
+          const opts = options && typeof options === "object" ? options : {};
           if (rewardedVideoRewardGranted) return;
           rewardedVideoRewardGranted = true;
           const cfg = getRewardedAdsConfig();
@@ -6330,14 +6380,81 @@
           logEvent("ad_video_complete", { reward_coins: cfg.coins, reward_spins: cfg.spins });
           persistState();
           updateUI();
-          setRewardedVideoCloseLocked(false);
-          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "Reward claimed!";
+          if (opts.devSkip) {
+            console.log("Dev Shortcut: Video skipped, reward granted.");
+          }
+          if (rewardedVideoClaimBtn) {
+            rewardedVideoClaimBtn.classList.add("hidden");
+            rewardedVideoClaimBtn.setAttribute("aria-hidden", "true");
+          }
+          closeRewardedVideoModal();
+        }
+
+        function updateRewardedVideoProgressUi() {
+          if (!rewardedVideoEl || !rewardedVideoTimerEl || !rewardedVideoProgressBarEl) return;
+          if (rewardedVideoPlaybackEnded && !rewardedVideoRewardGranted) {
+            rewardedVideoProgressBarEl.style.width = "100%";
+            return;
+          }
+          if (rewardedVideoRewardGranted) return;
+          const d = rewardedVideoEl.duration;
+          const t = rewardedVideoEl.currentTime;
+          if (!Number.isFinite(d) || d <= 0) {
+            rewardedVideoProgressBarEl.style.width = "0%";
+            rewardedVideoTimerEl.textContent = "Loading…";
+            return;
+          }
+          const left = Math.max(0, d - t);
+          const m = Math.floor(left / 60);
+          const s = Math.floor(left % 60);
+          rewardedVideoTimerEl.textContent = `${m}:${String(s).padStart(2, "0")} until video ends`;
+          const pct = Math.min(100, Math.max(0, (t / d) * 100));
+          rewardedVideoProgressBarEl.style.width = pct + "%";
+        }
+
+        function onRewardedVideoEnded() {
+          if (rewardedVideoRewardGranted) return;
+          rewardedVideoPlaybackEnded = true;
           if (rewardedVideoProgressBarEl) rewardedVideoProgressBarEl.style.width = "100%";
+          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "Video finished — claim your reward";
+          if (rewardedVideoClaimBtn) {
+            rewardedVideoClaimBtn.classList.remove("hidden");
+            rewardedVideoClaimBtn.removeAttribute("aria-hidden");
+          }
+          updateRewardedVideoProgressUi();
         }
 
         function onRewardedVideoError() {
-          setRewardedVideoCloseLocked(false);
-          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "Video unavailable — you can close.";
+          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "Video unavailable — tap X to exit.";
+        }
+
+        function onRewardedVideoExitClick() {
+          if (!rewardedVideoRewardGranted) {
+            console.log("Rewarded video: user exited without claiming — no reward granted.");
+            showRewardedVideoFeedbackToast("You exited the video. No reward was granted.");
+          }
+          closeRewardedVideoModal();
+        }
+
+        function onRewardedVideoClaimClick() {
+          if (!rewardedVideoPlaybackEnded || rewardedVideoRewardGranted) return;
+          grantRewardedVideoRewardAndClose({});
+        }
+
+        function onRewardedVideoDevSkipKey(ev) {
+          try {
+            if (new URLSearchParams(window.location.search).get("dev") !== "true") return;
+            if (ev.key !== "s" && ev.key !== "S") return;
+            const t = ev.target;
+            if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+            if (!rewardedVideoModalEl || rewardedVideoModalEl.classList.contains("hidden")) return;
+            if (!rewardedVideoEl) return;
+            if (rewardedVideoEl.ended) return;
+            if (rewardedVideoRewardGranted) return;
+            ev.preventDefault();
+            rewardedVideoEl.pause();
+            grantRewardedVideoRewardAndClose({ devSkip: true });
+          } catch (e) {}
         }
 
         function openRewardedVideoFromShop() {
@@ -6345,9 +6462,13 @@
           const el = getRewardedVideoEligibility();
           if (!el.ok || !rewardedVideoModalEl || !rewardedVideoEl) return;
           rewardedVideoRewardGranted = false;
+          rewardedVideoPlaybackEnded = false;
+          if (rewardedVideoClaimBtn) {
+            rewardedVideoClaimBtn.classList.add("hidden");
+            rewardedVideoClaimBtn.setAttribute("aria-hidden", "true");
+          }
           if (rewardedVideoProgressBarEl) rewardedVideoProgressBarEl.style.width = "0%";
           if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "—";
-          setRewardedVideoCloseLocked(true);
           logEvent("ad_video_start", { video_name: REWARD_ANALYTICS_VIDEO_NAME });
           rewardedVideoModalEl.classList.remove("hidden");
           rewardedVideoEl.currentTime = 0;
@@ -6365,8 +6486,15 @@
           try {
             rewardedVideoEl.currentTime = 0;
           } catch (e) {}
+          if (rewardedVideoClaimBtn) {
+            rewardedVideoClaimBtn.classList.add("hidden");
+            rewardedVideoClaimBtn.setAttribute("aria-hidden", "true");
+          }
+          rewardedVideoPlaybackEnded = false;
           updateRewardedVideoShopRow();
         }
+
+        window.addEventListener("keydown", onRewardedVideoDevSkipKey);
 
         function getRandomSymbol() {
           const weights = (GAME_CONFIG && GAME_CONFIG.slotWeights) || {};
@@ -7901,7 +8029,8 @@
           setupListener("shopBtn", openShop);
           setupListener("closeShopBtn", closeShopModal);
           setupListener("shopWatchVideoBtn", openRewardedVideoFromShop);
-          if (rewardedVideoCloseBtn) rewardedVideoCloseBtn.onclick = closeRewardedVideoModal;
+          if (rewardedVideoCloseBtn) rewardedVideoCloseBtn.onclick = onRewardedVideoExitClick;
+          if (rewardedVideoClaimBtn) rewardedVideoClaimBtn.onclick = onRewardedVideoClaimClick;
           if (rewardedVideoEl) {
             rewardedVideoEl.addEventListener("ended", onRewardedVideoEnded);
             rewardedVideoEl.addEventListener("timeupdate", updateRewardedVideoProgressUi);
