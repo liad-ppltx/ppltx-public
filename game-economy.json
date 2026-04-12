@@ -40,8 +40,8 @@
   },
   "condition_B": {
     "villageScalingFactor": 1.6,
-    "initialSpins": 50,
-    "maxSpins": 50,
+    "initialSpins": 20,
+    "maxSpins": 20,
     "refillMinutes": 2,
     "villageCompleteReward": {
       "coins": 5000000,
