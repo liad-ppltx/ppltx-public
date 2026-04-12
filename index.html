@@ -3039,6 +3039,80 @@
         z-index: 2;
       }
 
+      #rewardedVideoModal {
+        z-index: 23000 !important;
+        align-items: center;
+        justify-content: center;
+        padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px))
+          max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+        background: rgba(4, 6, 12, 0.94);
+      }
+      #rewardedVideoModal,
+      #rewardedVideoModal button,
+      #rewardedVideoModal video {
+        pointer-events: auto !important;
+      }
+      .rewarded-video-modal-inner {
+        width: min(96vw, 720px);
+        max-height: min(90vh, 920px);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .rewarded-video-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .rewarded-video-timer {
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 0.06em;
+        color: #ffe08a;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+      }
+      .rewarded-video-close {
+        min-width: 44px;
+        min-height: 44px;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        font-size: 1.3rem;
+        line-height: 1;
+      }
+      .rewarded-video-close[disabled] {
+        pointer-events: none;
+      }
+      .rewarded-video-progress-track {
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        overflow: hidden;
+        border: 1px solid rgba(0, 0, 0, 0.5);
+      }
+      .rewarded-video-progress-fill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #3d7cff, #7ecbff);
+        transition: width 120ms linear;
+      }
+      .rewarded-video-player {
+        width: 100%;
+        max-height: min(70vh, 620px);
+        border-radius: 14px;
+        background: #000;
+        border: 2px solid rgba(255, 224, 138, 0.2);
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75);
+      }
+      .shop-watch-video-btn.shop-btn-locked,
+      .shop-watch-video-btn:disabled {
+        opacity: 0.5;
+        filter: grayscale(0.25);
+        cursor: not-allowed;
+      }
+
       .modal-title {
         font-weight: 800;
         letter-spacing: 0.12em;
@@ -4234,7 +4308,45 @@
               <button id="shopVillageBoatBtn" type="button" class="secondary wood-metal">Add Star</button>
               <div id="shopCostBoat" class="shop-cost">Cost: 0 Coins</div>
             </div>
+            <div class="shop-item shop-item--reward-video" id="shopRewardVideoRow">
+              <div class="shop-title">Reward video</div>
+              <div id="shopWatchVideoMsg" class="shop-desc">Watch a short clip for bonus coins and spins.</div>
+              <button id="shopWatchVideoBtn" type="button" class="secondary wood-metal shop-watch-video-btn">Watch Video</button>
+            </div>
           </div>
+        </div>
+      </div>
+      <div
+        id="rewardedVideoModal"
+        class="modal rewarded-video-modal hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Reward video"
+      >
+        <div class="rewarded-video-modal-inner">
+          <div class="rewarded-video-top">
+            <div id="rewardedVideoTimer" class="rewarded-video-timer" aria-live="polite">—</div>
+            <button
+              type="button"
+              id="rewardedVideoCloseBtn"
+              class="secondary metal-btn rewarded-video-close"
+              aria-label="Close video"
+              disabled
+              hidden
+            >
+              &times;
+            </button>
+          </div>
+          <div class="rewarded-video-progress-track" aria-hidden="true">
+            <div id="rewardedVideoProgressBar" class="rewarded-video-progress-fill"></div>
+          </div>
+          <video
+            id="rewardedVideoEl"
+            class="rewarded-video-player"
+            playsinline
+            preload="metadata"
+            src="assets/videos/Analytics-Introduction.mp4"
+          ></video>
         </div>
       </div>
       <div id="villageCelebration" class="village-celebration hidden">
@@ -4479,6 +4591,13 @@
         const shopCostStatueEl = document.getElementById("shopCostStatue");
         const shopCostFarmEl = document.getElementById("shopCostFarm");
         const shopCostBoatEl = document.getElementById("shopCostBoat");
+        const shopWatchVideoBtn = document.getElementById("shopWatchVideoBtn");
+        const shopWatchVideoMsgEl = document.getElementById("shopWatchVideoMsg");
+        const rewardedVideoModalEl = document.getElementById("rewardedVideoModal");
+        const rewardedVideoEl = document.getElementById("rewardedVideoEl");
+        const rewardedVideoCloseBtn = document.getElementById("rewardedVideoCloseBtn");
+        const rewardedVideoTimerEl = document.getElementById("rewardedVideoTimer");
+        const rewardedVideoProgressBarEl = document.getElementById("rewardedVideoProgressBar");
         const villageProgressFillEl = document.getElementById("villageProgressFill");
         const villageProgressLabelEl = document.getElementById("villageProgressLabel");
         const hudCoinPipEls = [
@@ -4546,6 +4665,7 @@
         // Display nickname for HUD + analytics. If the user clears browser data or uses a private/incognito window, localStorage is empty and the nickname gate appears again (expected).
         const STORAGE_KEY_PLAYER_NAME = "playerName";
         const STORAGE_KEY_SESSION_INDEX = "playpltxSessionIndex";
+        const STORAGE_KEY_REWARDED_AD = "playpltxRewardedAd";
         const cfgLabelEl = document.getElementById("cfgLabel");
         const landingPageEl = document.getElementById("landingPage");
         const landingConsentPanelEl = document.getElementById("landingConsentPanel");
@@ -4698,6 +4818,12 @@
         }
 
         const DEFAULT_ECONOMY_DATA = {
+          rewarded_ads: {
+            coins: 25000,
+            spins: 5,
+            daily_ad_limit: 5,
+            cooldown_minutes: 10,
+          },
           condition_A: {
             villageScalingFactor: 1.5,
             initialSpins: 10,
@@ -4752,6 +4878,75 @@
         function getConditionEconomy() {
           const source = window.ECONOMY_DATA || DEFAULT_ECONOMY_DATA;
           return source[getConditionKey()] || DEFAULT_ECONOMY_DATA.condition_A;
+        }
+        function getRewardedAdsConfig() {
+          const source = window.ECONOMY_DATA || DEFAULT_ECONOMY_DATA;
+          const ra =
+            source && source.rewarded_ads && typeof source.rewarded_ads === "object"
+              ? source.rewarded_ads
+              : DEFAULT_ECONOMY_DATA.rewarded_ads || {};
+          const coins = Number.isFinite(Number(ra.coins)) ? Math.round(Number(ra.coins)) : 0;
+          const spins = Number.isFinite(Number(ra.spins)) ? Math.round(Number(ra.spins)) : 0;
+          const daily_ad_limit = Number.isFinite(Number(ra.daily_ad_limit))
+            ? Math.max(1, Math.round(Number(ra.daily_ad_limit)))
+            : 5;
+          const cooldown_minutes = Number.isFinite(Number(ra.cooldown_minutes))
+            ? Math.max(0, Math.round(Number(ra.cooldown_minutes)))
+            : 10;
+          return { coins, spins, daily_ad_limit, cooldown_minutes };
+        }
+        function localCalendarDayKey() {
+          const d = new Date();
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, "0");
+          const day = String(d.getDate()).padStart(2, "0");
+          return `${y}-${m}-${day}`;
+        }
+        function readRewardedAdStorage() {
+          let lastWatchMs = 0;
+          let dayKey = "";
+          let dayCount = 0;
+          try {
+            const raw = localStorage.getItem(STORAGE_KEY_REWARDED_AD);
+            if (raw) {
+              const o = JSON.parse(raw);
+              if (o && typeof o === "object") {
+                lastWatchMs = Number(o.lastWatchMs) || 0;
+                dayKey = typeof o.dayKey === "string" ? o.dayKey : "";
+                dayCount = Number(o.dayCount) || 0;
+              }
+            }
+          } catch (e) {}
+          const today = localCalendarDayKey();
+          if (dayKey !== today) {
+            dayKey = today;
+            dayCount = 0;
+          }
+          return { lastWatchMs, dayKey, dayCount };
+        }
+        function writeRewardedAdStorage(lastWatchMs, dayKey, dayCount) {
+          try {
+            localStorage.setItem(
+              STORAGE_KEY_REWARDED_AD,
+              JSON.stringify({
+                lastWatchMs: Math.max(0, Math.round(Number(lastWatchMs) || 0)),
+                dayKey: String(dayKey || localCalendarDayKey()),
+                dayCount: Math.max(0, Math.round(Number(dayCount) || 0)),
+              })
+            );
+          } catch (e) {}
+        }
+        function getRewardedVideoEligibility() {
+          const cfg = getRewardedAdsConfig();
+          const st = readRewardedAdStorage();
+          if (st.dayCount >= cfg.daily_ad_limit) {
+            return { ok: false, reason: "daily", waitMs: 0 };
+          }
+          const coolMs = cfg.cooldown_minutes * 60 * 1000;
+          if (st.lastWatchMs > 0 && Date.now() - st.lastWatchMs < coolMs) {
+            return { ok: false, reason: "cooldown", waitMs: coolMs - (Date.now() - st.lastWatchMs) };
+          }
+          return { ok: true, reason: "", waitMs: 0 };
         }
         function getPayoutValue(key, fallback) {
           const payouts = (getConditionEconomy() && getConditionEconomy().payouts) || {};
@@ -5974,6 +6169,139 @@
           if (villageHudLabelEl) villageHudLabelEl.textContent = `Village [${formatNumber(gameState.villageId)}]`;
           updateVillageVisuals();
           syncShopMiniTutorialHighlight();
+          updateRewardedVideoShopRow();
+        }
+
+        const REWARD_ANALYTICS_VIDEO_NAME = "Analytics-Introduction";
+        let shopRewardVideoTickInterval = null;
+        let rewardedVideoRewardGranted = false;
+
+        function formatRewardVideoWait(ms) {
+          if (!Number.isFinite(ms) || ms <= 0) return "0:00";
+          const sec = Math.ceil(ms / 1000);
+          const m = Math.floor(sec / 60);
+          const r = sec % 60;
+          return `${m}:${String(r).padStart(2, "0")}`;
+        }
+
+        function updateRewardedVideoShopRow() {
+          if (!shopWatchVideoBtn || !shopWatchVideoMsgEl) return;
+          if (!gameBooted) {
+            shopWatchVideoBtn.disabled = true;
+            shopWatchVideoBtn.classList.add("shop-btn-locked");
+            return;
+          }
+          const el = getRewardedVideoEligibility();
+          const cfg = getRewardedAdsConfig();
+          if (!el.ok) {
+            shopWatchVideoBtn.disabled = true;
+            shopWatchVideoBtn.classList.add("shop-btn-locked");
+            if (el.reason === "daily") {
+              shopWatchVideoMsgEl.textContent = "Come back later — daily limit reached.";
+            } else if (el.reason === "cooldown") {
+              shopWatchVideoMsgEl.textContent = `Come back later — ready in ${formatRewardVideoWait(el.waitMs)}.`;
+            } else {
+              shopWatchVideoMsgEl.textContent = "Come back later.";
+            }
+            return;
+          }
+          shopWatchVideoBtn.disabled = false;
+          shopWatchVideoBtn.classList.remove("shop-btn-locked");
+          shopWatchVideoMsgEl.textContent = `Watch for +${formatNumber(cfg.coins)} coins and +${cfg.spins} spins.`;
+        }
+
+        function stopShopRewardVideoTicker() {
+          if (shopRewardVideoTickInterval) {
+            clearInterval(shopRewardVideoTickInterval);
+            shopRewardVideoTickInterval = null;
+          }
+        }
+
+        function startShopRewardVideoTicker() {
+          stopShopRewardVideoTicker();
+          shopRewardVideoTickInterval = setInterval(updateRewardedVideoShopRow, 1000);
+        }
+
+        function setRewardedVideoCloseLocked(locked) {
+          if (!rewardedVideoCloseBtn) return;
+          if (locked) {
+            rewardedVideoCloseBtn.disabled = true;
+            rewardedVideoCloseBtn.setAttribute("hidden", "");
+            rewardedVideoCloseBtn.setAttribute("aria-hidden", "true");
+          } else {
+            rewardedVideoCloseBtn.disabled = false;
+            rewardedVideoCloseBtn.removeAttribute("hidden");
+            rewardedVideoCloseBtn.setAttribute("aria-hidden", "false");
+          }
+        }
+
+        function updateRewardedVideoProgressUi() {
+          if (!rewardedVideoEl || !rewardedVideoTimerEl || !rewardedVideoProgressBarEl) return;
+          const d = rewardedVideoEl.duration;
+          const t = rewardedVideoEl.currentTime;
+          if (!Number.isFinite(d) || d <= 0) {
+            rewardedVideoProgressBarEl.style.width = "0%";
+            rewardedVideoTimerEl.textContent = rewardedVideoRewardGranted ? "Complete" : "Loading…";
+            return;
+          }
+          const left = Math.max(0, d - t);
+          const m = Math.floor(left / 60);
+          const s = Math.floor(left % 60);
+          rewardedVideoTimerEl.textContent = `${m}:${String(s).padStart(2, "0")} until reward`;
+          const pct = Math.min(100, Math.max(0, (t / d) * 100));
+          rewardedVideoProgressBarEl.style.width = pct + "%";
+        }
+
+        function onRewardedVideoEnded() {
+          if (rewardedVideoRewardGranted) return;
+          rewardedVideoRewardGranted = true;
+          const cfg = getRewardedAdsConfig();
+          const st = readRewardedAdStorage();
+          const today = localCalendarDayKey();
+          writeRewardedAdStorage(Date.now(), today, st.dayCount + 1);
+          coins += cfg.coins;
+          gameState.energy = clamp(gameState.energy + cfg.spins, 0, MAX_ENERGY);
+          energy = gameState.energy;
+          gameState.spins = gameState.energy;
+          logEvent("ad_video_complete", { reward_coins: cfg.coins, reward_spins: cfg.spins });
+          persistState();
+          updateUI();
+          setRewardedVideoCloseLocked(false);
+          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "Reward claimed!";
+          if (rewardedVideoProgressBarEl) rewardedVideoProgressBarEl.style.width = "100%";
+        }
+
+        function onRewardedVideoError() {
+          setRewardedVideoCloseLocked(false);
+          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "Video unavailable — you can close.";
+        }
+
+        function openRewardedVideoFromShop() {
+          if (rewardedVideoModalEl && !rewardedVideoModalEl.classList.contains("hidden")) return;
+          const el = getRewardedVideoEligibility();
+          if (!el.ok || !rewardedVideoModalEl || !rewardedVideoEl) return;
+          rewardedVideoRewardGranted = false;
+          if (rewardedVideoProgressBarEl) rewardedVideoProgressBarEl.style.width = "0%";
+          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "—";
+          setRewardedVideoCloseLocked(true);
+          logEvent("ad_video_start", { video_name: REWARD_ANALYTICS_VIDEO_NAME });
+          rewardedVideoModalEl.classList.remove("hidden");
+          rewardedVideoEl.currentTime = 0;
+          const p = rewardedVideoEl.play();
+          if (p && typeof p.catch === "function") {
+            p.catch(() => onRewardedVideoError());
+          }
+          updateRewardedVideoProgressUi();
+        }
+
+        function closeRewardedVideoModal() {
+          if (!rewardedVideoModalEl || !rewardedVideoEl) return;
+          rewardedVideoEl.pause();
+          rewardedVideoModalEl.classList.add("hidden");
+          try {
+            rewardedVideoEl.currentTime = 0;
+          } catch (e) {}
+          updateRewardedVideoShopRow();
         }
 
         function getRandomSymbol() {
@@ -7290,6 +7618,8 @@
             renderMiniTutorialStep(4);
           }
           updateUI();
+          updateRewardedVideoShopRow();
+          startShopRewardVideoTicker();
         }
         function openShop() {
           console.log("Shop clicked");
@@ -7299,6 +7629,7 @@
         function closeShopModal() {
           if (!shopModalEl) return;
           shopModalEl.classList.add("hidden");
+          stopShopRewardVideoTicker();
           syncShopMiniTutorialHighlight();
         }
 
@@ -7505,6 +7836,14 @@
           setupListener("upgradeCannonBtn", () => handleCannonUpgrade());
           setupListener("shopBtn", openShop);
           setupListener("closeShopBtn", closeShopModal);
+          setupListener("shopWatchVideoBtn", openRewardedVideoFromShop);
+          if (rewardedVideoCloseBtn) rewardedVideoCloseBtn.onclick = closeRewardedVideoModal;
+          if (rewardedVideoEl) {
+            rewardedVideoEl.addEventListener("ended", onRewardedVideoEnded);
+            rewardedVideoEl.addEventListener("timeupdate", updateRewardedVideoProgressUi);
+            rewardedVideoEl.addEventListener("loadedmetadata", updateRewardedVideoProgressUi);
+            rewardedVideoEl.addEventListener("error", onRewardedVideoError);
+          }
           setupListener("shopVillageCastleBtn", () => onShopVillageUpgrade("Castle"));
           setupListener("shopVillageCannonBtn", () => onShopVillageUpgrade("Cannon"));
           setupListener("shopVillageStatueBtn", () => onShopVillageUpgrade("Statue"));

@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.1.0",
+  "currentAppVersion": "1.1.2",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -256,10 +256,25 @@
         "hasRunSpin": { "type": "boolean", "required": true },
         "hasAddStar": { "type": "boolean", "required": true }
       }
+    },
+    "ad_video_start": {
+      "description": "User tapped Watch Video in the shop; rewarded video playback begins.",
+      "properties": {
+        "video_name": { "type": "string", "required": true }
+      }
+    },
+    "ad_video_complete": {
+      "description": "Rewarded video reached natural end; coins and spins granted per game-economy rewarded_ads.",
+      "properties": {
+        "reward_coins": { "type": "number", "required": true },
+        "reward_spins": { "type": "number", "required": true }
+      }
     }
   },
 
   "eventNames": [
+    "ad_video_complete",
+    "ad_video_start",
     "audit_stress_test",
     "attack_end",
     "attack_start",
