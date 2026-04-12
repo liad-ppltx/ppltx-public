@@ -4282,15 +4282,40 @@
         .world-inner {
           overflow: visible;
         }
+        /* Extra air above Ancient Tablet — boat was meeting the slot header */
         .world {
-          margin-bottom: 36px;
-          padding-bottom: 32px;
+          margin-bottom: 56px;
+          padding-bottom: 48px;
         }
         /* Slightly gentler tilt reduces how far the “floor” paints below the layout box */
         body.composite-village-mode .island {
           transform: perspective(860px) rotateX(8deg);
           transform-origin: center top;
-          margin-bottom: 20px;
+          margin-bottom: 28px;
+        }
+        /* Raise lower-row assets (percentages are within .island; larger bottom = higher on screen) */
+        body.composite-village-mode .boat-visual {
+          bottom: 18%;
+          transform: translateX(-50%);
+          z-index: 7;
+        }
+        body.composite-village-mode .cannon-visual {
+          bottom: 26%;
+          z-index: 8;
+        }
+        body.composite-village-mode .farm-visual {
+          top: 7%;
+        }
+        body.composite-village-mode .statue-visual {
+          top: 10%;
+        }
+        /* Avoid vertical squash from max-height: 100% inside flex boxes */
+        body.composite-village-mode .village-asset .comp-svg {
+          object-fit: contain;
+          object-position: center center;
+          max-height: none;
+          width: 100%;
+          height: auto;
         }
         /* Ensure vignette layers stay under the SVG buildings */
         body.composite-village-mode .island::before,
@@ -4303,12 +4328,6 @@
         body.composite-village-mode .statue-visual,
         body.composite-village-mode .farm-visual {
           z-index: 6;
-        }
-        body.composite-village-mode .boat-visual {
-          z-index: 7;
-        }
-        body.composite-village-mode .cannon-visual {
-          z-index: 8;
         }
         body.composite-village-mode .castle-visual {
           z-index: 9;
