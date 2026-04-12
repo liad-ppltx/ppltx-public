@@ -3039,72 +3039,132 @@
         z-index: 2;
       }
 
-      #rewardedVideoModal {
-        z-index: 23000 !important;
+      /* Full-viewport overlay: direct child of body, above phone mockup + HUD */
+      #rewardedVideoModal.rewarded-video-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100vw;
+        height: 100vh;
+        max-height: 100dvh;
+        margin: 0;
+        box-sizing: border-box;
+        z-index: 200000;
+        display: flex;
         align-items: center;
         justify-content: center;
-        padding: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px))
-          max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
-        background: rgba(4, 6, 12, 0.94);
+        padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px))
+          max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+        background: rgba(0, 0, 0, 0.82);
+        backdrop-filter: blur(2px);
       }
-      #rewardedVideoModal,
-      #rewardedVideoModal button,
-      #rewardedVideoModal video {
-        pointer-events: auto !important;
+      #rewardedVideoModal.rewarded-video-overlay.hidden {
+        display: none !important;
+        pointer-events: none !important;
+        visibility: hidden;
       }
-      .rewarded-video-modal-inner {
-        width: min(96vw, 720px);
-        max-height: min(90vh, 920px);
+      #rewardedVideoModal .rewarded-video-overlay-inner {
+        width: 100%;
+        max-width: min(96vw, 960px);
+        max-height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+      }
+      #rewardedVideoModal .rewarded-video-card {
+        width: 100%;
+        max-width: 90vw;
+        max-height: 90vh;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
+        position: relative;
       }
-      .rewarded-video-top {
+      #rewardedVideoModal .rewarded-video-chrome {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 10px;
+        gap: 12px;
+        flex: 0 0 auto;
       }
-      .rewarded-video-timer {
+      #rewardedVideoModal .rewarded-video-timer {
         font-weight: 800;
-        font-size: 0.9rem;
+        font-size: clamp(0.85rem, 2.5vw, 1rem);
         letter-spacing: 0.06em;
         color: #ffe08a;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
       }
-      .rewarded-video-close {
-        min-width: 44px;
-        min-height: 44px;
-        width: 44px;
-        height: 44px;
+      #rewardedVideoModal .rewarded-video-close-btn {
+        flex-shrink: 0;
+        min-width: 52px;
+        min-height: 52px;
+        width: 52px;
+        height: 52px;
         padding: 0;
-        font-size: 1.3rem;
+        margin: 0;
+        border-radius: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        background: linear-gradient(180deg, rgba(55, 62, 80, 0.95), rgba(22, 26, 36, 0.98));
+        color: #fff;
+        box-shadow:
+          0 4px 0 rgba(0, 0, 0, 0.55),
+          0 12px 28px rgba(0, 0, 0, 0.65);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 160ms ease, transform 160ms ease, border-color 160ms ease;
+      }
+      #rewardedVideoModal .rewarded-video-close-icon {
+        font-size: 2rem;
         line-height: 1;
+        font-weight: 300;
+        display: block;
+        margin-top: -2px;
       }
-      .rewarded-video-close[disabled] {
+      #rewardedVideoModal .rewarded-video-close-btn.rewarded-video-close--locked {
+        opacity: 0.5;
         pointer-events: none;
+        cursor: not-allowed;
+        border-color: rgba(255, 255, 255, 0.15);
       }
-      .rewarded-video-progress-track {
-        height: 8px;
+      #rewardedVideoModal .rewarded-video-close-btn:not(:disabled):hover {
+        filter: brightness(1.08);
+        transform: translateY(-1px);
+      }
+      #rewardedVideoModal .rewarded-video-close-btn:not(:disabled):active {
+        transform: translateY(2px);
+      }
+      #rewardedVideoModal .rewarded-video-progress-track {
+        height: 10px;
         border-radius: 999px;
-        background: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.14);
         overflow: hidden;
-        border: 1px solid rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(0, 0, 0, 0.45);
+        flex: 0 0 auto;
       }
-      .rewarded-video-progress-fill {
+      #rewardedVideoModal .rewarded-video-progress-fill {
         height: 100%;
         width: 0%;
         border-radius: 999px;
         background: linear-gradient(90deg, #3d7cff, #7ecbff);
         transition: width 120ms linear;
       }
-      .rewarded-video-player {
+      #rewardedVideoModal .rewarded-video-player {
         width: 100%;
-        max-height: min(70vh, 620px);
-        border-radius: 14px;
+        max-width: 100%;
+        max-height: min(78vh, calc(90vh - 120px));
+        height: auto;
+        object-fit: contain;
+        border-radius: 16px;
         background: #000;
-        border: 2px solid rgba(255, 224, 138, 0.2);
-        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.75);
+        border: 2px solid rgba(255, 224, 138, 0.28);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85);
+        flex: 1 1 auto;
+        min-height: 120px;
       }
       .shop-watch-video-btn.shop-btn-locked,
       .shop-watch-video-btn:disabled {
@@ -4316,39 +4376,6 @@
           </div>
         </div>
       </div>
-      <div
-        id="rewardedVideoModal"
-        class="modal rewarded-video-modal hidden"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Reward video"
-      >
-        <div class="rewarded-video-modal-inner">
-          <div class="rewarded-video-top">
-            <div id="rewardedVideoTimer" class="rewarded-video-timer" aria-live="polite">—</div>
-            <button
-              type="button"
-              id="rewardedVideoCloseBtn"
-              class="secondary metal-btn rewarded-video-close"
-              aria-label="Close video"
-              disabled
-              hidden
-            >
-              &times;
-            </button>
-          </div>
-          <div class="rewarded-video-progress-track" aria-hidden="true">
-            <div id="rewardedVideoProgressBar" class="rewarded-video-progress-fill"></div>
-          </div>
-          <video
-            id="rewardedVideoEl"
-            class="rewarded-video-player"
-            playsinline
-            preload="metadata"
-            src="assets/videos/Analytics-Introduction.mp4"
-          ></video>
-        </div>
-      </div>
       <div id="villageCelebration" class="village-celebration hidden">
         <div id="villagePopupText" class="village-popup">VILLAGE COMPLETE!</div>
       </div>
@@ -4445,6 +4472,43 @@
       </div>
     </div>
     <div id="villageAdvanceToast" class="village-advance-toast" aria-hidden="true">New village!</div>
+
+    <!-- Full-viewport rewarded video (must NOT live inside .phone-frame — avoids clip/blur) -->
+    <div
+      id="rewardedVideoModal"
+      class="rewarded-video-overlay hidden"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Reward video"
+    >
+      <div class="rewarded-video-overlay-inner">
+        <div class="rewarded-video-card">
+          <div class="rewarded-video-chrome">
+            <div id="rewardedVideoTimer" class="rewarded-video-timer" aria-live="polite">—</div>
+            <button
+              type="button"
+              id="rewardedVideoCloseBtn"
+              class="rewarded-video-close-btn"
+              aria-label="Close video"
+              disabled
+              aria-disabled="true"
+            >
+              <span class="rewarded-video-close-icon" aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="rewarded-video-progress-track" aria-hidden="true">
+            <div id="rewardedVideoProgressBar" class="rewarded-video-progress-fill"></div>
+          </div>
+          <video
+            id="rewardedVideoEl"
+            class="rewarded-video-player"
+            playsinline
+            preload="metadata"
+            src="assets/videos/Analytics-Introduction.mp4"
+          ></video>
+        </div>
+      </div>
+    </div>
 
     <!-- Tutorial highlight overlay (soft halo, no dark blocker) -->
     <div id="tutorialOverlay" class="spotlight hidden" aria-hidden="true">
@@ -6226,12 +6290,12 @@
           if (!rewardedVideoCloseBtn) return;
           if (locked) {
             rewardedVideoCloseBtn.disabled = true;
-            rewardedVideoCloseBtn.setAttribute("hidden", "");
-            rewardedVideoCloseBtn.setAttribute("aria-hidden", "true");
+            rewardedVideoCloseBtn.classList.add("rewarded-video-close--locked");
+            rewardedVideoCloseBtn.setAttribute("aria-disabled", "true");
           } else {
             rewardedVideoCloseBtn.disabled = false;
-            rewardedVideoCloseBtn.removeAttribute("hidden");
-            rewardedVideoCloseBtn.setAttribute("aria-hidden", "false");
+            rewardedVideoCloseBtn.classList.remove("rewarded-video-close--locked");
+            rewardedVideoCloseBtn.setAttribute("aria-disabled", "false");
           }
         }
 
