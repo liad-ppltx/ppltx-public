@@ -3013,10 +3013,19 @@
       }
       .modal-header--shop {
         gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
       }
-      .shop-coin-display {
+      .shop-header-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
         margin-left: auto;
         margin-right: 4px;
+      }
+      .shop-coin-display {
         font-size: 0.78rem;
         font-weight: 800;
         color: #ffe08a;
@@ -3024,6 +3033,219 @@
         border: 1px solid rgba(255, 224, 138, 0.28);
         border-radius: 999px;
         padding: 5px 10px;
+      }
+      .shop-usd-display {
+        font-size: 0.78rem;
+        font-weight: 800;
+        color: #9dd4ff;
+        background: rgba(8, 24, 48, 0.75);
+        border: 1px solid rgba(120, 190, 255, 0.35);
+        border-radius: 999px;
+        padding: 5px 10px;
+      }
+      .shop-modal-sheet {
+        display: flex;
+        flex-direction: column;
+        max-height: min(78vh, 680px);
+      }
+      .shop-tab-bar {
+        display: flex;
+        gap: 8px;
+        flex: 0 0 auto;
+        margin-bottom: 8px;
+        padding: 0 2px;
+      }
+      .shop-tab-btn {
+        flex: 1;
+        min-height: 42px;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        background: rgba(20, 24, 36, 0.85);
+        color: #c8d6e8;
+        font-weight: 800;
+        font-size: 0.65rem;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease,
+          color 0.15s ease;
+      }
+      .shop-tab-btn--active {
+        background: linear-gradient(180deg, rgba(70, 90, 130, 0.95), rgba(35, 42, 62, 0.98));
+        border-color: rgba(120, 170, 255, 0.45);
+        color: #f0f6ff;
+      }
+      .shop-tab-btn--premium.shop-tab-btn--active {
+        background: linear-gradient(180deg, rgba(180, 140, 50, 0.95), rgba(90, 68, 20, 0.98));
+        border-color: rgba(255, 209, 102, 0.55);
+        color: #fff9e6;
+      }
+      .shop-tab-btn--premium:not(.shop-tab-btn--active) {
+        border-color: rgba(255, 209, 102, 0.22);
+        color: #e8c76a;
+      }
+      .shop-tab-btn--earn.shop-tab-btn--active {
+        background: linear-gradient(180deg, rgba(45, 130, 100, 0.95), rgba(22, 58, 48, 0.98));
+        border-color: rgba(120, 240, 200, 0.45);
+        color: #e8fff6;
+      }
+      .shop-tab-btn--earn:not(.shop-tab-btn--active) {
+        border-color: rgba(120, 220, 180, 0.22);
+        color: #8fd4b8;
+      }
+      .shop-tab-panel {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .shop-tab-panel.hidden {
+        display: none !important;
+      }
+      .premium-store-tagline {
+        margin: 0 0 10px;
+        font-size: 0.8rem;
+        color: #b8c8e8;
+        text-align: center;
+      }
+      .premium-product-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-bottom: 8px;
+      }
+      .premium-item {
+        border-radius: 16px;
+        padding: 12px 14px;
+        background:
+          linear-gradient(145deg, rgba(255, 214, 120, 0.14), transparent 50%),
+          linear-gradient(180deg, rgba(28, 32, 48, 0.95), rgba(12, 14, 24, 0.98));
+        border: 1px solid rgba(255, 209, 102, 0.28);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      }
+      .premium-item-title {
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        font-size: 0.82rem;
+        color: #ffe6a8;
+        margin-bottom: 4px;
+      }
+      .premium-item-desc {
+        font-size: 0.78rem;
+        color: #9ebdff;
+        margin-bottom: 10px;
+      }
+      .premium-purchase-btn {
+        width: 100%;
+        min-height: 46px;
+        border-radius: 12px;
+        border: 2px solid rgba(255, 209, 102, 0.45);
+        background: linear-gradient(180deg, rgba(90, 140, 220, 0.95), rgba(40, 70, 140, 0.98));
+        color: #fff;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        font-size: 0.8rem;
+        cursor: pointer;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+      }
+      .premium-purchase-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+        filter: grayscale(0.35);
+      }
+      .earn-cash-intro {
+        margin: 0 0 12px;
+        font-size: 0.78rem;
+        color: #a8c8e8;
+        text-align: center;
+        line-height: 1.35;
+      }
+      .earn-cash-task-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-bottom: 8px;
+      }
+      .earn-cash-empty {
+        margin: 0;
+        text-align: center;
+        font-size: 0.78rem;
+        color: #8aa8c8;
+      }
+      .earn-cash-task {
+        border-radius: 16px;
+        padding: 12px 14px;
+        background:
+          linear-gradient(145deg, rgba(100, 220, 170, 0.12), transparent 55%),
+          linear-gradient(180deg, rgba(26, 34, 44, 0.96), rgba(10, 14, 22, 0.98));
+        border: 1px solid rgba(100, 200, 160, 0.28);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.42);
+      }
+      .earn-cash-task-title {
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        font-size: 0.82rem;
+        color: #c8ffe8;
+        margin-bottom: 4px;
+      }
+      .earn-cash-task-reward {
+        font-size: 0.76rem;
+        color: #9ed4ff;
+        margin-bottom: 10px;
+      }
+      .earn-cash-task-btn {
+        width: 100%;
+        min-height: 44px;
+        border-radius: 12px;
+        border: 2px solid rgba(120, 220, 180, 0.4);
+        background: linear-gradient(180deg, rgba(55, 120, 95, 0.95), rgba(28, 62, 50, 0.98));
+        color: #fff;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        font-size: 0.78rem;
+        cursor: pointer;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+      }
+      .earn-cash-task-btn:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+      .hud-usd-balance {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #9dd4ff;
+        background: rgba(6, 18, 40, 0.72);
+        border: 1px solid rgba(120, 180, 255, 0.35);
+        border-radius: 999px;
+        padding: 4px 10px;
+        margin-right: 6px;
+        white-space: nowrap;
+      }
+      .iap-purchase-toast {
+        position: fixed;
+        left: 50%;
+        bottom: max(28px, env(safe-area-inset-bottom, 0px));
+        transform: translateX(-50%);
+        z-index: 250010;
+        max-width: min(92vw, 460px);
+        padding: 14px 20px;
+        border-radius: 14px;
+        border: 1px solid rgba(100, 200, 255, 0.4);
+        background: rgba(8, 20, 40, 0.97);
+        color: #dff2ff;
+        font-size: 0.92rem;
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 0.03em;
+        line-height: 1.35;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.72);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 280ms ease;
+      }
+      .iap-purchase-toast.show {
+        opacity: 1;
       }
       .shop-close-btn {
         min-width: 44px;
@@ -3051,7 +3273,8 @@
         max-height: 100dvh;
         margin: 0;
         box-sizing: border-box;
-        z-index: 200000;
+        /* Above shop modal (22000) and HUD; spec minimum 1000 — use high stack for this layout */
+        z-index: 250000;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -3855,6 +4078,11 @@
           letter-spacing: 0.08em;
           padding: 6px 9px;
         }
+        .hud-usd-balance {
+          font-size: 0.62rem;
+          padding: 3px 7px;
+          margin-right: 4px;
+        }
         .hud-bars {
           gap: 7px;
           display: flex;
@@ -4222,6 +4450,7 @@
             <span id="hudCoinPip1" class="hud-coin-pip"></span>
             <span id="hudCoinPip2" class="hud-coin-pip"></span>
           </div>
+          <div id="hudUsdBalance" class="hud-usd-balance" aria-live="polite" title="Virtual balance">$0.00</div>
           <button id="shopBtn" type="button" class="secondary metal-btn hud-shop-btn">SHOP</button>
         </div>
         <div class="hud-bars">
@@ -4372,48 +4601,88 @@
       </div>
 
       <div id="shopModal" class="modal hidden" role="dialog" aria-modal="true" aria-label="Shop">
-        <div class="modal-sheet panel-stone">
+        <div class="modal-sheet panel-stone shop-modal-sheet">
           <div class="modal-header modal-header--shop">
-            <div class="modal-title">BUILD YOUR VILLAGE</div>
-            <div id="shopCoinDisplay" class="shop-coin-display" aria-live="polite">Coins: 0</div>
+            <div class="modal-title">STORE</div>
+            <div class="shop-header-meta">
+              <div id="shopCoinDisplay" class="shop-coin-display" aria-live="polite">Coins: 0</div>
+              <div id="shopUsdDisplay" class="shop-usd-display" aria-live="polite">$0.00</div>
+            </div>
             <button id="closeShopBtn" type="button" class="secondary metal-btn shop-close-btn" aria-label="Close shop">&times;</button>
           </div>
-          <div class="shop-list">
-            <div class="shop-item" data-item="Castle">
-              <div class="shop-title">Castle</div>
-              <div class="shop-desc">Stars: <span id="shopStarCastle">0</span>/5</div>
-              <button id="shopVillageCastleBtn" type="button" class="secondary wood-metal">Add Star</button>
-              <div id="shopCostCastle" class="shop-cost">Cost: 0 Coins</div>
+          <div class="shop-tab-bar" role="tablist" aria-label="Store sections">
+            <button
+              type="button"
+              id="shopTabVillageBtn"
+              class="shop-tab-btn shop-tab-btn--active"
+              role="tab"
+              aria-selected="true"
+              aria-controls="shopPanelVillage"
+            >
+              🏠 Buildings
+            </button>
+            <button
+              type="button"
+              id="shopTabPremiumBtn"
+              class="shop-tab-btn shop-tab-btn--premium"
+              role="tab"
+              aria-selected="false"
+              aria-controls="shopPanelPremium"
+            >
+              💳 Premium Store
+            </button>
+            <button
+              type="button"
+              id="shopTabEarnBtn"
+              class="shop-tab-btn shop-tab-btn--earn"
+              role="tab"
+              aria-selected="false"
+              aria-controls="shopPanelEarnCash"
+            >
+              📺 Earn Cash
+            </button>
+          </div>
+          <div id="shopPanelVillage" class="shop-tab-panel" role="tabpanel">
+            <div class="shop-list">
+              <div class="shop-item" data-item="Castle">
+                <div class="shop-title">Castle</div>
+                <div class="shop-desc">Stars: <span id="shopStarCastle">0</span>/5</div>
+                <button id="shopVillageCastleBtn" type="button" class="secondary wood-metal">Add Star</button>
+                <div id="shopCostCastle" class="shop-cost">Cost: 0 Coins</div>
+              </div>
+              <div class="shop-item" data-item="Cannon">
+                <div class="shop-title">Cannon</div>
+                <div class="shop-desc">Stars: <span id="shopStarCannon">0</span>/5</div>
+                <button id="shopVillageCannonBtn" type="button" class="secondary wood-metal">Add Star</button>
+                <div id="shopCostCannon" class="shop-cost">Cost: 0 Coins</div>
+              </div>
+              <div class="shop-item" data-item="Statue">
+                <div class="shop-title">Statue</div>
+                <div class="shop-desc">Stars: <span id="shopStarStatue">0</span>/5</div>
+                <button id="shopVillageStatueBtn" type="button" class="secondary wood-metal">Add Star</button>
+                <div id="shopCostStatue" class="shop-cost">Cost: 0 Coins</div>
+              </div>
+              <div class="shop-item" data-item="Farm">
+                <div class="shop-title">Farm</div>
+                <div class="shop-desc">Stars: <span id="shopStarFarm">0</span>/5</div>
+                <button id="shopVillageFarmBtn" type="button" class="secondary wood-metal">Add Star</button>
+                <div id="shopCostFarm" class="shop-cost">Cost: 0 Coins</div>
+              </div>
+              <div class="shop-item" data-item="Boat">
+                <div class="shop-title">Boat</div>
+                <div class="shop-desc">Stars: <span id="shopStarBoat">0</span>/5</div>
+                <button id="shopVillageBoatBtn" type="button" class="secondary wood-metal">Add Star</button>
+                <div id="shopCostBoat" class="shop-cost">Cost: 0 Coins</div>
+              </div>
             </div>
-            <div class="shop-item" data-item="Cannon">
-              <div class="shop-title">Cannon</div>
-              <div class="shop-desc">Stars: <span id="shopStarCannon">0</span>/5</div>
-              <button id="shopVillageCannonBtn" type="button" class="secondary wood-metal">Add Star</button>
-              <div id="shopCostCannon" class="shop-cost">Cost: 0 Coins</div>
-            </div>
-            <div class="shop-item" data-item="Statue">
-              <div class="shop-title">Statue</div>
-              <div class="shop-desc">Stars: <span id="shopStarStatue">0</span>/5</div>
-              <button id="shopVillageStatueBtn" type="button" class="secondary wood-metal">Add Star</button>
-              <div id="shopCostStatue" class="shop-cost">Cost: 0 Coins</div>
-            </div>
-            <div class="shop-item" data-item="Farm">
-              <div class="shop-title">Farm</div>
-              <div class="shop-desc">Stars: <span id="shopStarFarm">0</span>/5</div>
-              <button id="shopVillageFarmBtn" type="button" class="secondary wood-metal">Add Star</button>
-              <div id="shopCostFarm" class="shop-cost">Cost: 0 Coins</div>
-            </div>
-            <div class="shop-item" data-item="Boat">
-              <div class="shop-title">Boat</div>
-              <div class="shop-desc">Stars: <span id="shopStarBoat">0</span>/5</div>
-              <button id="shopVillageBoatBtn" type="button" class="secondary wood-metal">Add Star</button>
-              <div id="shopCostBoat" class="shop-cost">Cost: 0 Coins</div>
-            </div>
-            <div class="shop-item shop-item--reward-video" id="shopRewardVideoRow">
-              <div class="shop-title">Reward video</div>
-              <div id="shopWatchVideoMsg" class="shop-desc">Watch a short clip for bonus coins and spins.</div>
-              <button id="shopWatchVideoBtn" type="button" class="secondary wood-metal shop-watch-video-btn">Watch Video</button>
-            </div>
+          </div>
+          <div id="shopPanelPremium" class="shop-tab-panel shop-tab-panel--premium hidden" role="tabpanel">
+            <p class="premium-store-tagline">Spend your virtual balance on premium boosts.</p>
+            <div id="premiumProductList" class="premium-product-list"></div>
+          </div>
+          <div id="shopPanelEarnCash" class="shop-tab-panel shop-tab-panel--earn hidden" role="tabpanel">
+            <p class="earn-cash-intro">Watch clips to earn virtual dollars ($1 / 10s, or fixed task reward).</p>
+            <div id="earnCashVideoList" class="earn-cash-task-list"></div>
           </div>
         </div>
       </div>
@@ -4520,6 +4789,13 @@
       aria-live="polite"
       aria-hidden="true"
     ></div>
+    <div
+      id="iapPurchaseToast"
+      class="iap-purchase-toast"
+      role="status"
+      aria-live="polite"
+      aria-hidden="true"
+    ></div>
 
     <!-- Full-viewport rewarded video (must NOT live inside .phone-frame — avoids clip/blur) -->
     <div
@@ -4545,13 +4821,7 @@
           <div class="rewarded-video-progress-track" aria-hidden="true">
             <div id="rewardedVideoProgressBar" class="rewarded-video-progress-fill"></div>
           </div>
-          <video
-            id="rewardedVideoEl"
-            class="rewarded-video-player"
-            playsinline
-            preload="metadata"
-            src="assets/videos/Analytics-Introduction.mp4"
-          ></video>
+          <video id="rewardedVideoEl" class="rewarded-video-player" playsinline preload="metadata"></video>
           <div class="rewarded-video-claim-wrap">
             <button
               type="button"
@@ -4656,6 +4926,17 @@
         const energyMaxEl = document.getElementById("energyMaxValue");
         const coinsEl = document.getElementById("coinsValue");
         const shopCoinDisplayEl = document.getElementById("shopCoinDisplay");
+        const shopUsdDisplayEl = document.getElementById("shopUsdDisplay");
+        const hudUsdBalanceEl = document.getElementById("hudUsdBalance");
+        const iapPurchaseToastEl = document.getElementById("iapPurchaseToast");
+        const shopTabVillageBtn = document.getElementById("shopTabVillageBtn");
+        const shopTabPremiumBtn = document.getElementById("shopTabPremiumBtn");
+        const shopTabEarnBtn = document.getElementById("shopTabEarnBtn");
+        const shopPanelVillageEl = document.getElementById("shopPanelVillage");
+        const shopPanelPremiumEl = document.getElementById("shopPanelPremium");
+        const shopPanelEarnCashEl = document.getElementById("shopPanelEarnCash");
+        const premiumProductListEl = document.getElementById("premiumProductList");
+        const earnCashVideoListEl = document.getElementById("earnCashVideoList");
         const energyFillEl = document.getElementById("energyFill");
         const coinsFillEl = document.getElementById("coinsFill");
 
@@ -4711,8 +4992,6 @@
         const shopCostStatueEl = document.getElementById("shopCostStatue");
         const shopCostFarmEl = document.getElementById("shopCostFarm");
         const shopCostBoatEl = document.getElementById("shopCostBoat");
-        const shopWatchVideoBtn = document.getElementById("shopWatchVideoBtn");
-        const shopWatchVideoMsgEl = document.getElementById("shopWatchVideoMsg");
         const rewardedVideoModalEl = document.getElementById("rewardedVideoModal");
         const rewardedVideoEl = document.getElementById("rewardedVideoEl");
         const rewardedVideoCloseBtn = document.getElementById("rewardedVideoCloseBtn");
@@ -4787,7 +5066,6 @@
         // Display nickname for HUD + analytics. If the user clears browser data or uses a private/incognito window, localStorage is empty and the nickname gate appears again (expected).
         const STORAGE_KEY_PLAYER_NAME = "playerName";
         const STORAGE_KEY_SESSION_INDEX = "playpltxSessionIndex";
-        const STORAGE_KEY_REWARDED_AD = "playpltxRewardedAd";
         const cfgLabelEl = document.getElementById("cfgLabel");
         const landingPageEl = document.getElementById("landingPage");
         const landingConsentPanelEl = document.getElementById("landingConsentPanel");
@@ -4902,6 +5180,7 @@
           energy: 0,
           spins: 0,
           coins: 0,
+          balanceUSD: 0,
           currentRivalName: "",
           playerName: "",
           userId: USER_ID,
@@ -4940,6 +5219,45 @@
         }
 
         const DEFAULT_ECONOMY_DATA = {
+          premium_store: {
+            products: [
+              {
+                id: "starter_pack",
+                name: "Starter Pack",
+                description: "20 Spins",
+                price_usd: 1.99,
+                reward_spins: 20,
+              },
+              {
+                id: "coin_vault",
+                name: "Coin Vault",
+                description: "1,000,000 Coins",
+                price_usd: 4.99,
+                reward_coins: 1000000,
+              },
+              {
+                id: "whale_bundle",
+                name: "Whale Bundle",
+                description: "150 Spins",
+                price_usd: 9.99,
+                reward_spins: 150,
+              },
+            ],
+          },
+          rewarded_videos: [
+            {
+              id: "analytics_intro",
+              title: "Analytics Intro",
+              file: "Analytics-Introduction.mp4",
+              reward_usd: 3,
+            },
+            {
+              id: "business_analyst_intro",
+              title: "Business Analyst Intro",
+              file: "BusinessAnalyst-Introduction.mp4",
+              reward_usd: 3,
+            },
+          ],
           rewarded_ads: {
             coins: 25000,
             spins: 5,
@@ -5001,74 +5319,41 @@
           const source = window.ECONOMY_DATA || DEFAULT_ECONOMY_DATA;
           return source[getConditionKey()] || DEFAULT_ECONOMY_DATA.condition_A;
         }
-        function getRewardedAdsConfig() {
+        function getPremiumProducts() {
           const source = window.ECONOMY_DATA || DEFAULT_ECONOMY_DATA;
-          const ra =
-            source && source.rewarded_ads && typeof source.rewarded_ads === "object"
-              ? source.rewarded_ads
-              : DEFAULT_ECONOMY_DATA.rewarded_ads || {};
-          const coins = Number.isFinite(Number(ra.coins)) ? Math.round(Number(ra.coins)) : 0;
-          const spins = Number.isFinite(Number(ra.spins)) ? Math.round(Number(ra.spins)) : 0;
-          const daily_ad_limit = Number.isFinite(Number(ra.daily_ad_limit))
-            ? Math.max(1, Math.round(Number(ra.daily_ad_limit)))
-            : 5;
-          const cooldown_minutes = Number.isFinite(Number(ra.cooldown_minutes))
-            ? Math.max(0, Math.round(Number(ra.cooldown_minutes)))
-            : 10;
-          return { coins, spins, daily_ad_limit, cooldown_minutes };
+          const ps =
+            source &&
+            source.premium_store &&
+            source.premium_store.products &&
+            Array.isArray(source.premium_store.products)
+              ? source.premium_store.products
+              : null;
+          if (ps && ps.length) return ps;
+          return DEFAULT_ECONOMY_DATA.premium_store.products;
         }
-        function localCalendarDayKey() {
-          const d = new Date();
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, "0");
-          const day = String(d.getDate()).padStart(2, "0");
-          return `${y}-${m}-${day}`;
+        function getRewardedVideoTasks() {
+          const source = window.ECONOMY_DATA || DEFAULT_ECONOMY_DATA;
+          const rv =
+            source && source.rewarded_videos && Array.isArray(source.rewarded_videos)
+              ? source.rewarded_videos
+              : null;
+          if (rv && rv.length) return rv;
+          return DEFAULT_ECONOMY_DATA.rewarded_videos || [];
         }
-        function readRewardedAdStorage() {
-          let lastWatchMs = 0;
-          let dayKey = "";
-          let dayCount = 0;
-          try {
-            const raw = localStorage.getItem(STORAGE_KEY_REWARDED_AD);
-            if (raw) {
-              const o = JSON.parse(raw);
-              if (o && typeof o === "object") {
-                lastWatchMs = Number(o.lastWatchMs) || 0;
-                dayKey = typeof o.dayKey === "string" ? o.dayKey : "";
-                dayCount = Number(o.dayCount) || 0;
-              }
-            }
-          } catch (e) {}
-          const today = localCalendarDayKey();
-          if (dayKey !== today) {
-            dayKey = today;
-            dayCount = 0;
+        function formatUsdDisplay(amount) {
+          const n = Math.round(Math.max(0, Number(amount) || 0) * 100) / 100;
+          return `$${n.toFixed(2)}`;
+        }
+        function computeVideoRewardUsd(durationSeconds) {
+          const sec = Number(durationSeconds) || 0;
+          if (!Number.isFinite(sec) || sec <= 0) return 0;
+          return Math.max(0, Math.floor(sec / 10));
+        }
+        function resolveVideoTaskPayoutUsd(task, durationSeconds) {
+          if (task && Number.isFinite(Number(task.reward_usd))) {
+            return Math.round(Math.max(0, Number(task.reward_usd)) * 100) / 100;
           }
-          return { lastWatchMs, dayKey, dayCount };
-        }
-        function writeRewardedAdStorage(lastWatchMs, dayKey, dayCount) {
-          try {
-            localStorage.setItem(
-              STORAGE_KEY_REWARDED_AD,
-              JSON.stringify({
-                lastWatchMs: Math.max(0, Math.round(Number(lastWatchMs) || 0)),
-                dayKey: String(dayKey || localCalendarDayKey()),
-                dayCount: Math.max(0, Math.round(Number(dayCount) || 0)),
-              })
-            );
-          } catch (e) {}
-        }
-        function getRewardedVideoEligibility() {
-          const cfg = getRewardedAdsConfig();
-          const st = readRewardedAdStorage();
-          if (st.dayCount >= cfg.daily_ad_limit) {
-            return { ok: false, reason: "daily", waitMs: 0 };
-          }
-          const coolMs = cfg.cooldown_minutes * 60 * 1000;
-          if (st.lastWatchMs > 0 && Date.now() - st.lastWatchMs < coolMs) {
-            return { ok: false, reason: "cooldown", waitMs: coolMs - (Date.now() - st.lastWatchMs) };
-          }
-          return { ok: true, reason: "", waitMs: 0 };
+          return computeVideoRewardUsd(durationSeconds);
         }
         function getPayoutValue(key, fallback) {
           const payouts = (getConditionEconomy() && getConditionEconomy().payouts) || {};
@@ -5188,6 +5473,7 @@
         let nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
         let gameBooted = false;
         let coins = 0;
+        let balanceUSD = 0;
         let stage = 1;
         let cannon1Level = 0;
         let cannon2Level = 0;
@@ -6108,6 +6394,7 @@
                 villageStartedAtMs,
                 lastEnergyRefillAt,
                 nextRefillTime,
+                balanceUSD,
               })
             );
           } catch (e) {}
@@ -6144,6 +6431,9 @@
             if (typeof s.villageStartedAtMs === "number") villageStartedAtMs = s.villageStartedAtMs;
             if (typeof s.lastEnergyRefillAt === "number") lastEnergyRefillAt = s.lastEnergyRefillAt;
             if (typeof s.nextRefillTime === "number") nextRefillTime = s.nextRefillTime;
+            if (typeof s.balanceUSD === "number" && Number.isFinite(s.balanceUSD)) {
+              balanceUSD = Math.round(Math.max(0, s.balanceUSD) * 100) / 100;
+            }
           } catch (e) {}
         }
 
@@ -6153,11 +6443,17 @@
           gameState.energy = clamp(energy, 0, MAX_ENERGY);
           gameState.spins = gameState.energy;
           gameState.coins = coins;
+          gameState.balanceUSD = Math.round(Math.max(0, Number(balanceUSD) || 0) * 100) / 100;
+          balanceUSD = gameState.balanceUSD;
           energy = gameState.energy;
           if (energyEl) energyEl.textContent = String(gameState.energy);
           if (energyMaxEl) energyMaxEl.textContent = String(GAME_CONFIG.maxEnergy);
           if (coinsEl) coinsEl.textContent = formatNumber(coins);
           if (shopCoinDisplayEl) shopCoinDisplayEl.textContent = `Coins: ${formatNumber(coins)}`;
+          if (shopUsdDisplayEl) shopUsdDisplayEl.textContent = formatUsdDisplay(balanceUSD);
+          if (hudUsdBalanceEl) hudUsdBalanceEl.textContent = formatUsdDisplay(balanceUSD);
+          syncPremiumPurchaseButtons();
+          syncEarnCashWatchButtons();
           if (hudPlayerNickEl) hudPlayerNickEl.textContent = gameState.playerName ? String(gameState.playerName) : "";
           if (cannonLevelValueEl) cannonLevelValueEl.textContent = String(cannon1Level);
           if (castleLevelTagEl) castleLevelTagEl.textContent = String(stage);
@@ -6291,59 +6587,178 @@
           if (villageHudLabelEl) villageHudLabelEl.textContent = `Village [${formatNumber(gameState.villageId)}]`;
           updateVillageVisuals();
           syncShopMiniTutorialHighlight();
-          updateRewardedVideoShopRow();
         }
 
-        const REWARD_ANALYTICS_VIDEO_NAME = "Analytics-Introduction";
-        let shopRewardVideoTickInterval = null;
         let rewardedVideoRewardGranted = false;
         let rewardedVideoPlaybackEnded = false;
+        let rewardedVideoPendingUsd = 0;
         let rewardedVideoFeedbackToastTimer = null;
+        let premiumShopDomBuilt = false;
+        let activeVideoTask = null;
 
-        function formatRewardVideoWait(ms) {
-          if (!Number.isFinite(ms) || ms <= 0) return "0:00";
-          const sec = Math.ceil(ms / 1000);
-          const m = Math.floor(sec / 60);
-          const r = sec % 60;
-          return `${m}:${String(r).padStart(2, "0")}`;
+        function syncEarnCashWatchButtons() {
+          if (!earnCashVideoListEl) return;
+          earnCashVideoListEl.querySelectorAll(".earn-cash-task-btn").forEach((btn) => {
+            const tid = btn.dataset.taskId;
+            const task = getRewardedVideoTasks().find((t) => String(t.id) === String(tid));
+            btn.disabled = !gameBooted || !task || !task.file;
+          });
         }
 
-        function updateRewardedVideoShopRow() {
-          if (!shopWatchVideoBtn || !shopWatchVideoMsgEl) return;
-          if (!gameBooted) {
-            shopWatchVideoBtn.disabled = true;
-            shopWatchVideoBtn.classList.add("shop-btn-locked");
+        function buildEarnCashDom() {
+          if (!earnCashVideoListEl) return;
+          earnCashVideoListEl.innerHTML = "";
+          const tasks = getRewardedVideoTasks();
+          if (!tasks.length) {
+            const empty = document.createElement("p");
+            empty.className = "earn-cash-empty";
+            empty.textContent = "No video tasks available.";
+            earnCashVideoListEl.appendChild(empty);
             return;
           }
-          const el = getRewardedVideoEligibility();
-          const cfg = getRewardedAdsConfig();
-          if (!el.ok) {
-            shopWatchVideoBtn.disabled = true;
-            shopWatchVideoBtn.classList.add("shop-btn-locked");
-            if (el.reason === "daily") {
-              shopWatchVideoMsgEl.textContent = "Come back later — daily limit reached.";
-            } else if (el.reason === "cooldown") {
-              shopWatchVideoMsgEl.textContent = `Come back later — ready in ${formatRewardVideoWait(el.waitMs)}.`;
-            } else {
-              shopWatchVideoMsgEl.textContent = "Come back later.";
-            }
-            return;
-          }
-          shopWatchVideoBtn.disabled = false;
-          shopWatchVideoBtn.classList.remove("shop-btn-locked");
-          shopWatchVideoMsgEl.textContent = `Watch for +${formatNumber(cfg.coins)} coins and +${cfg.spins} spins.`;
+          tasks.forEach((task) => {
+            const id = String(task.id || "");
+            const title = String(task.title || id);
+            const card = document.createElement("div");
+            card.className = "earn-cash-task";
+            const h = document.createElement("div");
+            h.className = "earn-cash-task-title";
+            h.textContent = title;
+            const rew = document.createElement("div");
+            rew.className = "earn-cash-task-reward";
+            rew.textContent = Number.isFinite(Number(task.reward_usd))
+              ? `Reward: ${formatUsdDisplay(Number(task.reward_usd))}`
+              : `Reward: $1.00 per 10s watched (full video)`;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "earn-cash-task-btn";
+            btn.dataset.taskId = id;
+            btn.textContent = "Watch";
+            btn.disabled = !gameBooted || !task.file;
+            card.appendChild(h);
+            card.appendChild(rew);
+            card.appendChild(btn);
+            earnCashVideoListEl.appendChild(card);
+          });
         }
 
-        function stopShopRewardVideoTicker() {
-          if (shopRewardVideoTickInterval) {
-            clearInterval(shopRewardVideoTickInterval);
-            shopRewardVideoTickInterval = null;
-          }
+        function buildPremiumShopDom() {
+          if (!premiumProductListEl || premiumShopDomBuilt) return;
+          premiumProductListEl.innerHTML = "";
+          getPremiumProducts().forEach((p) => {
+            const id = String(p.id || "");
+            const name = String(p.name || id);
+            const desc = String(p.description || "");
+            const price = Number(p.price_usd);
+            const item = document.createElement("div");
+            item.className = "premium-item";
+            const title = document.createElement("div");
+            title.className = "premium-item-title";
+            title.textContent = name;
+            const dEl = document.createElement("div");
+            dEl.className = "premium-item-desc";
+            dEl.textContent = desc;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "premium-purchase-btn";
+            btn.dataset.productId = id;
+            btn.textContent = Number.isFinite(price) ? `Purchase — ${formatUsdDisplay(price)}` : "Purchase";
+            item.appendChild(title);
+            item.appendChild(dEl);
+            item.appendChild(btn);
+            premiumProductListEl.appendChild(item);
+          });
+          premiumProductListEl.addEventListener("click", onPremiumProductListClick);
+          premiumShopDomBuilt = true;
         }
 
-        function startShopRewardVideoTicker() {
-          stopShopRewardVideoTicker();
-          shopRewardVideoTickInterval = setInterval(updateRewardedVideoShopRow, 1000);
+        function showIapPurchaseToast(message) {
+          const el = iapPurchaseToastEl;
+          if (!el) return;
+          el.textContent = String(message || "");
+          el.setAttribute("aria-hidden", "false");
+          el.classList.remove("show");
+          void el.offsetWidth;
+          el.classList.add("show");
+          window.setTimeout(() => {
+            el.classList.remove("show");
+            el.setAttribute("aria-hidden", "true");
+          }, 3200);
+        }
+
+        function syncPremiumPurchaseButtons() {
+          if (!premiumProductListEl) return;
+          premiumProductListEl.querySelectorAll(".premium-purchase-btn").forEach((btn) => {
+            const id = btn.dataset.productId;
+            const p = getPremiumProducts().find((x) => String(x.id) === String(id));
+            if (!p) return;
+            const price = Number(p.price_usd);
+            const can = Number.isFinite(price) && balanceUSD + 1e-9 >= price;
+            btn.disabled = !can;
+          });
+        }
+
+        function setShopTab(which) {
+          const tab =
+            which === "premium"
+              ? "premium"
+              : which === "earn"
+                ? "earn"
+                : "buildings";
+          const showBuildings = tab === "buildings";
+          const showPremium = tab === "premium";
+          const showEarn = tab === "earn";
+          if (shopPanelVillageEl) shopPanelVillageEl.classList.toggle("hidden", !showBuildings);
+          if (shopPanelPremiumEl) shopPanelPremiumEl.classList.toggle("hidden", !showPremium);
+          if (shopPanelEarnCashEl) shopPanelEarnCashEl.classList.toggle("hidden", !showEarn);
+          if (shopTabVillageBtn) {
+            shopTabVillageBtn.classList.toggle("shop-tab-btn--active", showBuildings);
+            shopTabVillageBtn.setAttribute("aria-selected", showBuildings ? "true" : "false");
+          }
+          if (shopTabPremiumBtn) {
+            shopTabPremiumBtn.classList.toggle("shop-tab-btn--active", showPremium);
+            shopTabPremiumBtn.setAttribute("aria-selected", showPremium ? "true" : "false");
+          }
+          if (shopTabEarnBtn) {
+            shopTabEarnBtn.classList.toggle("shop-tab-btn--active", showEarn);
+            shopTabEarnBtn.setAttribute("aria-selected", showEarn ? "true" : "false");
+          }
+          if (showPremium) syncPremiumPurchaseButtons();
+        }
+
+        function onPremiumProductListClick(ev) {
+          const btn = ev.target.closest(".premium-purchase-btn");
+          if (!btn || btn.disabled) return;
+          const productId = btn.dataset.productId;
+          if (!productId) return;
+          const p = getPremiumProducts().find((x) => String(x.id) === String(productId));
+          if (!p) return;
+          const price = Number(p.price_usd);
+          if (!Number.isFinite(price) || price <= 0) return;
+          if (balanceUSD + 1e-9 < price) return;
+          logEvent("iap_transaction_started", { product_id: String(p.id), price_usd: price });
+          balanceUSD = Math.round((balanceUSD - price) * 100) / 100;
+          let rewardType = "";
+          if (Number.isFinite(Number(p.reward_spins)) && Number(p.reward_spins) > 0) {
+            const add = Math.round(Number(p.reward_spins));
+            gameState.energy = clamp(gameState.energy + add, 0, MAX_ENERGY);
+            energy = gameState.energy;
+            gameState.spins = gameState.energy;
+            rewardType = "spins";
+          } else if (Number.isFinite(Number(p.reward_coins)) && Number(p.reward_coins) > 0) {
+            coins += Math.round(Number(p.reward_coins));
+            rewardType = "coins";
+          }
+          const newBal = Math.round(balanceUSD * 100) / 100;
+          logEvent("iap_transaction_completed", {
+            product_id: String(p.id),
+            price_usd: price,
+            reward_type: rewardType,
+            new_balance_usd: newBal,
+          });
+          persistState();
+          updateUI();
+          showIapPurchaseToast("Purchase Complete! Item added to your account.");
         }
 
         function showRewardedVideoFeedbackToast(message) {
@@ -6369,15 +6784,28 @@
           const opts = options && typeof options === "object" ? options : {};
           if (rewardedVideoRewardGranted) return;
           rewardedVideoRewardGranted = true;
-          const cfg = getRewardedAdsConfig();
-          const st = readRewardedAdStorage();
-          const today = localCalendarDayKey();
-          writeRewardedAdStorage(Date.now(), today, st.dayCount + 1);
-          coins += cfg.coins;
-          gameState.energy = clamp(gameState.energy + cfg.spins, 0, MAX_ENERGY);
-          energy = gameState.energy;
-          gameState.spins = gameState.energy;
-          logEvent("ad_video_complete", { reward_coins: cfg.coins, reward_spins: cfg.spins });
+          const taskSnapshot = activeVideoTask;
+          let usdAmount = 0;
+          let durationSec = 0;
+          if (opts.devSkip) {
+            usdAmount = 20;
+            durationSec = 0;
+          } else if (rewardedVideoEl && Number.isFinite(rewardedVideoEl.duration) && rewardedVideoEl.duration > 0) {
+            durationSec = rewardedVideoEl.duration;
+            usdAmount = resolveVideoTaskPayoutUsd(taskSnapshot, durationSec);
+          } else {
+            usdAmount = rewardedVideoPendingUsd;
+            durationSec = 0;
+          }
+          balanceUSD = Math.round((balanceUSD + usdAmount) * 100) / 100;
+          gameState.balanceUSD = balanceUSD;
+          const adPayload = {
+            virtual_currency_amount: usdAmount,
+            video_duration: Math.round(durationSec * 1000) / 1000,
+          };
+          if (taskSnapshot && taskSnapshot.id) adPayload.video_task_id = String(taskSnapshot.id);
+          if (opts.devSkip) adPayload.dev_skip = true;
+          logEvent("ad_reward_received", adPayload);
           persistState();
           updateUI();
           if (opts.devSkip) {
@@ -6407,7 +6835,8 @@
           const left = Math.max(0, d - t);
           const m = Math.floor(left / 60);
           const s = Math.floor(left % 60);
-          rewardedVideoTimerEl.textContent = `${m}:${String(s).padStart(2, "0")} until video ends`;
+          const maxUsd = resolveVideoTaskPayoutUsd(activeVideoTask, d);
+          rewardedVideoTimerEl.textContent = `${m}:${String(s).padStart(2, "0")} left · up to ${formatUsdDisplay(maxUsd)}`;
           const pct = Math.min(100, Math.max(0, (t / d) * 100));
           rewardedVideoProgressBarEl.style.width = pct + "%";
         }
@@ -6415,9 +6844,14 @@
         function onRewardedVideoEnded() {
           if (rewardedVideoRewardGranted) return;
           rewardedVideoPlaybackEnded = true;
+          const dur = rewardedVideoEl && Number.isFinite(rewardedVideoEl.duration) ? rewardedVideoEl.duration : 0;
+          rewardedVideoPendingUsd = resolveVideoTaskPayoutUsd(activeVideoTask, dur);
           if (rewardedVideoProgressBarEl) rewardedVideoProgressBarEl.style.width = "100%";
-          if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "Video finished — claim your reward";
+          if (rewardedVideoTimerEl) {
+            rewardedVideoTimerEl.textContent = `Video finished — ${formatUsdDisplay(rewardedVideoPendingUsd)} available`;
+          }
           if (rewardedVideoClaimBtn) {
+            rewardedVideoClaimBtn.textContent = `Claim ${formatUsdDisplay(rewardedVideoPendingUsd)}`;
             rewardedVideoClaimBtn.classList.remove("hidden");
             rewardedVideoClaimBtn.removeAttribute("aria-hidden");
           }
@@ -6449,7 +6883,6 @@
             if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
             if (!rewardedVideoModalEl || rewardedVideoModalEl.classList.contains("hidden")) return;
             if (!rewardedVideoEl) return;
-            if (rewardedVideoEl.ended) return;
             if (rewardedVideoRewardGranted) return;
             ev.preventDefault();
             rewardedVideoEl.pause();
@@ -6457,20 +6890,31 @@
           } catch (e) {}
         }
 
-        function openRewardedVideoFromShop() {
+        function openRewardedVideoForTask(taskId) {
           if (rewardedVideoModalEl && !rewardedVideoModalEl.classList.contains("hidden")) return;
-          const el = getRewardedVideoEligibility();
-          if (!el.ok || !rewardedVideoModalEl || !rewardedVideoEl) return;
+          const tasks = getRewardedVideoTasks();
+          const task = tasks.find((t) => String(t.id) === String(taskId));
+          if (!task || !task.file) return;
+          const rawFile = String(task.file).trim();
+          if (!rawFile || rawFile.includes("..") || rawFile.includes("/") || rawFile.includes("\\")) return;
+
+          activeVideoTask = task;
+          if (!rewardedVideoModalEl || !rewardedVideoEl) return;
           rewardedVideoRewardGranted = false;
           rewardedVideoPlaybackEnded = false;
+          rewardedVideoPendingUsd = 0;
           if (rewardedVideoClaimBtn) {
+            rewardedVideoClaimBtn.textContent = "GET REWARD";
             rewardedVideoClaimBtn.classList.add("hidden");
             rewardedVideoClaimBtn.setAttribute("aria-hidden", "true");
           }
           if (rewardedVideoProgressBarEl) rewardedVideoProgressBarEl.style.width = "0%";
           if (rewardedVideoTimerEl) rewardedVideoTimerEl.textContent = "—";
-          logEvent("ad_video_start", { video_name: REWARD_ANALYTICS_VIDEO_NAME });
+          rewardedVideoEl.src = `assets/videos/${rawFile}`;
           rewardedVideoModalEl.classList.remove("hidden");
+          try {
+            rewardedVideoEl.load();
+          } catch (e) {}
           rewardedVideoEl.currentTime = 0;
           const p = rewardedVideoEl.play();
           if (p && typeof p.catch === "function") {
@@ -6485,13 +6929,17 @@
           rewardedVideoModalEl.classList.add("hidden");
           try {
             rewardedVideoEl.currentTime = 0;
+            rewardedVideoEl.removeAttribute("src");
+            rewardedVideoEl.load();
           } catch (e) {}
           if (rewardedVideoClaimBtn) {
             rewardedVideoClaimBtn.classList.add("hidden");
             rewardedVideoClaimBtn.setAttribute("aria-hidden", "true");
           }
           rewardedVideoPlaybackEnded = false;
-          updateRewardedVideoShopRow();
+          rewardedVideoPendingUsd = 0;
+          activeVideoTask = null;
+          syncEarnCashWatchButtons();
         }
 
         window.addEventListener("keydown", onRewardedVideoDevSkipKey);
@@ -7804,14 +8252,16 @@
 
         function openShopModal() {
           if (!shopModalEl) return;
+          buildPremiumShopDom();
+          buildEarnCashDom();
+          setShopTab("village");
           shopModalEl.classList.remove("hidden");
           if (miniTutorial.active && miniTutorial.step === 3) {
             miniTutorial.step = 4;
             renderMiniTutorialStep(4);
           }
           updateUI();
-          updateRewardedVideoShopRow();
-          startShopRewardVideoTicker();
+          syncEarnCashWatchButtons();
         }
         function openShop() {
           console.log("Shop clicked");
@@ -7821,7 +8271,6 @@
         function closeShopModal() {
           if (!shopModalEl) return;
           shopModalEl.classList.add("hidden");
-          stopShopRewardVideoTicker();
           syncShopMiniTutorialHighlight();
         }
 
@@ -8028,7 +8477,27 @@
           setupListener("upgradeCannonBtn", () => handleCannonUpgrade());
           setupListener("shopBtn", openShop);
           setupListener("closeShopBtn", closeShopModal);
-          setupListener("shopWatchVideoBtn", openRewardedVideoFromShop);
+          if (shopTabVillageBtn) shopTabVillageBtn.onclick = () => setShopTab("village");
+          if (shopTabPremiumBtn) {
+            shopTabPremiumBtn.onclick = () => {
+              buildPremiumShopDom();
+              setShopTab("premium");
+            };
+          }
+          if (shopTabEarnBtn) {
+            shopTabEarnBtn.onclick = () => {
+              buildEarnCashDom();
+              setShopTab("earn");
+            };
+          }
+          if (earnCashVideoListEl) {
+            earnCashVideoListEl.addEventListener("click", (ev) => {
+              const btn = ev.target.closest(".earn-cash-task-btn");
+              if (!btn || btn.disabled) return;
+              const taskId = btn.dataset.taskId;
+              if (taskId) openRewardedVideoForTask(taskId);
+            });
+          }
           if (rewardedVideoCloseBtn) rewardedVideoCloseBtn.onclick = onRewardedVideoExitClick;
           if (rewardedVideoClaimBtn) rewardedVideoClaimBtn.onclick = onRewardedVideoClaimClick;
           if (rewardedVideoEl) {

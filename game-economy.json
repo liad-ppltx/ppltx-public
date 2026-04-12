@@ -1,4 +1,43 @@
 {
+  "rewarded_videos": [
+    {
+      "id": "analytics_intro",
+      "title": "Analytics Intro",
+      "file": "Analytics-Introduction.mp4",
+      "reward_usd": 3
+    },
+    {
+      "id": "business_analyst_intro",
+      "title": "Business Analyst Intro",
+      "file": "BusinessAnalyst-Introduction.mp4",
+      "reward_usd": 3
+    }
+  ],
+  "premium_store": {
+    "products": [
+      {
+        "id": "starter_pack",
+        "name": "Starter Pack",
+        "description": "20 Spins",
+        "price_usd": 1.99,
+        "reward_spins": 20
+      },
+      {
+        "id": "coin_vault",
+        "name": "Coin Vault",
+        "description": "1,000,000 Coins",
+        "price_usd": 4.99,
+        "reward_coins": 1000000
+      },
+      {
+        "id": "whale_bundle",
+        "name": "Whale Bundle",
+        "description": "150 Spins",
+        "price_usd": 9.99,
+        "reward_spins": 150
+      }
+    ]
+  },
   "rewarded_ads": {
     "coins": 25000,
     "spins": 5,

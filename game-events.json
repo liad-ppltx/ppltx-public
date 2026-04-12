@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.1.2",
+  "currentAppVersion": "1.1.4",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -257,29 +257,41 @@
         "hasAddStar": { "type": "boolean", "required": true }
       }
     },
-    "ad_video_start": {
-      "description": "User tapped Watch Video in the shop; rewarded video playback begins.",
+    "ad_reward_received": {
+      "description": "Rewarded video finished and virtual USD was credited (or dev skip).",
       "properties": {
-        "video_name": { "type": "string", "required": true }
+        "virtual_currency_amount": { "type": "number", "required": true, "description": "USD credited this claim" },
+        "video_duration": { "type": "number", "required": true, "description": "Video duration in seconds (0 if dev skip)" },
+        "video_task_id": { "type": "string", "required": false, "description": "Economy rewarded_videos id; empty if unknown" }
       }
     },
-    "ad_video_complete": {
-      "description": "Rewarded video reached natural end; coins and spins granted per game-economy rewarded_ads.",
+    "iap_transaction_started": {
+      "description": "User tapped Purchase in the Premium Store.",
       "properties": {
-        "reward_coins": { "type": "number", "required": true },
-        "reward_spins": { "type": "number", "required": true }
+        "product_id": { "type": "string", "required": true },
+        "price_usd": { "type": "number", "required": true }
+      }
+    },
+    "iap_transaction_completed": {
+      "description": "Premium purchase succeeded; balance debited and in-game reward applied.",
+      "properties": {
+        "product_id": { "type": "string", "required": true },
+        "price_usd": { "type": "number", "required": true },
+        "reward_type": { "type": "string", "required": true, "enum": ["spins", "coins"] },
+        "new_balance_usd": { "type": "number", "required": true }
       }
     }
   },
 
   "eventNames": [
-    "ad_video_complete",
-    "ad_video_start",
+    "ad_reward_received",
     "audit_stress_test",
     "attack_end",
     "attack_start",
     "building_upgrade",
     "energy_update",
+    "iap_transaction_completed",
+    "iap_transaction_started",
     "raid_end",
     "raid_start",
     "session_end",
@@ -290,6 +302,14 @@
   ],
 
   "notEmitted": [
+    {
+      "name": "ad_video_start",
+      "reason": "Replaced in v1.1.3 by virtual USD flow; use ad_reward_received after claim"
+    },
+    {
+      "name": "ad_video_complete",
+      "reason": "Replaced in v1.1.3 by ad_reward_received (virtual_currency_amount, video_duration)"
+    },
     {
       "name": "player_level_up",
       "reason": "Removed in v1.0.6; progression is logged only via village_complete"
