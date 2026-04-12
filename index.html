@@ -4273,6 +4273,47 @@
           padding: 4px 8px;
         }
       }
+
+      /* Desktop v1.1.5: composite village assets were clipped by overflow:hidden + 3D tilt (mobile already uses overflow:visible). */
+      @media (min-width: 769px) {
+        .phone-frame {
+          overflow: visible;
+        }
+        .world-inner {
+          overflow: visible;
+        }
+        .world {
+          margin-bottom: 36px;
+          padding-bottom: 32px;
+        }
+        /* Slightly gentler tilt reduces how far the “floor” paints below the layout box */
+        body.composite-village-mode .island {
+          transform: perspective(860px) rotateX(8deg);
+          transform-origin: center top;
+          margin-bottom: 20px;
+        }
+        /* Ensure vignette layers stay under the SVG buildings */
+        body.composite-village-mode .island::before,
+        body.composite-village-mode .island::after {
+          z-index: 0;
+        }
+        body.composite-village-mode .village-asset {
+          z-index: 5;
+        }
+        body.composite-village-mode .statue-visual,
+        body.composite-village-mode .farm-visual {
+          z-index: 6;
+        }
+        body.composite-village-mode .boat-visual {
+          z-index: 7;
+        }
+        body.composite-village-mode .cannon-visual {
+          z-index: 8;
+        }
+        body.composite-village-mode .castle-visual {
+          z-index: 9;
+        }
+      }
     </style>
 
     <!-- Firebase SDK - Compat Version + REST Firestore -->
