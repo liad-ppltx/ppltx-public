@@ -4307,8 +4307,9 @@
         /* Definite height so flex:1 on .world + margin-top:auto on slot have free space (otherwise column shrinks-to-content and auto margin = 0). */
         .phone-frame {
           overflow: visible;
-          display: flex;
-          flex-direction: column;
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: flex-start !important;
           min-height: 0;
           height: min(88dvh, 840px);
           max-height: min(88dvh, 840px);
@@ -4321,6 +4322,7 @@
         /* Village fills center flex band; slot uses margin-top:auto to sit on phone-frame bottom */
         .world {
           flex: 1 1 auto;
+          flex-grow: 1 !important;
           min-height: 0;
           margin-bottom: 0;
           padding-bottom: 0;
@@ -4372,8 +4374,8 @@
         }
 
         /*
-          Slot: single strategy — in-flow flex child, not .modal's fixed fullscreen grid.
-          align-items:end on .modal was fighting margin-top:auto when height was indefinite.
+          Slot: in-flow flex child (not .modal fixed grid). Outer #slotModal: no transform;
+          scale lives on .slot-machine-sheet only.
         */
         #slotModal.slot-machine-modal.modal {
           position: relative !important;
@@ -4383,17 +4385,17 @@
           right: auto !important;
           bottom: auto !important;
           transform: none !important;
-          width: 100% !important;
-          max-width: 100% !important;
+          width: 90% !important;
+          max-width: 500px !important;
           margin-top: auto !important;
-          margin-bottom: max(20px, env(safe-area-inset-bottom, 0px)) !important;
-          margin-left: 0 !important;
-          margin-right: 0 !important;
-          padding: 0 8px 0;
+          margin-bottom: 30px !important;
+          margin-left: auto !important;
+          margin-right: auto !important;
+          padding: 0;
           box-sizing: border-box;
           flex: 0 0 auto !important;
           flex-shrink: 0;
-          align-self: stretch;
+          align-self: center !important;
           z-index: 5;
           display: block !important;
           align-items: unset !important;
@@ -7374,6 +7376,16 @@
             return false;
           }
         }
+        /** Keep #slotModal a direct child of .phone-frame immediately after .world so margin-top:auto works. */
+        function ensureSlotModalAfterWorldInPhoneFrame() {
+          if (!slotModalEl || !isDesktopSlotMachineLayout()) return;
+          const frame = document.querySelector(".phone-frame");
+          const worldEl = frame && frame.querySelector("section.world");
+          if (!frame || !worldEl) return;
+          const next = worldEl.nextElementSibling;
+          if (next === slotModalEl) return;
+          frame.insertBefore(slotModalEl, next || null);
+        }
         function syncSlotMachineModalDisplay() {
           if (!slotModalEl) return;
           const clearDesktopSlotInline = () => {
@@ -7396,6 +7408,10 @@
               "flex-shrink",
               "z-index",
               "display",
+              "align-items",
+              "justify-content",
+              "justify-items",
+              "align-self",
             ].forEach((p) => slotModalEl.style.removeProperty(p));
           };
           if (slotModalEl.classList.contains("hidden")) {
@@ -7403,6 +7419,7 @@
             return;
           }
           if (isDesktopSlotMachineLayout()) {
+            ensureSlotModalAfterWorldInPhoneFrame();
             clearDesktopSlotInline();
             slotModalEl.style.setProperty("position", "relative", "important");
             slotModalEl.style.setProperty("inset", "auto", "important");
@@ -7411,11 +7428,12 @@
             slotModalEl.style.setProperty("right", "auto", "important");
             slotModalEl.style.setProperty("bottom", "auto", "important");
             slotModalEl.style.setProperty("transform", "none", "important");
-            slotModalEl.style.setProperty("width", "100%", "important");
-            slotModalEl.style.setProperty("max-width", "100%", "important");
+            slotModalEl.style.setProperty("width", "90%", "important");
+            slotModalEl.style.setProperty("max-width", "500px", "important");
             slotModalEl.style.setProperty("margin-top", "auto", "important");
-            slotModalEl.style.setProperty("margin-left", "0", "important");
-            slotModalEl.style.setProperty("margin-right", "0", "important");
+            slotModalEl.style.setProperty("margin-bottom", "30px", "important");
+            slotModalEl.style.setProperty("margin-left", "auto", "important");
+            slotModalEl.style.setProperty("margin-right", "auto", "important");
             slotModalEl.style.setProperty("display", "block", "important");
             slotModalEl.style.setProperty("height", "auto", "important");
             slotModalEl.style.setProperty("flex-shrink", "0", "important");

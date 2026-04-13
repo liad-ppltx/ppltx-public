@@ -4,7 +4,7 @@
       "id": "analytics_intro",
       "title": "Analytics Intro",
       "file": "Analytics-Introduction.mp4",
-      "reward_usd": 3,
+      "reward_usd": 12.3,
       "duration_seconds": 123,
       "duration_text": "2:03 min"
     },
@@ -12,7 +12,7 @@
       "id": "business_analyst_intro",
       "title": "Business Analyst Intro",
       "file": "BusinessAnalyst-Introduction.mp4",
-      "reward_usd": 3,
+      "reward_usd": 15,
       "duration_seconds": 150,
       "duration_text": "2:30 min"
     }
