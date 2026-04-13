@@ -4350,15 +4350,43 @@
           transform: translateY(30px) scale(0.9) !important;
           transform-origin: center;
         }
+        .world,
+        .world-inner,
+        .world .village-asset,
+        .world .village-asset *,
+        .world .building-visual,
+        .world .building-comp,
+        .world .cannon2-hitbox {
+          cursor: default !important;
+        }
+        .world .village-asset {
+          overflow: visible !important;
+        }
         .world .village-asset .asset-label {
           left: 50%;
           bottom: calc(100% + 6px);
           transform: translate(-50%, 4px);
           text-align: center;
           white-space: nowrap;
+          z-index: 100 !important;
+          opacity: 0;
+          visibility: hidden;
         }
         .world .village-asset:hover .asset-label {
+          opacity: 1 !important;
+          visibility: visible !important;
           transform: translate(-50%, 0);
+        }
+        .world .cannon-visual .asset-label {
+          bottom: calc(100% + 15px) !important;
+        }
+        .world .castle-visual .asset-label {
+          left: 50% !important;
+          bottom: calc(100% + 10px) !important;
+        }
+        .world .boat-visual .asset-label {
+          left: 50% !important;
+          bottom: calc(100% + 18px) !important;
         }
         .hud {
           z-index: 10 !important;
