@@ -4304,15 +4304,19 @@
 
       /* Desktop v1.1.5: composite village assets were clipped by overflow:hidden + 3D tilt (mobile already uses overflow:visible). */
       @media (min-width: 769px) {
+        /* Definite height so flex:1 on .world + margin-top:auto on slot have free space (otherwise column shrinks-to-content and auto margin = 0). */
         .phone-frame {
           overflow: visible;
           display: flex;
           flex-direction: column;
           min-height: 0;
+          height: min(88dvh, 840px);
+          max-height: min(88dvh, 840px);
+          box-sizing: border-box;
         }
         .world-inner {
           overflow: visible;
-          padding-bottom: 50px;
+          padding-bottom: 40px;
         }
         /* Village fills center flex band; slot uses margin-top:auto to sit on phone-frame bottom */
         .world {
@@ -4367,7 +4371,10 @@
           z-index: 9;
         }
 
-        /* Slot machine: margin-top:auto pins to bottom of phone-frame; margin-bottom clears bezel */
+        /*
+          Slot: single strategy — in-flow flex child, not .modal's fixed fullscreen grid.
+          align-items:end on .modal was fighting margin-top:auto when height was indefinite.
+        */
         #slotModal.slot-machine-modal.modal {
           position: relative !important;
           inset: auto !important;
@@ -4375,17 +4382,23 @@
           left: auto !important;
           right: auto !important;
           bottom: auto !important;
-          width: 100%;
-          max-width: 100%;
-          margin-top: auto;
-          margin-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+          transform: none !important;
+          width: 100% !important;
+          max-width: 100% !important;
+          margin-top: auto !important;
+          margin-bottom: max(20px, env(safe-area-inset-bottom, 0px)) !important;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
           padding: 0 8px 0;
           box-sizing: border-box;
-          flex: 0 0 auto;
+          flex: 0 0 auto !important;
           flex-shrink: 0;
-          z-index: auto;
-          align-items: initial;
-          justify-content: center;
+          align-self: stretch;
+          z-index: 5;
+          display: block !important;
+          align-items: unset !important;
+          justify-content: unset !important;
+          justify-items: unset !important;
         }
         #slotModal.slot-machine-modal .slot-machine-sheet.modal-sheet {
           margin-left: auto;
@@ -7362,12 +7375,55 @@
           }
         }
         function syncSlotMachineModalDisplay() {
-          if (!slotModalEl || slotModalEl.classList.contains("hidden")) return;
-          slotModalEl.style.setProperty(
-            "display",
-            isDesktopSlotMachineLayout() ? "block" : "grid",
-            "important"
-          );
+          if (!slotModalEl) return;
+          const clearDesktopSlotInline = () => {
+            [
+              "position",
+              "inset",
+              "top",
+              "left",
+              "right",
+              "bottom",
+              "transform",
+              "width",
+              "max-width",
+              "margin",
+              "margin-top",
+              "margin-bottom",
+              "margin-left",
+              "margin-right",
+              "height",
+              "flex-shrink",
+              "z-index",
+              "display",
+            ].forEach((p) => slotModalEl.style.removeProperty(p));
+          };
+          if (slotModalEl.classList.contains("hidden")) {
+            clearDesktopSlotInline();
+            return;
+          }
+          if (isDesktopSlotMachineLayout()) {
+            clearDesktopSlotInline();
+            slotModalEl.style.setProperty("position", "relative", "important");
+            slotModalEl.style.setProperty("inset", "auto", "important");
+            slotModalEl.style.setProperty("top", "auto", "important");
+            slotModalEl.style.setProperty("left", "auto", "important");
+            slotModalEl.style.setProperty("right", "auto", "important");
+            slotModalEl.style.setProperty("bottom", "auto", "important");
+            slotModalEl.style.setProperty("transform", "none", "important");
+            slotModalEl.style.setProperty("width", "100%", "important");
+            slotModalEl.style.setProperty("max-width", "100%", "important");
+            slotModalEl.style.setProperty("margin-top", "auto", "important");
+            slotModalEl.style.setProperty("margin-left", "0", "important");
+            slotModalEl.style.setProperty("margin-right", "0", "important");
+            slotModalEl.style.setProperty("display", "block", "important");
+            slotModalEl.style.setProperty("height", "auto", "important");
+            slotModalEl.style.setProperty("flex-shrink", "0", "important");
+            slotModalEl.style.setProperty("z-index", "5", "important");
+          } else {
+            clearDesktopSlotInline();
+            slotModalEl.style.setProperty("display", "grid", "important");
+          }
         }
 
         function restoreMainGameView() {
@@ -8751,6 +8807,7 @@
             syncResearchDrawerViewport();
             syncSlotMachineModalDisplay();
           });
+          syncSlotMachineModalDisplay();
         });
 
         (function setupDevMoneyCheat() {
