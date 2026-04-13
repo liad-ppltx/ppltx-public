@@ -4323,14 +4323,17 @@
         /* Village fills center flex band; slot uses margin-top:auto to sit on phone-frame bottom */
         .world {
           position: absolute !important;
-          top: 160px !important;
+          top: 200px !important;
           left: 0 !important;
-          width: 100% !important;
-          height: calc(100% - 160px - 280px) !important;
+          width: calc(100% - 20px) !important;
+          height: calc(100% - 200px - 300px) !important;
           flex: 0 0 auto !important;
           display: flex !important;
           justify-content: center !important;
           align-items: center !important;
+          z-index: 1 !important;
+          border-radius: 20px;
+          margin: 0 10px !important;
           margin-bottom: 0;
           padding-bottom: 20px !important;
           overflow: visible !important;
@@ -4341,6 +4344,11 @@
           justify-content: center !important;
           height: 100% !important;
           overflow: visible !important;
+          transform: scale(0.9);
+          transform-origin: center;
+        }
+        .hud {
+          z-index: 10 !important;
         }
         /* Slightly gentler tilt reduces how far the “floor” paints below the layout box */
         body.composite-village-mode .island {
