@@ -4323,13 +4323,23 @@
         /* Village fills center flex band; slot uses margin-top:auto to sit on phone-frame bottom */
         .world {
           position: absolute !important;
-          top: 0 !important;
+          top: 160px !important;
           left: 0 !important;
           width: 100% !important;
-          height: calc(100% - 300px) !important;
+          height: calc(100% - 160px - 280px) !important;
           flex: 0 0 auto !important;
+          display: flex !important;
+          justify-content: center !important;
+          align-items: center !important;
           margin-bottom: 0;
           padding-bottom: 20px !important;
+          overflow: visible !important;
+        }
+        .world-inner {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
+          height: 100% !important;
           overflow: visible !important;
         }
         /* Slightly gentler tilt reduces how far the “floor” paints below the layout box */
