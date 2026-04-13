@@ -4281,13 +4281,14 @@
         }
         .world-inner {
           overflow: visible;
+          padding-bottom: 48px;
         }
-        /* Village gets flex growth; gap before in-flow slot machine below */
+        /* Village fills center flex band; slot uses margin-top:auto to sit on phone-frame bottom */
         .world {
           flex: 1 1 auto;
           min-height: 0;
-          margin-bottom: 48px;
-          padding-bottom: 40px;
+          margin-bottom: 0;
+          padding-bottom: 0;
         }
         /* Slightly gentler tilt reduces how far the “floor” paints below the layout box */
         body.composite-village-mode .island {
@@ -4335,7 +4336,7 @@
           z-index: 9;
         }
 
-        /* Slot machine: document flow on desktop (not fixed to viewport) + scaled sheet = no overlap with village */
+        /* Slot machine: pinned to bottom of .phone-frame flex column (margin-top: auto) */
         #slotModal.slot-machine-modal.modal {
           position: relative !important;
           inset: auto !important;
@@ -4345,8 +4346,9 @@
           bottom: auto !important;
           width: 100%;
           max-width: 100%;
-          margin-top: 28px;
-          padding: 0 10px 24px;
+          margin-top: auto;
+          margin-bottom: 0;
+          padding: 0 8px max(16px, env(safe-area-inset-bottom, 0px));
           box-sizing: border-box;
           flex: 0 0 auto;
           flex-shrink: 0;
@@ -4358,13 +4360,17 @@
           margin-left: auto;
           margin-right: auto;
           width: 100%;
-          max-width: min(520px, 100%);
-          transform: scale(0.85);
-          transform-origin: center top;
-          max-height: min(44vh, 400px);
+          max-width: 100%;
+          transform: scale(0.93);
+          transform-origin: center bottom;
+          max-height: min(52vh, 480px);
           overflow-x: hidden;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
+          animation: none;
+        }
+        #slotModal.slot-machine-modal .slot-controls {
+          padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
         }
         #slotModal.slot-machine-modal .slot-machine-title {
           letter-spacing: 0.14em;
