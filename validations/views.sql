@@ -103,11 +103,17 @@ SELECT
     IF(eventName = 'village_complete', JSON_VALUE(params, '$.totalSpins'), NULL) AS INT64
   ) AS villageComplete_totalSpins,
 
-  -- 10. audit_stress_test
-  SAFE_CAST(JSON_VALUE(params, '$.hasEconomy') AS BOOL) AS audit_hasEconomy,
-  SAFE_CAST(JSON_VALUE(params, '$.hasLogger') AS BOOL) AS audit_hasLogger,
-  SAFE_CAST(JSON_VALUE(params, '$.hasRunSpin') AS BOOL) AS audit_hasRunSpin,
-  SAFE_CAST(JSON_VALUE(params, '$.hasAddStar') AS BOOL) AS audit_hasAddStar,
+  -- 10. ad_reward_received
+  SAFE_CAST(JSON_VALUE(params, '$.virtual_currency_amount') AS NUMERIC) AS adReward_virtualCurrencyAmountUsd,
+  SAFE_CAST(JSON_VALUE(params, '$.video_duration') AS FLOAT64) AS adReward_videoDurationSec,
+  JSON_VALUE(params, '$.video_task_id') AS adReward_videoTaskId,
+  SAFE_CAST(JSON_VALUE(params, '$.dev_skip') AS BOOL) AS adReward_devSkip,
+
+  -- 11. iap_purchase_click (consolidated IAP click event)
+  JSON_VALUE(params, '$.package_id') AS iap_packageId,
+  SAFE_CAST(JSON_VALUE(params, '$.price_usd') AS NUMERIC) AS iap_priceUsd,
+  SAFE_CAST(JSON_VALUE(params, '$.coin_amount') AS INT64) AS iap_coinAmount,
+  SAFE_CAST(JSON_VALUE(params, '$.current_balance') AS NUMERIC) AS iap_currentBalanceUsd,
 
   params AS raw_params
 

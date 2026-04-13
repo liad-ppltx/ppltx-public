@@ -248,15 +248,6 @@
         "timeSpent": { "type": "number", "required": true, "description": "seconds in village" }
       }
     },
-    "audit_stress_test": {
-      "description": "Dev harness runStressTest only.",
-      "properties": {
-        "hasEconomy": { "type": "boolean", "required": true },
-        "hasLogger": { "type": "boolean", "required": true },
-        "hasRunSpin": { "type": "boolean", "required": true },
-        "hasAddStar": { "type": "boolean", "required": true }
-      }
-    },
     "ad_reward_received": {
       "description": "Rewarded video finished and virtual USD was credited (or dev skip).",
       "properties": {
@@ -278,7 +269,6 @@
 
   "eventNames": [
     "ad_reward_received",
-    "audit_stress_test",
     "attack_end",
     "attack_start",
     "building_upgrade",
