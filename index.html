@@ -7021,7 +7021,15 @@
           const price = Number(p.price_usd);
           if (!Number.isFinite(price) || price <= 0) return;
           if (balanceUSD + 1e-9 < price) return;
-          logEvent("iap_transaction_started", { product_id: String(p.id), price_usd: price });
+          const coinAmount = Number.isFinite(Number(p.reward_coins)) && Number(p.reward_coins) > 0
+            ? Math.round(Number(p.reward_coins))
+            : 0;
+          logEvent("iap_purchase_click", {
+            package_id: String(p.id),
+            price_usd: price,
+            coin_amount: coinAmount,
+            current_balance: Math.round(Number(balanceUSD || 0) * 100) / 100,
+          });
           balanceUSD = Math.round((balanceUSD - price) * 100) / 100;
           let rewardType = "";
           if (Number.isFinite(Number(p.reward_spins)) && Number(p.reward_spins) > 0) {
@@ -7034,13 +7042,6 @@
             coins += Math.round(Number(p.reward_coins));
             rewardType = "coins";
           }
-          const newBal = Math.round(balanceUSD * 100) / 100;
-          logEvent("iap_transaction_completed", {
-            product_id: String(p.id),
-            price_usd: price,
-            reward_type: rewardType,
-            new_balance_usd: newBal,
-          });
           persistState();
           updateUI();
           showIapPurchaseToast("Purchase Complete! Item added to your account.");
@@ -7073,7 +7074,7 @@
           let usdAmount = 0;
           let durationSec = 0;
           if (opts.devSkip) {
-            usdAmount = 20;
+            usdAmount = resolveVideoTaskPayoutUsd(taskSnapshot, 0);
             durationSec = 0;
           } else if (rewardedVideoEl && Number.isFinite(rewardedVideoEl.duration) && rewardedVideoEl.duration > 0) {
             durationSec = rewardedVideoEl.duration;
@@ -7082,6 +7083,7 @@
             usdAmount = rewardedVideoPendingUsd;
             durationSec = 0;
           }
+          usdAmount = Math.round(Math.max(0, Number(usdAmount) || 0) * 100) / 100;
           balanceUSD = Math.round((balanceUSD + usdAmount) * 100) / 100;
           gameState.balanceUSD = balanceUSD;
           const adPayload = {
@@ -7093,6 +7095,7 @@
           logEvent("ad_reward_received", adPayload);
           persistState();
           updateUI();
+          setStatus(`Success! You earned ${formatUsdDisplay(usdAmount)}!`, false);
           if (opts.devSkip) {
             console.log("Dev Shortcut: Video skipped, reward granted.");
           }
