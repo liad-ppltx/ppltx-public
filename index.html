@@ -4309,7 +4309,7 @@
           overflow: visible;
           display: flex !important;
           flex-direction: column !important;
-          justify-content: flex-start !important;
+          justify-content: space-between !important;
           min-height: 0;
           height: min(88dvh, 840px);
           max-height: min(88dvh, 840px);
@@ -4325,7 +4325,8 @@
           flex-grow: 1 !important;
           min-height: 0;
           margin-bottom: 0;
-          padding-bottom: 60px !important;
+          padding-bottom: 80px !important;
+          overflow: hidden !important;
         }
         /* Slightly gentler tilt reduces how far the “floor” paints below the layout box */
         body.composite-village-mode .island {
@@ -4388,7 +4389,7 @@
           width: 90% !important;
           max-width: 500px !important;
           margin-top: auto !important;
-          margin-bottom: 30px !important;
+          margin-bottom: 5px !important;
           margin-left: auto !important;
           margin-right: auto !important;
           padding: 0;
@@ -4407,19 +4408,30 @@
           margin-right: auto;
           width: 100%;
           max-width: 100%;
-          transform: scale(0.95);
+          transform: scale(0.9);
           transform-origin: bottom center;
           max-height: min(52vh, 480px);
           overflow-x: hidden;
           overflow-y: auto;
           -webkit-overflow-scrolling: touch;
           animation: none;
+          padding: 8px 8px 10px;
+        }
+        #slotModal.slot-machine-modal .modal-header {
+          margin-bottom: 6px;
+          padding-top: 2px;
+          padding-bottom: 2px;
+        }
+        #slotModal.slot-machine-modal .reels-modal {
+          margin-bottom: 6px;
+          padding: 6px 6px 7px;
         }
         #slotModal.slot-machine-modal .slot-controls {
-          padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
+          padding-bottom: max(6px, env(safe-area-inset-bottom, 0px));
         }
         #slotModal.slot-machine-modal .slot-machine-title {
           letter-spacing: 0.14em;
+          font-size: 0.8rem;
         }
       }
     </style>
@@ -7426,12 +7438,12 @@
             slotModalEl.style.setProperty("top", "auto", "important");
             slotModalEl.style.setProperty("left", "auto", "important");
             slotModalEl.style.setProperty("right", "auto", "important");
-            slotModalEl.style.setProperty("bottom", "auto", "important");
+            slotModalEl.style.setProperty("bottom", "5px", "important");
             slotModalEl.style.setProperty("transform", "none", "important");
             slotModalEl.style.setProperty("width", "90%", "important");
             slotModalEl.style.setProperty("max-width", "500px", "important");
             slotModalEl.style.setProperty("margin-top", "auto", "important");
-            slotModalEl.style.setProperty("margin-bottom", "30px", "important");
+            slotModalEl.style.setProperty("margin-bottom", "5px", "important");
             slotModalEl.style.setProperty("margin-left", "auto", "important");
             slotModalEl.style.setProperty("margin-right", "auto", "important");
             slotModalEl.style.setProperty("display", "block", "important");
