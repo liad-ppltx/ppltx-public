@@ -265,20 +265,13 @@
         "video_task_id": { "type": "string", "required": false, "description": "Economy rewarded_videos id; empty if unknown" }
       }
     },
-    "iap_transaction_started": {
-      "description": "User tapped Purchase in the Premium Store.",
+    "iap_purchase_click": {
+      "description": "User tapped Purchase in Premium Store; single consolidated click event.",
       "properties": {
-        "product_id": { "type": "string", "required": true },
-        "price_usd": { "type": "number", "required": true }
-      }
-    },
-    "iap_transaction_completed": {
-      "description": "Premium purchase succeeded; balance debited and in-game reward applied.",
-      "properties": {
-        "product_id": { "type": "string", "required": true },
+        "package_id": { "type": "string", "required": true },
         "price_usd": { "type": "number", "required": true },
-        "reward_type": { "type": "string", "required": true, "enum": ["spins", "coins"] },
-        "new_balance_usd": { "type": "number", "required": true }
+        "coin_amount": { "type": "number", "required": true },
+        "current_balance": { "type": "number", "required": true }
       }
     }
   },
@@ -290,8 +283,7 @@
     "attack_start",
     "building_upgrade",
     "energy_update",
-    "iap_transaction_completed",
-    "iap_transaction_started",
+    "iap_purchase_click",
     "raid_end",
     "raid_start",
     "session_end",

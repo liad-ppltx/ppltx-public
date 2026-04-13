@@ -795,6 +795,16 @@
           inset 0 0 14px rgba(255,255,255,0.20);
         animation: beam-pulse 1200ms infinite var(--bezier-snap);
       }
+      .hud-bar-fill.energy.energy-overdrive {
+        background:
+          radial-gradient(circle at 18% 50%, rgba(255,255,255,0.52), transparent 60%),
+          repeating-linear-gradient(90deg, rgba(255,255,255,0.2) 0 6px, rgba(0,0,0,0.08) 6px 14px),
+          linear-gradient(90deg, #3a2208, #ffbe47 24%, #fff2a6 50%, #4df0ff 78%, #183a66);
+        box-shadow:
+          0 0 24px rgba(255, 190, 71, 0.72),
+          0 0 34px rgba(77, 240, 255, 0.35),
+          inset 0 0 14px rgba(255,255,255,0.24);
+      }
 
       .hud-bar-fill.coins {
         background:
@@ -6112,6 +6122,16 @@
         function clamp(v, lo, hi) {
           return Math.max(lo, Math.min(hi, v));
         }
+        function addSpins(amount, allowOverstack) {
+          const add = Math.max(0, Math.round(Number(amount) || 0));
+          if (add <= 0) return Math.max(0, Math.round(Number(gameState.energy) || 0));
+          const current = Math.max(0, Math.round(Number(gameState.energy) || 0));
+          const next = allowOverstack ? current + add : Math.min(MAX_ENERGY, current + add);
+          gameState.energy = next;
+          gameState.spins = next;
+          energy = next;
+          return next;
+        }
         function formatNumber(num) {
           return Number(num || 0).toLocaleString();
         }
@@ -6670,7 +6690,7 @@
             if (!raw) return;
             const s = JSON.parse(raw);
             if (!s || typeof s !== "object") return;
-            if (typeof s.energy === "number") energy = clamp(s.energy, 0, MAX_ENERGY);
+            if (typeof s.energy === "number") energy = Math.max(0, Math.round(Number(s.energy) || 0));
             if (typeof s.coins === "number") coins = s.coins;
             if (typeof s.stage === "number") stage = Math.max(1, Math.min(MAX_LEVEL, s.stage));
             if (typeof s.cannon1Level === "number")
@@ -6704,7 +6724,7 @@
         function updateUI() {
           gameState.shields = clamp(gameState.shields, 0, 3);
           shields = gameState.shields;
-          gameState.energy = clamp(energy, 0, MAX_ENERGY);
+          gameState.energy = Math.max(0, Math.round(Number(energy) || 0));
           gameState.spins = gameState.energy;
           gameState.coins = coins;
           gameState.balanceUSD = Math.round(Math.max(0, Number(balanceUSD) || 0) * 100) / 100;
@@ -6726,8 +6746,12 @@
           if (wallLevelTagEl) wallLevelTagEl.textContent = String(wallLevel);
 
           if (energyFillEl) {
-            energyFillEl.style.width = Math.round((gameState.energy / GAME_CONFIG.maxEnergy) * 100) + "%";
+            const pct = GAME_CONFIG.maxEnergy > 0
+              ? Math.min(100, Math.round((gameState.energy / GAME_CONFIG.maxEnergy) * 100))
+              : 0;
+            energyFillEl.style.width = pct + "%";
             energyFillEl.classList.toggle("zero-energy", gameState.energy <= 0);
+            energyFillEl.classList.toggle("energy-overdrive", gameState.energy > GAME_CONFIG.maxEnergy);
           }
 
           const cost = upgradeCostForStage(stage);
@@ -7034,9 +7058,7 @@
           let rewardType = "";
           if (Number.isFinite(Number(p.reward_spins)) && Number(p.reward_spins) > 0) {
             const add = Math.round(Number(p.reward_spins));
-            gameState.energy = clamp(gameState.energy + add, 0, MAX_ENERGY);
-            energy = gameState.energy;
-            gameState.spins = gameState.energy;
+            addSpins(add, true);
             rewardType = "spins";
           } else if (Number.isFinite(Number(p.reward_coins)) && Number(p.reward_coins) > 0) {
             coins += Math.round(Number(p.reward_coins));
@@ -7320,9 +7342,7 @@
           await sleep(3000);
           const reward = getVillageCompleteReward();
           coins += reward.coins;
-          gameState.energy = clamp(gameState.energy + reward.spins, 0, MAX_ENERGY);
-          gameState.spins = gameState.energy;
-          energy = gameState.energy;
+          addSpins(reward.spins, true);
           if (villagePopupTextEl) {
             villagePopupTextEl.textContent = `VILLAGE COMPLETE! +${formatNumber(reward.coins)} Coins and +${formatNumber(reward.spins)} Spins!`;
           }
@@ -7837,32 +7857,39 @@
         }
         function updateSpinRefillTimer() {
           const now = Date.now();
-          if (gameState.energy < MAX_ENERGY && now >= nextRefillTime) {
-            const before = gameState.energy;
-            gameState.energy = clamp(gameState.energy + 1, 0, MAX_ENERGY);
-            energy = gameState.energy;
-            nextRefillTime = now + ENERGY_REFILL_INTERVAL_MS;
-            logEvent("energy_update", {
-              kind: "refill",
-              spinsBefore: before,
-              spinsAfter: gameState.energy,
-              nextRefillTime,
-            });
-            if (energyFillEl) {
-              energyFillEl.classList.remove("energy-refill-flash");
-              void energyFillEl.offsetWidth;
-              energyFillEl.classList.add("energy-refill-flash");
-              setTimeout(() => energyFillEl.classList.remove("energy-refill-flash"), 700);
+          if (now >= nextRefillTime) {
+            if (gameState.energy < MAX_ENERGY) {
+              const before = gameState.energy;
+              addSpins(1, false);
+              nextRefillTime = now + ENERGY_REFILL_INTERVAL_MS;
+              logEvent("energy_update", {
+                kind: "refill",
+                spinsBefore: before,
+                spinsAfter: gameState.energy,
+                nextRefillTime,
+              });
+              if (energyFillEl) {
+                energyFillEl.classList.remove("energy-refill-flash");
+                void energyFillEl.offsetWidth;
+                energyFillEl.classList.add("energy-refill-flash");
+                setTimeout(() => energyFillEl.classList.remove("energy-refill-flash"), 700);
+              }
+              updateUI();
+              persistState();
+              if (energyModalEl && !energyModalEl.classList.contains("hidden")) closeOutOfSpinsModal();
+            } else {
+              // Keep timer cycling while full/overstacked, but do not add regen spins.
+              nextRefillTime = now + ENERGY_REFILL_INTERVAL_MS;
             }
-            updateUI();
-            persistState();
-            if (energyModalEl && !energyModalEl.classList.contains("hidden")) closeOutOfSpinsModal();
           }
           const remaining = Math.max(0, nextRefillTime - now);
-          const timerText = gameState.energy >= MAX_ENERGY ? "MAX" : `Next Spin: ${formatCountdown(remaining)}`;
+          const bonusSpins = Math.max(0, gameState.energy - MAX_ENERGY);
+          const timerText = gameState.energy >= MAX_ENERGY
+            ? (bonusSpins > 0 ? `BONUS +${formatNumber(bonusSpins)}` : "MAX")
+            : `Next Spin: ${formatCountdown(remaining)}`;
           if (energyTimerDisplayEl) {
             energyTimerDisplayEl.textContent = gameState.energy >= MAX_ENERGY
-              ? "Next Spin in: MAX"
+              ? (bonusSpins > 0 ? `Bonus Spins: +${formatNumber(bonusSpins)}` : "Next Spin in: MAX")
               : `Next Spin in: ${formatCountdown(remaining)}`;
             energyTimerDisplayEl.classList.toggle("pulse", gameState.energy < MAX_ENERGY && remaining <= 10000);
           }
@@ -8267,7 +8294,7 @@
           lastSpinAtMs = nowMs;
 
           const energyBefore = gameState.energy;
-          gameState.energy = clamp(gameState.energy - 1, 0, MAX_ENERGY);
+          gameState.energy = Math.max(0, Math.round(Number(gameState.energy) || 0) - 1);
           energy = gameState.energy;
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
           spinIndex += 1;
@@ -8306,9 +8333,7 @@
             spinsTripleTriggered = true;
             const energyReward = getPayoutValue("spins_triple", 10);
             spinsBonusAwarded = energyReward;
-            gameState.energy = clamp(gameState.energy + energyReward, 0, MAX_ENERGY);
-            gameState.spins = gameState.energy;
-            energy = gameState.energy;
+            addSpins(energyReward, true);
             if (gameState.energy < MAX_ENERGY) {
               nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
             }
@@ -8689,8 +8714,7 @@
         }
         window.addStar = addStar;
         function onDevRefillClick() {
-          gameState.energy = GAME_CONFIG.maxEnergy;
-          energy = gameState.energy;
+          addSpins(GAME_CONFIG.maxEnergy, true);
           updateUI();
           logEvent("energy_update", {
             kind: "dev_refill",
@@ -8832,7 +8856,7 @@
           GAME_CONFIG = getGameConfig();
           MAX_ENERGY = GAME_CONFIG.maxEnergy;
           ENERGY_REFILL_INTERVAL_MS = Math.max(60000, GAME_CONFIG.refillMinutes * 60 * 1000);
-          gameState.energy = clamp(gameState.energy, 0, MAX_ENERGY);
+          gameState.energy = Math.max(0, Math.round(Number(gameState.energy) || 0));
           energy = gameState.energy;
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
           const setupListener = (id, func) => {
