@@ -1,2 +1,0 @@
-# Synthetic data generator — Python 3.10+ standard library only (no pip deps required).
-# Optional: pin a Python version in deployment docs.

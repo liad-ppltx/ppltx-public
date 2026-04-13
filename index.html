@@ -8012,9 +8012,43 @@
           if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.add("hidden");
           if (markCompleted) setMiniTutorialSeen();
         }
+        const TUTORIAL_ID_MAIN = "main_onboarding_v1";
+        const TUTORIAL_ID_MINI = "mini_shop_v1";
+        const MAIN_TUTORIAL_STEP_IDS = {
+          1: "intro_welcome",
+          2: "open_slot",
+          3: "spin_reels",
+          4: "energy_spins",
+          5: "coins_hud",
+          6: "castle_upgrade",
+          7: "cannon_upgrade",
+          8: "raid_attack",
+        };
+        const MINI_TUTORIAL_STEP_IDS = {
+          1: "mini_spin",
+          2: "mini_village_progress",
+          3: "mini_open_shop",
+          4: "mini_castle_free",
+          5: "mini_finish",
+        };
+        function tutorialMainMeta(stepNumber) {
+          return {
+            tutorialId: TUTORIAL_ID_MAIN,
+            stepNumber,
+            stepId: MAIN_TUTORIAL_STEP_IDS[stepNumber] || "unknown_step",
+          };
+        }
+        function tutorialMiniMeta(stepNumber) {
+          return {
+            tutorialId: TUTORIAL_ID_MINI,
+            stepNumber,
+            stepId: MINI_TUTORIAL_STEP_IDS[stepNumber] || "unknown_step",
+          };
+        }
         function finishMiniTutorial() {
           logEvent("tutorial_progress", {
             phase: "mini_complete",
+            ...tutorialMiniMeta(5),
             totalSpins: totalSpinsToComplete,
           });
           stopMiniTutorial(true);
@@ -8116,7 +8150,7 @@
               : Math.max(0, performance.now() - tutorialStepShownAtMs);
           logEvent("tutorial_progress", {
             phase,
-            stepNumber,
+            ...tutorialMainMeta(stepNumber),
             timeSpent: spentMs,
           });
         }

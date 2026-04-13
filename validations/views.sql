@@ -91,6 +91,8 @@ SELECT
 
   -- 8. tutorial_progress
   JSON_VALUE(params, '$.phase') AS tutorialPhase,
+  JSON_VALUE(params, '$.tutorialId') AS tutorialTutorialId,
+  JSON_VALUE(params, '$.stepId') AS tutorialStepId,
   SAFE_CAST(JSON_VALUE(params, '$.stepNumber') AS INT64) AS tutorialStepNumber,
   SAFE_CAST(JSON_VALUE(params, '$.timeSpent') AS INT64) AS tutorialTimeSpent,
   SAFE_CAST(JSON_VALUE(params, '$.totalSpins') AS INT64) AS tutorialTotalSpins,

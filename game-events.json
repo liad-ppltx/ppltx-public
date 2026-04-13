@@ -232,12 +232,14 @@
       }
     },
     "tutorial_progress": {
-      "description": "Main tutorial steps and mini-tutorial completion.",
+      "description": "Single funnel event for main onboarding and mini shop tutorial. Always send tutorialId + stepId + stepNumber with phase.",
       "properties": {
-        "phase": { "type": "string", "required": true, "description": "e.g. start, continue_click, skip_click, mini_complete" },
-        "stepNumber": { "type": "number", "required": false },
-        "timeSpent": { "type": "number", "required": false, "description": "ms on step" },
-        "totalSpins": { "type": "number", "required": false, "description": "mini_complete" }
+        "phase": { "type": "string", "required": true, "description": "start (step shown), continue_click, skip_click, first_spin (sim / spin milestone on spin_reels), mini_complete" },
+        "tutorialId": { "type": "string", "required": true, "description": "Stable key, e.g. main_onboarding_v1 | mini_shop_v1" },
+        "stepId": { "type": "string", "required": true, "description": "Stable slug within that tutorial, e.g. spin_reels, mini_finish" },
+        "stepNumber": { "type": "number", "required": true, "description": "1-based step index in that tutorial" },
+        "timeSpent": { "type": "number", "required": false, "description": "ms on step when meaningful" },
+        "totalSpins": { "type": "number", "required": false, "description": "Lifetime spin count at mini_complete" }
       }
     },
     "village_complete": {
