@@ -4,13 +4,17 @@
       "id": "analytics_intro",
       "title": "Analytics Intro",
       "file": "Analytics-Introduction.mp4",
-      "reward_usd": 3
+      "reward_usd": 3,
+      "duration_seconds": 30,
+      "duration_text": "30s"
     },
     {
       "id": "business_analyst_intro",
       "title": "Business Analyst Intro",
       "file": "BusinessAnalyst-Introduction.mp4",
-      "reward_usd": 3
+      "reward_usd": 3,
+      "duration_seconds": 30,
+      "duration_text": "30s"
     }
   ],
   "premium_store": {

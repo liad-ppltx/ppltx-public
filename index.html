@@ -3206,17 +3206,45 @@
         border: 1px solid rgba(100, 200, 160, 0.28);
         box-shadow: 0 10px 26px rgba(0, 0, 0, 0.42);
       }
-      .earn-cash-task-title {
+      .earn-cash-task-title-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 4px 8px;
+        margin-bottom: 6px;
+      }
+      .earn-cash-task-title-text {
         font-weight: 800;
         letter-spacing: 0.06em;
         font-size: 0.82rem;
         color: #c8ffe8;
-        margin-bottom: 4px;
+        line-height: 1.3;
+        min-width: 0;
+      }
+      .earn-cash-task-duration {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #8aa8b8;
+        letter-spacing: 0.05em;
+        flex-shrink: 0;
       }
       .earn-cash-task-reward {
         font-size: 0.76rem;
         color: #9ed4ff;
         margin-bottom: 10px;
+        line-height: 1.35;
+      }
+      .earn-cash-task-reward-amount {
+        font-weight: 800;
+        display: block;
+      }
+      .earn-cash-task-reward-ratio {
+        display: block;
+        margin-top: 3px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        color: #7a9aac;
+        letter-spacing: 0.03em;
       }
       .earn-cash-task-btn {
         width: 100%;
@@ -4278,10 +4306,13 @@
       @media (min-width: 769px) {
         .phone-frame {
           overflow: visible;
+          display: flex;
+          flex-direction: column;
+          min-height: 0;
         }
         .world-inner {
           overflow: visible;
-          padding-bottom: 48px;
+          padding-bottom: 50px;
         }
         /* Village fills center flex band; slot uses margin-top:auto to sit on phone-frame bottom */
         .world {
@@ -4336,7 +4367,7 @@
           z-index: 9;
         }
 
-        /* Slot machine: pinned to bottom of .phone-frame flex column (margin-top: auto) */
+        /* Slot machine: margin-top:auto pins to bottom of phone-frame; margin-bottom clears bezel */
         #slotModal.slot-machine-modal.modal {
           position: relative !important;
           inset: auto !important;
@@ -4347,8 +4378,8 @@
           width: 100%;
           max-width: 100%;
           margin-top: auto;
-          margin-bottom: 0;
-          padding: 0 8px max(16px, env(safe-area-inset-bottom, 0px));
+          margin-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+          padding: 0 8px 0;
           box-sizing: border-box;
           flex: 0 0 auto;
           flex-shrink: 0;
@@ -4361,8 +4392,8 @@
           margin-right: auto;
           width: 100%;
           max-width: 100%;
-          transform: scale(0.93);
-          transform-origin: center bottom;
+          transform: scale(0.95);
+          transform-origin: bottom center;
           max-height: min(52vh, 480px);
           overflow-x: hidden;
           overflow-y: auto;
@@ -5386,12 +5417,16 @@
               title: "Analytics Intro",
               file: "Analytics-Introduction.mp4",
               reward_usd: 3,
+              duration_seconds: 30,
+              duration_text: "30s",
             },
             {
               id: "business_analyst_intro",
               title: "Business Analyst Intro",
               file: "BusinessAnalyst-Introduction.mp4",
               reward_usd: 3,
+              duration_seconds: 30,
+              duration_text: "30s",
             },
           ],
           rewarded_ads: {
@@ -5475,6 +5510,14 @@
               : null;
           if (rv && rv.length) return rv;
           return DEFAULT_ECONOMY_DATA.rewarded_videos || [];
+        }
+        function getVideoTaskDurationLabel(task) {
+          if (!task) return "";
+          const raw = task.duration_text != null ? String(task.duration_text).trim() : "";
+          if (raw) return raw;
+          const sec = Number(task.duration_seconds);
+          if (Number.isFinite(sec) && sec > 0) return `${Math.round(sec)}s`;
+          return "";
         }
         function formatUsdDisplay(amount) {
           const n = Math.round(Math.max(0, Number(amount) || 0) * 100) / 100;
@@ -6756,23 +6799,44 @@
           tasks.forEach((task) => {
             const id = String(task.id || "");
             const title = String(task.title || id);
+            const durLabel = getVideoTaskDurationLabel(task);
             const card = document.createElement("div");
             card.className = "earn-cash-task";
-            const h = document.createElement("div");
-            h.className = "earn-cash-task-title";
-            h.textContent = title;
+            const titleRow = document.createElement("div");
+            titleRow.className = "earn-cash-task-title-row";
+            const titleText = document.createElement("span");
+            titleText.className = "earn-cash-task-title-text";
+            titleText.textContent = title;
+            titleRow.appendChild(titleText);
+            if (durLabel) {
+              const durEl = document.createElement("span");
+              durEl.className = "earn-cash-task-duration";
+              durEl.textContent = `(${durLabel})`;
+              titleRow.appendChild(durEl);
+            }
             const rew = document.createElement("div");
             rew.className = "earn-cash-task-reward";
-            rew.textContent = Number.isFinite(Number(task.reward_usd))
-              ? `Reward: ${formatUsdDisplay(Number(task.reward_usd))}`
-              : `Reward: $1.00 per 10s watched (full video)`;
+            if (Number.isFinite(Number(task.reward_usd))) {
+              const amt = document.createElement("span");
+              amt.className = "earn-cash-task-reward-amount";
+              amt.textContent = `Reward: ${formatUsdDisplay(Number(task.reward_usd))}`;
+              rew.appendChild(amt);
+              if (durLabel) {
+                const ratio = document.createElement("span");
+                ratio.className = "earn-cash-task-reward-ratio";
+                ratio.textContent = `${durLabel} watch = ${formatUsdDisplay(Number(task.reward_usd))}`;
+                rew.appendChild(ratio);
+              }
+            } else {
+              rew.textContent = "Reward: $1.00 per 10s watched (full video)";
+            }
             const btn = document.createElement("button");
             btn.type = "button";
             btn.className = "earn-cash-task-btn";
             btn.dataset.taskId = id;
             btn.textContent = "Watch";
             btn.disabled = !gameBooted || !task.file;
-            card.appendChild(h);
+            card.appendChild(titleRow);
             card.appendChild(rew);
             card.appendChild(btn);
             earnCashVideoListEl.appendChild(card);
