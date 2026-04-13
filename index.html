@@ -4282,10 +4282,12 @@
         .world-inner {
           overflow: visible;
         }
-        /* Extra air above Ancient Tablet — boat was meeting the slot header */
+        /* Village gets flex growth; gap before in-flow slot machine below */
         .world {
-          margin-bottom: 56px;
-          padding-bottom: 48px;
+          flex: 1 1 auto;
+          min-height: 0;
+          margin-bottom: 48px;
+          padding-bottom: 40px;
         }
         /* Slightly gentler tilt reduces how far the “floor” paints below the layout box */
         body.composite-village-mode .island {
@@ -4331,6 +4333,41 @@
         }
         body.composite-village-mode .castle-visual {
           z-index: 9;
+        }
+
+        /* Slot machine: document flow on desktop (not fixed to viewport) + scaled sheet = no overlap with village */
+        #slotModal.slot-machine-modal.modal {
+          position: relative !important;
+          inset: auto !important;
+          top: auto !important;
+          left: auto !important;
+          right: auto !important;
+          bottom: auto !important;
+          width: 100%;
+          max-width: 100%;
+          margin-top: 28px;
+          padding: 0 10px 24px;
+          box-sizing: border-box;
+          flex: 0 0 auto;
+          flex-shrink: 0;
+          z-index: auto;
+          align-items: initial;
+          justify-content: center;
+        }
+        #slotModal.slot-machine-modal .slot-machine-sheet.modal-sheet {
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          max-width: min(520px, 100%);
+          transform: scale(0.85);
+          transform-origin: center top;
+          max-height: min(44vh, 400px);
+          overflow-x: hidden;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+        #slotModal.slot-machine-modal .slot-machine-title {
+          letter-spacing: 0.14em;
         }
       }
     </style>
@@ -4639,10 +4676,10 @@
         </div>
       </section>
 
-      <div id="slotModal" class="modal" role="dialog" aria-modal="false" aria-label="Slot machine">
-        <div class="modal-sheet panel-stone">
+      <div id="slotModal" class="modal slot-machine-modal" role="dialog" aria-modal="false" aria-label="Slot machine">
+        <div class="modal-sheet panel-stone slot-machine-sheet">
           <div class="modal-header">
-            <div class="modal-title">Ancient Tablet</div>
+            <div class="modal-title slot-machine-title">SLOT MACHINE</div>
           </div>
           <div class="reels-modal">
             <div class="reels" id="reels">
@@ -6414,6 +6451,7 @@
           });
           initResearchDrawerAfterGameShow();
           initTutorial();
+          syncSlotMachineModalDisplay();
         }
         async function initGame() {
           await startGameAfterConsent();
@@ -7246,6 +7284,22 @@
           });
         }
 
+        function isDesktopSlotMachineLayout() {
+          try {
+            return typeof window.matchMedia === "function" && window.matchMedia("(min-width: 769px)").matches;
+          } catch (e) {
+            return false;
+          }
+        }
+        function syncSlotMachineModalDisplay() {
+          if (!slotModalEl || slotModalEl.classList.contains("hidden")) return;
+          slotModalEl.style.setProperty(
+            "display",
+            isDesktopSlotMachineLayout() ? "block" : "grid",
+            "important"
+          );
+        }
+
         function restoreMainGameView() {
           gameState.mode = "slots";
           document.body.classList.remove("modal-open");
@@ -7261,7 +7315,7 @@
           }
           if (slotModalEl) {
             slotModalEl.classList.remove("hidden");
-            slotModalEl.style.setProperty("display", "grid", "important");
+            syncSlotMachineModalDisplay();
             slotModalEl.style.setProperty("visibility", "visible", "important");
           }
           const appRoot = document.getElementById("appLayout");
@@ -7901,7 +7955,7 @@
               "Welcome to the Realm! Tap CONTINUE to start the tour or SKIP to play.";
             placement = "center";
           } else if (stepNumber === 2) {
-            msg = "Tap the compass to open your Ancient Tablet.";
+            msg = "Tap the compass to open your Slot Machine.";
             target = openSlotBtn;
             placement = "above";
           } else if (stepNumber === 3) {
@@ -8625,6 +8679,7 @@
           window.addEventListener("resize", function () {
             if (tutorialStep > 0) renderTutorialStep(tutorialStep);
             syncResearchDrawerViewport();
+            syncSlotMachineModalDisplay();
           });
         });
 
