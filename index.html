@@ -4350,6 +4350,16 @@
           transform: translateY(30px) scale(0.9) !important;
           transform-origin: center;
         }
+        .world .village-asset .asset-label {
+          left: 50%;
+          bottom: calc(100% + 6px);
+          transform: translate(-50%, 4px);
+          text-align: center;
+          white-space: nowrap;
+        }
+        .world .village-asset:hover .asset-label {
+          transform: translate(-50%, 0);
+        }
         .hud {
           z-index: 10 !important;
         }
@@ -4361,12 +4371,14 @@
         }
         /* Raise lower-row assets (percentages are within .island; larger bottom = higher on screen) */
         body.composite-village-mode .boat-visual {
-          bottom: 18%;
+          left: 45%;
+          bottom: 8%;
           transform: translateX(-50%);
           z-index: 7;
         }
         body.composite-village-mode .cannon-visual {
-          bottom: 26%;
+          right: -2%;
+          bottom: 18%;
           z-index: 8;
         }
         body.composite-village-mode .farm-visual {
@@ -4398,6 +4410,7 @@
           z-index: 6;
         }
         body.composite-village-mode .castle-visual {
+          top: -4%;
           z-index: 9;
         }
 
@@ -8688,9 +8701,20 @@
             closeUpgradeModal();
         }
 
-        // Asset click wiring: any island entity opens the contextual upgrade modal.
+        // Asset click wiring can be locked while keeping hover labels active.
+        const BUILDING_UPGRADE_CLICK_ENABLED = false;
         const bindUpgradeClick = (el, type, index) => {
           if (!el) return;
+          if (!BUILDING_UPGRADE_CLICK_ENABLED) {
+            el.onclick = (ev) => {
+              if (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+              }
+              return false;
+            };
+            return;
+          }
           el.onclick = () => openUpgradeModal(type, index);
         };
 
