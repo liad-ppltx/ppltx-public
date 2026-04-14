@@ -2,6 +2,7 @@
 
 SELECT
   timestamp AS ts,
+  DATE(timestamp) AS dt,
   JSON_VALUE(data, '$.sessionId') AS sessionId,
   document_id AS eventId,
   JSON_VALUE(data, '$.eventName') AS eventName,
@@ -21,6 +22,7 @@ FROM
 WHERE
   operation IN ('CREATE', 'INSERT', 'IMPORT')
   ORDER BY ts DESC
+
 
 ------------------------------------------------------------------------------
 
