@@ -234,12 +234,12 @@
     "tutorial_progress": {
       "description": "Single funnel event for core onboarding tutorial.",
       "properties": {
-        "phase": { "type": "string", "required": true, "description": "start, continue_click, skip_click, first_spin, tutorial_completed" },
+        "phase": { "type": "string", "required": true, "description": "tutorial_step_1_start, tutorial_step_2_bars, tutorial_step_3_first_spin, tutorial_step_4_monetization, tutorial_complete" },
         "tutorialId": { "type": "string", "required": true, "description": "Stable key, e.g. core_onboarding_v2" },
-        "stepId": { "type": "string", "required": true, "description": "Stable slug within tutorial, e.g. spin_reels, shop_premium_intro" },
+        "stepId": { "type": "string", "required": true, "description": "Stable slug within tutorial, e.g. welcome_village, first_rigged_spin, shop_earn_intro" },
         "stepNumber": { "type": "number", "required": true, "description": "1-based step index in tutorial" },
         "timeSpent": { "type": "number", "required": false, "description": "ms on step when meaningful" },
-        "result": { "type": "string", "required": false, "description": "tutorial_completed only: completed | skipped" }
+        "result": { "type": "string", "required": false, "description": "tutorial_step_3_first_spin may send big_win; tutorial_complete sends completed | skipped" }
       }
     },
     "village_complete": {

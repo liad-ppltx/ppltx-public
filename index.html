@@ -4712,7 +4712,6 @@
             <span id="hudCoinPip2" class="hud-coin-pip"></span>
           </div>
           <div id="hudUsdBalance" class="hud-usd-balance" aria-live="polite" title="Virtual balance">$0.00</div>
-          <button id="tutorialOpenBtn" type="button" class="secondary metal-btn hud-shop-btn" title="Open tutorial">TUTORIAL</button>
           <button id="shopBtn" type="button" class="secondary metal-btn hud-shop-btn">SHOP</button>
         </div>
         <div class="hud-bars">
@@ -5225,7 +5224,6 @@
         const closeSlotBtn = null;
         const attackBtn = null;
         const shopBtn = document.getElementById("shopBtn");
-        const tutorialOpenBtn = document.getElementById("tutorialOpenBtn");
 
         const slotModalEl = document.getElementById("slotModal");
         const spinBtn = document.getElementById("spinBtn");
@@ -5770,11 +5768,12 @@
         let maxedLoggedSecondCannon = false;
         let maxedLoggedWall = false;
 
-        const TOTAL_TUTORIAL_STEPS = 10;
+        const TOTAL_TUTORIAL_STEPS = 5;
         let tutorialStep = 0;
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
         const miniTutorial = { active: false, step: 0 };
+        let tutorialUiLockEnabled = false;
 
         function isCastleTutorialFreeStar(item, currentStars) {
           if (item !== "Castle") return false;
@@ -8014,16 +8013,11 @@
         }
         const TUTORIAL_ID_MAIN = "core_onboarding_v2";
         const MAIN_TUTORIAL_STEP_IDS = {
-          1: "intro_welcome",
-          2: "open_slot",
-          3: "spin_reels",
-          4: "energy_spins",
-          5: "coins_hud",
-          6: "open_shop",
-          7: "shop_village_castle_free",
-          8: "shop_premium_intro",
-          9: "shop_earn_intro",
-          10: "raid_attack_intro",
+          1: "welcome_village",
+          2: "currency_bars",
+          3: "first_rigged_spin",
+          4: "shop_earn_intro",
+          5: "onboarding_complete",
         };
         function tutorialMainMeta(stepNumber) {
           return {
@@ -8034,10 +8028,16 @@
         }
         function logTutorialCompleted(stepNumber, result) {
           logEvent("tutorial_progress", {
-            phase: "tutorial_completed",
+            phase: "tutorial_complete",
             ...tutorialMainMeta(stepNumber),
             result,
           });
+        }
+        function tutorialPhaseForStep(stepNumber) {
+          if (stepNumber === 1) return "tutorial_step_1_start";
+          if (stepNumber === 2) return "tutorial_step_2_bars";
+          if (stepNumber === 4) return "tutorial_step_4_monetization";
+          return "tutorial_step";
         }
         function finishMiniTutorial() {
           stopMiniTutorial(true);
@@ -8132,7 +8132,7 @@
           }
         }
 
-        function logTutorialStep(stepNumber, phase) {
+        function logTutorialStep(stepNumber, phase, extra) {
           const spentMs =
             tutorialStepShownAtMs === null
               ? 0
@@ -8141,6 +8141,40 @@
             phase,
             ...tutorialMainMeta(stepNumber),
             timeSpent: spentMs,
+            ...(extra && typeof extra === "object" ? extra : {}),
+          });
+        }
+        function tutorialAllowedControlIds(stepNumber) {
+          if (stepNumber === 3) {
+            return new Set(["spinBtn", "tutorialContinueBtn", "skipTutorialBtn"]);
+          }
+          return new Set(["tutorialContinueBtn", "skipTutorialBtn"]);
+        }
+        function syncTutorialUiLocking() {
+          const buttons = document.querySelectorAll("button");
+          if (!tutorialUiLockEnabled || tutorialStep <= 0) {
+            buttons.forEach((btn) => {
+              if (btn.dataset.tutorialLocked === "1") {
+                btn.disabled = false;
+                delete btn.dataset.tutorialLocked;
+              }
+            });
+            return;
+          }
+          const allowed = tutorialAllowedControlIds(tutorialStep);
+          buttons.forEach((btn) => {
+            const id = btn.id || "";
+            if (allowed.has(id)) {
+              if (btn.dataset.tutorialLocked === "1") {
+                btn.disabled = false;
+                delete btn.dataset.tutorialLocked;
+              }
+              return;
+            }
+            if (!btn.disabled) {
+              btn.disabled = true;
+              btn.dataset.tutorialLocked = "1";
+            }
           });
         }
 
@@ -8211,6 +8245,7 @@
 
           const energyTarget = document.querySelector(".hud-bar-track--energy");
           const coinsTarget = document.querySelector(".hud-bar-track--coins");
+          const worldTarget = document.querySelector(".world") || worldInnerEl;
 
           clearTutorialHighlight();
 
@@ -8219,52 +8254,38 @@
           let placement = "above";
 
           if (stepNumber === 1) {
-            msg =
-              "Welcome! This is a short tutorial to show core features. You can continue or skip anytime.";
+            msg = "Welcome to Village 3! Your goal is to upgrade all structures to reach the next village.";
+            target = worldTarget;
             placement = "center";
           } else if (stepNumber === 2) {
-            msg = "Tap the compass to open your Slot Machine.";
-            target = openSlotBtn;
+            msg = "You need Spins to earn Coins, and Coins to build your village.";
+            target = energyTarget || coinsTarget || spinBtn;
             placement = "above";
           } else if (stepNumber === 3) {
-            msg =
-              "The reels hold your fate. Spin to win coins and spins!";
+            msg = "First spin! Spin now to trigger a guaranteed big win.";
             target = spinBtn;
             placement = "above";
           } else if (stepNumber === 4) {
-            msg =
-              "Spins ⚡ fuel your progress. They refill over time or via Refill Spins.";
-            target = energyTarget || energyFillEl;
-            placement = "below";
-          } else if (stepNumber === 5) {
-            msg =
-              "Coins 💰 are used to grow your Kingdom. Keep an eye on your wealth!";
-            target = coinsTarget || coinsFillEl;
-            placement = "below";
-          } else if (stepNumber === 6) {
-            msg = "Open the Shop. It has Village upgrades, Premium packs, and Earn rewards.";
+            msg = "Out of spins? You can earn more by watching videos or visiting the shop.";
             target = shopBtn;
             placement = "below";
-          } else if (stepNumber === 7) {
-            msg = "Village tab: upgrade your Castle. First Castle upgrade is FREE during tutorial.";
-            target = shopVillageCastleBtn || castleEl;
-            placement = "right";
-          } else if (stepNumber === 8) {
-            msg = "Premium tab: buy coin bundles for faster progression.";
-            target = shopTabPremiumBtn || shopBtn;
-            placement = "above";
-          } else if (stepNumber === 9) {
-            msg = "Earn tab: watch rewarded videos for extra resources.";
-            target = shopTabEarnBtn || shopBtn;
-            placement = "above";
-          } else if (stepNumber === 10) {
-            msg = "Attack and raid are key progression features. You're ready to play!";
-            target = attackBtn;
+            if (shopModalEl && shopModalEl.classList.contains("hidden")) {
+              openShopModal();
+            }
+            setShopTab("earn");
+          } else if (stepNumber === 5) {
+            msg = "Tutorial complete. You are ready to play!";
+            target = worldTarget;
             placement = "above";
           }
 
           tutorialTextEl.textContent = msg;
           showTutorialPopup();
+          if (tutorialContinueBtn) tutorialContinueBtn.style.display = stepNumber === 3 ? "none" : "";
+          if (tutorialContinueBtn) tutorialContinueBtn.textContent = stepNumber === 5 ? "Finish" : "Continue";
+          if (skipTutorialBtn) skipTutorialBtn.style.display = stepNumber >= 5 ? "none" : "";
+          tutorialUiLockEnabled = true;
+          syncTutorialUiLocking();
 
           if (placement === "center") {
             tutorialTooltipEl.dataset.placement = "center";
@@ -8283,24 +8304,18 @@
           tutorialStepShownAtMs = performance.now();
           clearTutorialHighlight();
           renderTutorialStep(stepNumber);
-          logTutorialStep(stepNumber, "start");
+          if (stepNumber !== 3 && stepNumber !== 5) {
+            logTutorialStep(stepNumber, tutorialPhaseForStep(stepNumber));
+          }
         }
 
         function initTutorial() {
-          if (!tutorialSeen()) {
+          const hasTutorialSeen = tutorialSeen();
+          if (!hasTutorialSeen) {
             enterTutorialStep(1);
             return;
           }
           endTutorial();
-        }
-
-        function openTutorialFromUi() {
-          tutorialRiggedSpinUsed = false;
-          if (tutorialStep > 0) {
-            renderTutorialStep(tutorialStep);
-            return;
-          }
-          enterTutorialStep(1);
         }
 
         function completeTutorialStep(stepNumber) {
@@ -8311,6 +8326,8 @@
         function endTutorial() {
           tutorialStep = 0;
           tutorialStepShownAtMs = null;
+          tutorialUiLockEnabled = false;
+          syncTutorialUiLocking();
           clearTutorialHighlight();
           if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
           hideTutorialPopup();
@@ -8683,10 +8700,6 @@
           buildEarnCashDom();
           setShopTab("village");
           shopModalEl.classList.remove("hidden");
-          if (tutorialStep === 6) {
-            completeTutorialStep(6);
-            enterTutorialStep(7);
-          }
           updateUI();
           syncEarnCashWatchButtons();
         }
@@ -8715,7 +8728,7 @@
             }
             if (tutorialStep === 3) {
               await runSpin(true);
-              logTutorialStep(3, "first_spin");
+              logTutorialStep(3, "tutorial_step_3_first_spin", { result: "big_win" });
               completeTutorialStep(3);
               enterTutorialStep(4);
               return;
@@ -8740,10 +8753,6 @@
             coins -= cost;
           }
           upgradeVillageItem(item, cost, isFreeCastleTutorial);
-          if (isFreeCastleTutorial && tutorialStep === 7) {
-            completeTutorialStep(7);
-            enterTutorialStep(8);
-          }
           persistState();
           updateUI();
           setStatus(`${item} improved!`, false);
@@ -8765,6 +8774,7 @@
           try {
             localStorage.removeItem(STORAGE_KEY_SAVE);
             localStorage.removeItem(STORAGE_KEY_TUTORIAL);
+            localStorage.removeItem(STORAGE_KEY_MINI_TUTORIAL);
           } catch (e) {}
           console.log("Game state reset");
           window.location.reload();
@@ -8830,25 +8840,21 @@
         }
         function onTutorialContinueClick() {
             if (tutorialStep <= 0) return;
-            logTutorialAction("continue_click");
-
-          // Step 3 is action-gated (must spin and wait for spin_result).
           if (tutorialStep === 3) {
             renderTutorialStep(tutorialStep);
             return;
           }
-
-            completeTutorialStep(tutorialStep);
-            if (tutorialStep >= TOTAL_TUTORIAL_STEPS) {
-              logTutorialCompleted(TOTAL_TUTORIAL_STEPS, "completed");
-              endTutorial();
-              return;
-            }
-            enterTutorialStep(tutorialStep + 1);
+          if (tutorialStep === 5) {
+            logTutorialCompleted(TOTAL_TUTORIAL_STEPS, "completed");
+            endTutorial();
+            updateUI();
+            return;
+          }
+          completeTutorialStep(tutorialStep);
+          enterTutorialStep(tutorialStep + 1);
         }
         function onSkipTutorialClick() {
             if (tutorialStep > 0) {
-              logTutorialAction("skip_click");
               logTutorialCompleted(tutorialStep, "skipped");
               completeTutorialStep(tutorialStep);
             }
@@ -8941,7 +8947,6 @@
           setupListener("closeEnergyBtn", closeOutOfSpinsModal);
           setupListener("tutorialContinueBtn", onTutorialContinueClick);
           setupListener("skipTutorialBtn", onSkipTutorialClick);
-          setupListener("tutorialOpenBtn", openTutorialFromUi);
           setupListener("miniTutorialPlayBtn", onMiniTutorialPlayClick);
           setupListener("researchDrawerToggle", onResearchDrawerToggleClick);
           if (researchDrawerBackdropEl) {
