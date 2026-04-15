@@ -3712,7 +3712,7 @@
         inset: 0;
         pointer-events: none;
         /* Above HUD (--z-hud), shop, and modals so tutorial tooltip/finger stay visible */
-        z-index: 26000;
+        z-index: 26000 !important;
       }
 
       .spotlight.hidden {
@@ -4034,37 +4034,6 @@
         z-index: 100;
         animation: tutorial-pulse 1100ms infinite var(--bezier-snap);
       }
-      .mini-tutorial-target {
-        display: initial !important;
-        float: none !important;
-        border-radius: 14px;
-        box-shadow:
-          0 0 0 2px rgba(255, 214, 120, 0.92),
-          0 0 18px rgba(255, 214, 120, 0.75),
-          0 0 34px rgba(255, 214, 120, 0.4);
-        animation: mini-gold-ring 950ms ease-in-out infinite;
-      }
-      #villageProgressBarContainer.mini-tutorial-target {
-        position: relative !important;
-        top: auto !important;
-        left: auto !important;
-        transform: none !important;
-        z-index: 2 !important;
-      }
-      .top-progress-stack:has(#villageProgressBarContainer.mini-tutorial-target) {
-        z-index: calc(var(--z-hud) + 1);
-      }
-      #shopModal .shop-item.mini-tutorial-target {
-        position: static !important;
-        transform: none !important;
-        z-index: auto !important;
-      }
-      @keyframes mini-gold-ring {
-        0% { box-shadow: 0 0 0 2px rgba(255, 214, 120, 0.88), 0 0 16px rgba(255, 214, 120, 0.62), 0 0 28px rgba(255, 214, 120, 0.32); }
-        50% { box-shadow: 0 0 0 4px rgba(255, 214, 120, 0.98), 0 0 22px rgba(255, 214, 120, 0.88), 0 0 42px rgba(255, 214, 120, 0.55); }
-        100% { box-shadow: 0 0 0 2px rgba(255, 214, 120, 0.88), 0 0 16px rgba(255, 214, 120, 0.62), 0 0 28px rgba(255, 214, 120, 0.32); }
-      }
-
       @keyframes tutorial-pulse {
         0% {
           transform: translateY(0);
@@ -5035,13 +5004,6 @@
         </div>
       </div>
     </div>
-    <div id="miniTutorialCompleteModal" class="mini-complete-modal hidden" role="dialog" aria-modal="true" aria-label="Tutorial complete">
-      <div class="mini-complete-sheet">
-        <h3 style="margin:0 0 10px; color:#ffe08a; letter-spacing:0.06em;">Village Life Starts Now!</h3>
-        <div style="color:#dce7ff; margin-bottom:14px;">Build all 5 buildings to 5 stars to unlock the next world. Good luck, Viking!</div>
-        <button id="miniTutorialPlayBtn" type="button" class="rune-btn">Let's Play!</button>
-      </div>
-    </div>
     <div id="villageAdvanceToast" class="village-advance-toast" aria-hidden="true">New village!</div>
     <div
       id="rewardedVideoFeedbackToast"
@@ -5274,8 +5236,6 @@
         const statueVisualEl = document.getElementById("statueVisual");
         const farmVisualEl = document.getElementById("farmVisual");
         const boatVisualEl = document.getElementById("boatVisual");
-        const miniTutorialCompleteModalEl = document.getElementById("miniTutorialCompleteModal");
-        const miniTutorialPlayBtn = document.getElementById("miniTutorialPlayBtn");
         const devRefillBtn = document.getElementById("devRefillBtn");
         const worldInnerEl = document.querySelector(".world-inner");
         const villageCelebrationEl = document.getElementById("villageCelebration");
@@ -5323,7 +5283,6 @@
 
         const STORAGE_KEY_SAVE = "coinIslandState_v1";
         const STORAGE_KEY_TUTORIAL = "tutorialCompleted";
-        const STORAGE_KEY_MINI_TUTORIAL = "miniTutorialCompleted";
         // Display nickname for HUD + analytics. If the user clears browser data or uses a private/incognito window, localStorage is empty and the nickname gate appears again (expected).
         const STORAGE_KEY_PLAYER_NAME = "playerName";
         const STORAGE_KEY_SESSION_INDEX = "playpltxSessionIndex";
@@ -5772,7 +5731,6 @@
         let tutorialStep = 0;
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
-        const miniTutorial = { active: false, step: 0 };
         let tutorialUiLockEnabled = false;
 
         function isCastleTutorialFreeStar(item, currentStars) {
@@ -6602,7 +6560,9 @@
             consent: true,
           });
           initResearchDrawerAfterGameShow();
-          initTutorial();
+          window.requestAnimationFrame(() => {
+            initTutorial();
+          });
           syncSlotMachineModalDisplay();
         }
         async function initGame() {
@@ -6873,7 +6833,6 @@
           if (cfgLabelEl) cfgLabelEl.textContent = `CFG: ${gameState.condition}`;
           if (villageHudLabelEl) villageHudLabelEl.textContent = `Village [${formatNumber(gameState.villageId)}]`;
           updateVillageVisuals();
-          syncShopMiniTutorialHighlight();
         }
 
         let rewardedVideoRewardGranted = false;
@@ -7694,7 +7653,6 @@
           if (upgradeModalEl) upgradeModalEl.classList.add("hidden");
           if (energyModalEl) energyModalEl.classList.add("hidden");
           if (raidModalEl) raidModalEl.classList.add("hidden");
-          if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.add("hidden");
           document.body.classList.remove("raid-active");
           document.body.classList.remove("rival-mode");
           if (rivalVillageContainerEl) rivalVillageContainerEl.classList.add("hidden");
@@ -7967,49 +7925,14 @@
           [openSlotBtn, spinBtn, upgradeBtn, closeSlotBtn].forEach((el) => {
             if (el) el.classList.remove("tutorial-target");
           });
-          [spinBtn, document.getElementById("villageProgressBarContainer"), shopBtn].forEach((el) => {
-            if (el) el.classList.remove("mini-tutorial-target");
-          });
-          if (shopModalEl) {
-            shopModalEl.querySelectorAll(".shop-item.mini-tutorial-target").forEach((el) => {
-              el.classList.remove("mini-tutorial-target");
-            });
-          }
         }
-        function syncShopMiniTutorialHighlight() {
-          if (!shopModalEl) return;
-          shopModalEl.querySelectorAll(".shop-item.mini-tutorial-target").forEach((el) => {
-            el.classList.remove("mini-tutorial-target");
-          });
-          const shopOpen = !shopModalEl.classList.contains("hidden");
-          if (miniTutorial.active && miniTutorial.step === 4 && shopOpen) {
-            const castleRow = shopModalEl.querySelector('.shop-item[data-item="Castle"]');
-            if (castleRow) castleRow.classList.add("mini-tutorial-target");
-          }
-        }
-        function miniTutorialSeen() {
-          try {
-            return localStorage.getItem(STORAGE_KEY_MINI_TUTORIAL) === "1";
-          } catch (e) {
-            return false;
-          }
-        }
-        function setMiniTutorialSeen() {
-          try {
-            localStorage.setItem(STORAGE_KEY_MINI_TUTORIAL, "1");
-          } catch (e) {}
-        }
-        function stopMiniTutorial(markCompleted) {
-          miniTutorial.active = false;
-          miniTutorial.step = 0;
-          clearTutorialHighlight();
-          if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
-          hideTutorialPopup();
-          if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Continue";
-          if (tutorialContinueBtn) tutorialContinueBtn.style.display = "";
-          if (skipTutorialBtn) skipTutorialBtn.style.display = "";
-          if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.add("hidden");
-          if (markCompleted) setMiniTutorialSeen();
+        function forceTutorialOverlayVisible() {
+          if (!tutorialOverlayEl || tutorialStep <= 0) return;
+          tutorialOverlayEl.classList.remove("hidden");
+          tutorialOverlayEl.style.setProperty("display", "block", "important");
+          tutorialOverlayEl.style.setProperty("opacity", "1", "important");
+          tutorialOverlayEl.style.setProperty("visibility", "visible", "important");
+          tutorialOverlayEl.style.setProperty("pointer-events", "auto", "important");
         }
         const TUTORIAL_ID_MAIN = "core_onboarding_v2";
         const MAIN_TUTORIAL_STEP_IDS = {
@@ -8039,74 +7962,6 @@
           if (stepNumber === 4) return "tutorial_step_4_monetization";
           return "tutorial_step";
         }
-        function finishMiniTutorial() {
-          stopMiniTutorial(true);
-        }
-        function positionTutorialFingerOnly(targetEl) {
-          if (!tutorialFingerEl || !targetEl) return;
-          const rect = targetEl.getBoundingClientRect();
-          tutorialFingerEl.style.display = "block";
-          tutorialFingerEl.style.left = Math.round(rect.left + rect.width / 2) + "px";
-          tutorialFingerEl.style.top = Math.round(rect.top + rect.height / 2 + 10) + "px";
-        }
-        function renderMiniTutorialStep(stepNumber) {
-          if (!tutorialTextEl || !tutorialTooltipEl) return;
-          const progressTarget = document.getElementById("villageProgressBarContainer");
-          const castleItem = shopModalEl ? shopModalEl.querySelector('.shop-item[data-item="Castle"]') : null;
-          let target = null;
-          let msg = "";
-          let placement = "above";
-          clearTutorialHighlight();
-          if (stepNumber === 1) {
-            target = spinBtn;
-            msg = "Spin to win coins and actions!";
-            placement = "above";
-          } else if (stepNumber === 2) {
-            target = progressTarget;
-            msg = "Build your village to earn stars and complete levels! Every 5 stars finishes a building.";
-            placement = "below";
-          } else if (stepNumber === 3) {
-            target = shopBtn;
-            msg = "Click the Shop to see what you can build!";
-            placement = "below";
-          } else if (stepNumber === 4) {
-            target = castleItem;
-            msg = "This is your Castle, the heart of your village. Let's build its foundation for FREE!";
-            placement = "above";
-          }
-          if (!target) return;
-          if (stepNumber !== 4) {
-            target.classList.add("mini-tutorial-target");
-          }
-          tutorialTextEl.textContent = msg;
-          showTutorialPopup();
-          if (tutorialContinueBtn) tutorialContinueBtn.textContent = "Got it!";
-          if (tutorialContinueBtn) tutorialContinueBtn.style.display = (stepNumber === 3 || stepNumber === 4) ? "none" : "";
-          if (skipTutorialBtn) skipTutorialBtn.style.display = "none";
-          setHaloTarget(null);
-          if (tutorialOverlayEl) tutorialOverlayEl.classList.remove("hidden");
-          if (spotlightHoleEl) {
-            spotlightHoleEl.setAttribute("stroke", "transparent");
-            spotlightHoleEl.setAttribute("width", "1");
-            spotlightHoleEl.setAttribute("height", "1");
-          }
-          positionTutorialFingerOnly(target);
-          positionTutorialPopup(target, placement);
-          syncShopMiniTutorialHighlight();
-        }
-        function startMiniTutorial() {
-          miniTutorial.active = true;
-          miniTutorial.step = 1;
-          renderMiniTutorialStep(1);
-        }
-        function maybeAdvanceMiniTutorialBySpins() {
-          if (!miniTutorial.active) return;
-          if (miniTutorial.step === 1 && totalSpinsToComplete >= 1) {
-            miniTutorial.step = 2;
-            renderMiniTutorialStep(2);
-          }
-        }
-
         function positionSpotlightOn(targetEl) {
           if (!spotlightHoleEl || !tutorialTooltipEl || !targetEl) return;
           spotlightHoleEl.setAttribute("stroke", "rgba(120, 240, 255, 0.78)");
@@ -8161,6 +8016,7 @@
             });
             return;
           }
+          forceTutorialOverlayVisible();
           const allowed = tutorialAllowedControlIds(tutorialStep);
           buttons.forEach((btn) => {
             const id = btn.id || "";
@@ -8281,6 +8137,7 @@
 
           tutorialTextEl.textContent = msg;
           showTutorialPopup();
+          forceTutorialOverlayVisible();
           if (tutorialContinueBtn) tutorialContinueBtn.style.display = stepNumber === 3 ? "none" : "";
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = stepNumber === 5 ? "Finish" : "Continue";
           if (skipTutorialBtn) skipTutorialBtn.style.display = stepNumber >= 5 ? "none" : "";
@@ -8290,7 +8147,13 @@
           if (placement === "center") {
             tutorialTooltipEl.dataset.placement = "center";
             positionTutorialPopup(null, "center");
-            setHaloTarget(null);
+            forceTutorialOverlayVisible();
+            if (tutorialFingerEl) tutorialFingerEl.style.display = "none";
+            if (spotlightHoleEl) {
+              spotlightHoleEl.setAttribute("stroke", "transparent");
+              spotlightHoleEl.setAttribute("width", "1");
+              spotlightHoleEl.setAttribute("height", "1");
+            }
             return;
           }
 
@@ -8300,10 +8163,12 @@
         }
 
         function enterTutorialStep(stepNumber) {
+          console.log("[tutorial] enterTutorialStep", stepNumber);
           tutorialStep = stepNumber;
           tutorialStepShownAtMs = performance.now();
           clearTutorialHighlight();
           renderTutorialStep(stepNumber);
+          forceTutorialOverlayVisible();
           if (stepNumber !== 3 && stepNumber !== 5) {
             logTutorialStep(stepNumber, tutorialPhaseForStep(stepNumber));
           }
@@ -8330,6 +8195,12 @@
           syncTutorialUiLocking();
           clearTutorialHighlight();
           if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+          if (tutorialOverlayEl) {
+            tutorialOverlayEl.style.removeProperty("display");
+            tutorialOverlayEl.style.removeProperty("opacity");
+            tutorialOverlayEl.style.removeProperty("visibility");
+            tutorialOverlayEl.style.removeProperty("pointer-events");
+          }
           hideTutorialPopup();
           setTutorialSeen();
         }
@@ -8353,7 +8224,6 @@
           nextRefillTime = Date.now() + ENERGY_REFILL_INTERVAL_MS;
           spinIndex += 1;
           totalSpinsToComplete += 1;
-          maybeAdvanceMiniTutorialBySpins();
           updateUI();
           if (gameState.energy === 0) {
             setTimeout(() => showOutOfSpinsModal(), 1000);
@@ -8711,7 +8581,6 @@
         function closeShopModal() {
           if (!shopModalEl) return;
           shopModalEl.classList.add("hidden");
-          syncShopMiniTutorialHighlight();
         }
 
         function onSpinClick() {
@@ -8774,7 +8643,6 @@
           try {
             localStorage.removeItem(STORAGE_KEY_SAVE);
             localStorage.removeItem(STORAGE_KEY_TUTORIAL);
-            localStorage.removeItem(STORAGE_KEY_MINI_TUTORIAL);
           } catch (e) {}
           console.log("Game state reset");
           window.location.reload();
@@ -8833,11 +8701,6 @@
         bindUpgradeClick(cannon2TagBtn, "cannon", 2);
         bindUpgradeClick(wallTagBtn, "wall", 3);
 
-        function logTutorialAction(action) {
-          if (tutorialStep > 0) {
-            logTutorialStep(tutorialStep, action);
-          }
-        }
         function onTutorialContinueClick() {
             if (tutorialStep <= 0) return;
           if (tutorialStep === 3) {
@@ -8860,18 +8723,6 @@
             }
             endTutorial();
             updateUI();
-        }
-        function onMiniTutorialPlayClick() {
-          finishMiniTutorial();
-        }
-        function advanceMiniTutorial() {
-          if (!miniTutorial.active || miniTutorial.step !== 4) return;
-          spawnConfettiBurst();
-          miniTutorial.step = 5;
-          syncShopMiniTutorialHighlight();
-          if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
-          hideTutorialPopup();
-          if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.remove("hidden");
         }
         document.addEventListener("DOMContentLoaded", async () => {
           await loadAppVersionConfig();
@@ -8947,7 +8798,6 @@
           setupListener("closeEnergyBtn", closeOutOfSpinsModal);
           setupListener("tutorialContinueBtn", onTutorialContinueClick);
           setupListener("skipTutorialBtn", onSkipTutorialClick);
-          setupListener("miniTutorialPlayBtn", onMiniTutorialPlayClick);
           setupListener("researchDrawerToggle", onResearchDrawerToggleClick);
           if (researchDrawerBackdropEl) {
             researchDrawerBackdropEl.addEventListener("click", onResearchDrawerBackdropClick);
