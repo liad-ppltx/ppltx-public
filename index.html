@@ -4028,11 +4028,34 @@
         font-size: 0.72rem;
         padding-inline: 12px;
       }
+      .tutorial-btn-continue-a {
+        background: linear-gradient(180deg, #35b467, #1f7f46) !important;
+        border-color: rgba(120, 255, 170, 0.45) !important;
+        color: #effff4 !important;
+      }
+      .tutorial-btn-skip-a {
+        background: linear-gradient(180deg, #cf4d4d, #8d2b2b) !important;
+        border-color: rgba(255, 170, 170, 0.45) !important;
+        color: #fff4f4 !important;
+      }
+      .tutorial-btn-continue-b {
+        background: linear-gradient(180deg, #cf4d4d, #8d2b2b) !important;
+        border-color: rgba(255, 170, 170, 0.45) !important;
+        color: #fff4f4 !important;
+      }
+      .tutorial-btn-skip-b {
+        background: linear-gradient(180deg, #35b467, #1f7f46) !important;
+        border-color: rgba(120, 255, 170, 0.45) !important;
+        color: #effff4 !important;
+      }
 
       .tutorial-target {
         position: relative;
         z-index: 100;
         animation: tutorial-pulse 1100ms infinite var(--bezier-snap);
+      }
+      #spinBtn {
+        pointer-events: auto !important;
       }
       @keyframes tutorial-pulse {
         0% {
@@ -5732,6 +5755,8 @@
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
         let tutorialUiLockEnabled = false;
+        let tutorialFingerYOffsetPx = 10;
+        let tutorialPopupYOffsetPx = 0;
 
         function isCastleTutorialFreeStar(item, currentStars) {
           if (item !== "Castle") return false;
@@ -7932,7 +7957,7 @@
           tutorialOverlayEl.style.setProperty("display", "block", "important");
           tutorialOverlayEl.style.setProperty("opacity", "1", "important");
           tutorialOverlayEl.style.setProperty("visibility", "visible", "important");
-          tutorialOverlayEl.style.setProperty("pointer-events", "auto", "important");
+          tutorialOverlayEl.style.setProperty("pointer-events", "none", "important");
         }
         const TUTORIAL_ID_MAIN = "core_onboarding_v2";
         const MAIN_TUTORIAL_STEP_IDS = {
@@ -7953,6 +7978,7 @@
           logEvent("tutorial_progress", {
             phase: "tutorial_complete",
             ...tutorialMainMeta(stepNumber),
+            condition: String(gameState.condition || ""),
             result,
           });
         }
@@ -7983,7 +8009,7 @@
             const cx = rect.left + rect.width / 2;
             const cy = rect.top + rect.height / 2;
             tutorialFingerEl.style.left = Math.round(cx) + "px";
-            tutorialFingerEl.style.top = Math.round(cy + 10) + "px";
+            tutorialFingerEl.style.top = Math.round(cy + tutorialFingerYOffsetPx) + "px";
           }
         }
 
@@ -7995,9 +8021,22 @@
           logEvent("tutorial_progress", {
             phase,
             ...tutorialMainMeta(stepNumber),
+            condition: String(gameState.condition || ""),
             timeSpent: spentMs,
             ...(extra && typeof extra === "object" ? extra : {}),
           });
+        }
+        function applyTutorialButtonVariant() {
+          if (!tutorialContinueBtn || !skipTutorialBtn) return;
+          tutorialContinueBtn.classList.remove("tutorial-btn-continue-a", "tutorial-btn-continue-b");
+          skipTutorialBtn.classList.remove("tutorial-btn-skip-a", "tutorial-btn-skip-b");
+          if (String(gameState.condition || "A") === "B") {
+            tutorialContinueBtn.classList.add("tutorial-btn-continue-b");
+            skipTutorialBtn.classList.add("tutorial-btn-skip-b");
+            return;
+          }
+          tutorialContinueBtn.classList.add("tutorial-btn-continue-a");
+          skipTutorialBtn.classList.add("tutorial-btn-skip-a");
         }
         function tutorialAllowedControlIds(stepNumber) {
           if (stepNumber === 3) {
@@ -8081,7 +8120,7 @@
           }
 
           tutorialTooltipEl.style.left = Math.round(left) + "px";
-          tutorialTooltipEl.style.top = Math.round(top) + "px";
+          tutorialTooltipEl.style.top = Math.round(top + tutorialPopupYOffsetPx) + "px";
         }
 
         function setHaloTarget(targetEl) {
@@ -8108,21 +8147,26 @@
           let msg = "";
           let target = null;
           let placement = "above";
+          tutorialFingerYOffsetPx = 10;
+          tutorialPopupYOffsetPx = 0;
 
           if (stepNumber === 1) {
-            msg = "Welcome to Village 3! Your goal is to upgrade all structures to reach the next village.";
+            msg = "Welcome to PlayPltx! Your mission is to build the ultimate village. Upgrade structures to progress and dominate!";
             target = worldTarget;
             placement = "center";
           } else if (stepNumber === 2) {
             msg = "You need Spins to earn Coins, and Coins to build your village.";
             target = energyTarget || coinsTarget || spinBtn;
             placement = "above";
+            tutorialPopupYOffsetPx = -30;
           } else if (stepNumber === 3) {
             msg = "First spin! Spin now to trigger a guaranteed big win.";
             target = spinBtn;
             placement = "above";
+            tutorialPopupYOffsetPx = -40;
+            tutorialFingerYOffsetPx = 30;
           } else if (stepNumber === 4) {
-            msg = "Out of spins? You can earn more by watching videos or visiting the shop.";
+            msg = "Out of spins in PlayPltx? You can earn more by watching videos or visiting the shop.";
             target = shopBtn;
             placement = "below";
             if (shopModalEl && shopModalEl.classList.contains("hidden")) {
@@ -8130,7 +8174,7 @@
             }
             setShopTab("earn");
           } else if (stepNumber === 5) {
-            msg = "Tutorial complete. You are ready to play!";
+            msg = "PlayPltx tutorial complete. You are ready to play!";
             target = worldTarget;
             placement = "above";
           }
@@ -8138,6 +8182,7 @@
           tutorialTextEl.textContent = msg;
           showTutorialPopup();
           forceTutorialOverlayVisible();
+          applyTutorialButtonVariant();
           if (tutorialContinueBtn) tutorialContinueBtn.style.display = stepNumber === 3 ? "none" : "";
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = stepNumber === 5 ? "Finish" : "Continue";
           if (skipTutorialBtn) skipTutorialBtn.style.display = stepNumber >= 5 ? "none" : "";
@@ -8159,6 +8204,12 @@
 
           if (target) target.classList.add("tutorial-target");
           setHaloTarget(target);
+          if (stepNumber === 2) {
+            if (tutorialFingerEl) tutorialFingerEl.style.display = "none";
+            if (spotlightHoleEl) {
+              spotlightHoleEl.setAttribute("stroke", "rgba(120, 240, 255, 0.45)");
+            }
+          }
           positionTutorialPopup(target, placement);
         }
 
