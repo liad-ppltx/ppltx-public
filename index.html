@@ -4712,6 +4712,7 @@
             <span id="hudCoinPip2" class="hud-coin-pip"></span>
           </div>
           <div id="hudUsdBalance" class="hud-usd-balance" aria-live="polite" title="Virtual balance">$0.00</div>
+          <button id="tutorialOpenBtn" type="button" class="secondary metal-btn hud-shop-btn" title="Open tutorial">TUTORIAL</button>
           <button id="shopBtn" type="button" class="secondary metal-btn hud-shop-btn">SHOP</button>
         </div>
         <div class="hud-bars">
@@ -5224,6 +5225,7 @@
         const closeSlotBtn = null;
         const attackBtn = null;
         const shopBtn = document.getElementById("shopBtn");
+        const tutorialOpenBtn = document.getElementById("tutorialOpenBtn");
 
         const slotModalEl = document.getElementById("slotModal");
         const spinBtn = document.getElementById("spinBtn");
@@ -8292,6 +8294,15 @@
           endTutorial();
         }
 
+        function openTutorialFromUi() {
+          tutorialRiggedSpinUsed = false;
+          if (tutorialStep > 0) {
+            renderTutorialStep(tutorialStep);
+            return;
+          }
+          enterTutorialStep(1);
+        }
+
         function completeTutorialStep(stepNumber) {
           if (tutorialStep !== stepNumber) return;
           // no-op: phases are logged on start/continue/skip per schema
@@ -8821,9 +8832,8 @@
             if (tutorialStep <= 0) return;
             logTutorialAction("continue_click");
 
-          // Step 2 is action-gated (must open slot).
           // Step 3 is action-gated (must spin and wait for spin_result).
-          if (tutorialStep === 2 || tutorialStep === 3) {
+          if (tutorialStep === 3) {
             renderTutorialStep(tutorialStep);
             return;
           }
@@ -8931,6 +8941,7 @@
           setupListener("closeEnergyBtn", closeOutOfSpinsModal);
           setupListener("tutorialContinueBtn", onTutorialContinueClick);
           setupListener("skipTutorialBtn", onSkipTutorialClick);
+          setupListener("tutorialOpenBtn", openTutorialFromUi);
           setupListener("miniTutorialPlayBtn", onMiniTutorialPlayClick);
           setupListener("researchDrawerToggle", onResearchDrawerToggleClick);
           if (researchDrawerBackdropEl) {
