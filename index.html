@@ -5768,7 +5768,8 @@
         let maxedLoggedSecondCannon = false;
         let maxedLoggedWall = false;
 
-        let tutorialStep = 0; // 1..6 per guided tour
+        const TOTAL_TUTORIAL_STEPS = 10;
+        let tutorialStep = 0;
         let tutorialStepShownAtMs = null;
         let tutorialRiggedSpinUsed = false;
         const miniTutorial = { active: false, step: 0 };
@@ -5777,10 +5778,7 @@
           if (item !== "Castle") return false;
           const stars = Math.max(0, Number(currentStars) || 0);
           if (stars !== 0) return false;
-          return (
-            (miniTutorial.active && miniTutorial.step === 4) ||
-            tutorialStep === 4
-          );
+          return tutorialStep === 7;
         }
 
         const SYMBOLS = [
@@ -8012,24 +8010,18 @@
           if (miniTutorialCompleteModalEl) miniTutorialCompleteModalEl.classList.add("hidden");
           if (markCompleted) setMiniTutorialSeen();
         }
-        const TUTORIAL_ID_MAIN = "main_onboarding_v1";
-        const TUTORIAL_ID_MINI = "mini_shop_v1";
+        const TUTORIAL_ID_MAIN = "core_onboarding_v2";
         const MAIN_TUTORIAL_STEP_IDS = {
           1: "intro_welcome",
           2: "open_slot",
           3: "spin_reels",
           4: "energy_spins",
           5: "coins_hud",
-          6: "castle_upgrade",
-          7: "cannon_upgrade",
-          8: "raid_attack",
-        };
-        const MINI_TUTORIAL_STEP_IDS = {
-          1: "mini_spin",
-          2: "mini_village_progress",
-          3: "mini_open_shop",
-          4: "mini_castle_free",
-          5: "mini_finish",
+          6: "open_shop",
+          7: "shop_village_castle_free",
+          8: "shop_premium_intro",
+          9: "shop_earn_intro",
+          10: "raid_attack_intro",
         };
         function tutorialMainMeta(stepNumber) {
           return {
@@ -8038,19 +8030,14 @@
             stepId: MAIN_TUTORIAL_STEP_IDS[stepNumber] || "unknown_step",
           };
         }
-        function tutorialMiniMeta(stepNumber) {
-          return {
-            tutorialId: TUTORIAL_ID_MINI,
-            stepNumber,
-            stepId: MINI_TUTORIAL_STEP_IDS[stepNumber] || "unknown_step",
-          };
+        function logTutorialCompleted(stepNumber, result) {
+          logEvent("tutorial_progress", {
+            phase: "tutorial_completed",
+            ...tutorialMainMeta(stepNumber),
+            result,
+          });
         }
         function finishMiniTutorial() {
-          logEvent("tutorial_progress", {
-            phase: "mini_complete",
-            ...tutorialMiniMeta(5),
-            totalSpins: totalSpinsToComplete,
-          });
           stopMiniTutorial(true);
         }
         function positionTutorialFingerOnly(targetEl) {
@@ -8231,7 +8218,7 @@
 
           if (stepNumber === 1) {
             msg =
-              "Welcome to the Realm! Tap CONTINUE to start the tour or SKIP to play.";
+              "Welcome! This is a short tutorial to show core features. You can continue or skip anytime.";
             placement = "center";
           } else if (stepNumber === 2) {
             msg = "Tap the compass to open your Slot Machine.";
@@ -8253,16 +8240,23 @@
             target = coinsTarget || coinsFillEl;
             placement = "below";
           } else if (stepNumber === 6) {
-            msg =
-              "Upgrade your Castle to reach higher stages and unlock new glory.";
-            target = castleEl;
-            placement = "right";
+            msg = "Open the Shop. It has Village upgrades, Premium packs, and Earn rewards.";
+            target = shopBtn;
+            placement = "below";
           } else if (stepNumber === 7) {
-            msg = "Upgrade your Cannon to improve village progress. Level is capped by your Castle!";
-            target = cannonEl || upgradeCannonBtn;
+            msg = "Village tab: upgrade your Castle. First Castle upgrade is FREE during tutorial.";
+            target = shopVillageCastleBtn || castleEl;
             placement = "right";
           } else if (stepNumber === 8) {
-            msg = "Raid others for loot! High cannon level = High win chance.";
+            msg = "Premium tab: buy coin bundles for faster progression.";
+            target = shopTabPremiumBtn || shopBtn;
+            placement = "above";
+          } else if (stepNumber === 9) {
+            msg = "Earn tab: watch rewarded videos for extra resources.";
+            target = shopTabEarnBtn || shopBtn;
+            placement = "above";
+          } else if (stepNumber === 10) {
+            msg = "Attack and raid are key progression features. You're ready to play!";
             target = attackBtn;
             placement = "above";
           }
@@ -8291,10 +8285,8 @@
         }
 
         function initTutorial() {
-          if (totalSpinsToComplete < 5 && !miniTutorialSeen()) {
-            if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
-            if (tutorialTooltipEl) tutorialTooltipEl.style.display = "block";
-            startMiniTutorial();
+          if (!tutorialSeen()) {
+            enterTutorialStep(1);
             return;
           }
           endTutorial();
@@ -8680,9 +8672,9 @@
           buildEarnCashDom();
           setShopTab("village");
           shopModalEl.classList.remove("hidden");
-          if (miniTutorial.active && miniTutorial.step === 3) {
-            miniTutorial.step = 4;
-            renderMiniTutorialStep(4);
+          if (tutorialStep === 6) {
+            completeTutorialStep(6);
+            enterTutorialStep(7);
           }
           updateUI();
           syncEarnCashWatchButtons();
@@ -8712,6 +8704,7 @@
             }
             if (tutorialStep === 3) {
               await runSpin(true);
+              logTutorialStep(3, "first_spin");
               completeTutorialStep(3);
               enterTutorialStep(4);
               return;
@@ -8736,8 +8729,9 @@
             coins -= cost;
           }
           upgradeVillageItem(item, cost, isFreeCastleTutorial);
-          if (isFreeCastleTutorial) {
-            advanceMiniTutorial();
+          if (isFreeCastleTutorial && tutorialStep === 7) {
+            completeTutorialStep(7);
+            enterTutorialStep(8);
           }
           persistState();
           updateUI();
@@ -8760,7 +8754,6 @@
           try {
             localStorage.removeItem(STORAGE_KEY_SAVE);
             localStorage.removeItem(STORAGE_KEY_TUTORIAL);
-            localStorage.removeItem(STORAGE_KEY_MINI_TUTORIAL);
           } catch (e) {}
           console.log("Game state reset");
           window.location.reload();
@@ -8825,24 +8818,6 @@
           }
         }
         function onTutorialContinueClick() {
-            if (miniTutorial.active) {
-              if (miniTutorial.step === 1) {
-                miniTutorial.step = 2;
-                renderMiniTutorialStep(2);
-                return;
-              }
-              if (miniTutorial.step === 2) {
-                miniTutorial.step = 3;
-                renderMiniTutorialStep(3);
-                return;
-              }
-              if (miniTutorial.step === 5) {
-                stopMiniTutorial(true);
-                return;
-              }
-              stopMiniTutorial(false);
-              return;
-            }
             if (tutorialStep <= 0) return;
             logTutorialAction("continue_click");
 
@@ -8854,19 +8829,17 @@
           }
 
             completeTutorialStep(tutorialStep);
-            if (tutorialStep >= 8) {
+            if (tutorialStep >= TOTAL_TUTORIAL_STEPS) {
+              logTutorialCompleted(TOTAL_TUTORIAL_STEPS, "completed");
               endTutorial();
               return;
             }
             enterTutorialStep(tutorialStep + 1);
         }
         function onSkipTutorialClick() {
-            if (miniTutorial.active) {
-              stopMiniTutorial(false);
-              return;
-            }
             if (tutorialStep > 0) {
               logTutorialAction("skip_click");
+              logTutorialCompleted(tutorialStep, "skipped");
               completeTutorialStep(tutorialStep);
             }
             endTutorial();

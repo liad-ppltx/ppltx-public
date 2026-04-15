@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.1.5",
+  "currentAppVersion": "1.1.6",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -232,14 +232,14 @@
       }
     },
     "tutorial_progress": {
-      "description": "Single funnel event for main onboarding and mini shop tutorial. Always send tutorialId + stepId + stepNumber with phase.",
+      "description": "Single funnel event for core onboarding tutorial.",
       "properties": {
-        "phase": { "type": "string", "required": true, "description": "start (step shown), continue_click, skip_click, first_spin (sim / spin milestone on spin_reels), mini_complete" },
-        "tutorialId": { "type": "string", "required": true, "description": "Stable key, e.g. main_onboarding_v1 | mini_shop_v1" },
-        "stepId": { "type": "string", "required": true, "description": "Stable slug within that tutorial, e.g. spin_reels, mini_finish" },
-        "stepNumber": { "type": "number", "required": true, "description": "1-based step index in that tutorial" },
+        "phase": { "type": "string", "required": true, "description": "start, continue_click, skip_click, first_spin, tutorial_completed" },
+        "tutorialId": { "type": "string", "required": true, "description": "Stable key, e.g. core_onboarding_v2" },
+        "stepId": { "type": "string", "required": true, "description": "Stable slug within tutorial, e.g. spin_reels, shop_premium_intro" },
+        "stepNumber": { "type": "number", "required": true, "description": "1-based step index in tutorial" },
         "timeSpent": { "type": "number", "required": false, "description": "ms on step when meaningful" },
-        "totalSpins": { "type": "number", "required": false, "description": "Lifetime spin count at mini_complete" }
+        "result": { "type": "string", "required": false, "description": "tutorial_completed only: completed | skipped" }
       }
     },
     "village_complete": {
