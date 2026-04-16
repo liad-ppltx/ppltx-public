@@ -5760,6 +5760,7 @@
         let tutorialUiLockEnabled = false;
         let tutorialFingerYOffsetPx = 10;
         let tutorialPopupYOffsetPx = 0;
+        let tutorialSpotlightYOffsetPx = 0;
         let tutorialShopOpened = false;
         let tutorialCastleUpgraded = false;
         let tutorialCompletionReady = false;
@@ -8020,7 +8021,7 @@
           const rect = targetEl.getBoundingClientRect();
           const pad = 10;
           const x = Math.max(0, rect.left - pad);
-          const y = Math.max(0, rect.top - pad);
+          const y = Math.max(0, rect.top - pad + tutorialSpotlightYOffsetPx);
           const w = Math.min(window.innerWidth, rect.width + pad * 2);
           const h = Math.min(window.innerHeight, rect.height + pad * 2);
 
@@ -8185,6 +8186,7 @@
           let placement = "above";
           tutorialFingerYOffsetPx = 10;
           tutorialPopupYOffsetPx = 0;
+          tutorialSpotlightYOffsetPx = 0;
 
           if (stepNumber === 1) {
             msg = "Welcome to PlayPltx! Your mission is to build the ultimate village. Upgrade structures to progress and dominate!";
@@ -8214,6 +8216,7 @@
               placement = "above";
               tutorialFingerYOffsetPx = 30;
               tutorialPopupYOffsetPx = -80;
+              tutorialSpotlightYOffsetPx = -15;
               if (shopModalEl && shopModalEl.classList.contains("hidden")) {
                 openShopModal();
               }
@@ -8669,6 +8672,7 @@
           buildPremiumShopDom();
           buildEarnCashDom();
           setShopTab("village");
+          updateUI();
           shopModalEl.classList.remove("hidden");
           if (tutorialStep === 4 && !tutorialShopOpened) {
             tutorialShopOpened = true;
@@ -8677,7 +8681,6 @@
             return;
           }
           syncTutorialShopFocusLock();
-          updateUI();
           syncEarnCashWatchButtons();
         }
         function openShop() {
