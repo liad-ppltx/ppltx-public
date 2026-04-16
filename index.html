@@ -6858,7 +6858,7 @@
             const canAfford = coins >= cost;
             btn.disabled = (!canAfford && !isFreeCastleTutorial) || isVillageCelebrating;
             btn.classList.toggle("tutorial-free", isFreeCastleTutorial);
-            btn.textContent = isFreeCastleTutorial ? "Get Free" : "Add Star";
+            btn.textContent = isFreeCastleTutorial ? "GET FREE" : "Add Star";
             costEl.textContent = isFreeCastleTutorial ? "Cost: FREE" : `Cost: ${formatNumber(cost)} Coins`;
             if (isFreeCastleTutorial) {
               costEl.classList.remove("poor");
@@ -8354,12 +8354,6 @@
 
           let coinsWon = computePayout(result);
           const actionTriggered = getActionForTriple(result);
-          if (triggeredByTutorial && tutorialRigged) {
-            const cost = upgradeCostForStage(stage);
-            const needed = Math.max(0, cost - coins);
-            coinsWon = Math.max(coinsWon, needed);
-          }
-
           coins += coinsWon;
           const randomCoinParticles = 20 + Math.floor(Math.random() * 11);
           let spinsTripleTriggered = false;
@@ -8432,11 +8426,6 @@
         function handleUpgrade() {
           const cost = upgradeCostForStage(stage);
           if (stage >= MAX_STAGE) return;
-
-          if (coins < cost && tutorialStep === 3) {
-            const missing = cost - coins;
-            if (missing > 0) coins += missing;
-          }
 
           if (coins < cost) {
             setStatus("Not enough coins to upgrade.", true);
@@ -8715,6 +8704,10 @@
               return;
             }
             if (tutorialStep === 3) {
+              clearTutorialHighlight();
+              hideTutorialPopup();
+              if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
+              if (tutorialFingerEl) tutorialFingerEl.style.display = "none";
               await runSpin(true);
               logTutorialStep(3, "tutorial_step_3_first_spin", { result: "big_win" });
               completeTutorialStep(3);
