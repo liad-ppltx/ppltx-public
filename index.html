@@ -5764,6 +5764,11 @@
         let tutorialShopOpened = false;
         let tutorialCastleUpgraded = false;
         let tutorialCompletionReady = false;
+        function isTutorialFreeCastleOverride(item, currentStars) {
+          if (String(item) !== "Castle") return false;
+          const stars = Math.max(0, Number(currentStars) || 0);
+          return tutorialStep > 0 && stars === 0;
+        }
 
         function syncTutorialShopFocusLock() {
           if (!shopModalEl) return;
@@ -5780,10 +5785,7 @@
         }
 
         function isCastleTutorialFreeStar(item, currentStars) {
-          if (item !== "Castle") return false;
-          const stars = Math.max(0, Number(currentStars) || 0);
-          if (stars !== 0) return false;
-          return tutorialStep === 5 && !tutorialCastleUpgraded;
+          return isTutorialFreeCastleOverride(item, currentStars);
         }
 
         const SYMBOLS = [
@@ -6843,7 +6845,7 @@
           const setShopState = (item, btn, costEl) => {
             if (!btn || !costEl) return;
             const current = villageProgress[item] || 0;
-            const isFreeCastleTutorial = isCastleTutorialFreeStar(item, current);
+            const isFreeCastleTutorial = isTutorialFreeCastleOverride(item, current);
             if (current >= 5) {
               btn.disabled = true;
               btn.textContent = "MAX";
@@ -8108,6 +8110,9 @@
               btn.dataset.tutorialLocked = "1";
             }
           });
+          if (tutorialStep === 5 && !tutorialCompletionReady && shopVillageCastleBtn) {
+            shopVillageCastleBtn.style.setProperty("pointer-events", "auto", "important");
+          }
         }
 
         function hideTutorialPopup() {
@@ -8216,7 +8221,7 @@
               placement = "above";
               tutorialFingerYOffsetPx = 30;
               tutorialPopupYOffsetPx = -80;
-              tutorialSpotlightYOffsetPx = -15;
+              tutorialSpotlightYOffsetPx = -30;
               if (shopModalEl && shopModalEl.classList.contains("hidden")) {
                 openShopModal();
               }
@@ -8272,6 +8277,9 @@
           tutorialStepShownAtMs = performance.now();
           if (stepNumber === 4) {
             tutorialShopOpened = false;
+          }
+          if (stepNumber === 5) {
+            updateUI();
           }
           clearTutorialHighlight();
           renderTutorialStep(stepNumber);
@@ -8672,13 +8680,18 @@
           buildPremiumShopDom();
           buildEarnCashDom();
           setShopTab("village");
-          updateUI();
-          shopModalEl.classList.remove("hidden");
           if (tutorialStep === 4 && !tutorialShopOpened) {
             tutorialShopOpened = true;
             logTutorialStep(4, "shop_opened");
-            enterTutorialStep(5);
-            return;
+            tutorialStep = 5;
+            tutorialStepShownAtMs = performance.now();
+          }
+          updateUI();
+          shopModalEl.classList.remove("hidden");
+          if (tutorialStep === 5 && !tutorialCompletionReady) {
+            clearTutorialHighlight();
+            renderTutorialStep(5);
+            forceTutorialOverlayVisible();
           }
           syncTutorialShopFocusLock();
           syncEarnCashWatchButtons();
@@ -8727,9 +8740,9 @@
             setStatus(`${item} is already max stars.`, false);
             return;
           }
-          const isFreeCastleTutorial = isCastleTutorialFreeStar(item, current);
+          const isFreeCastleTutorial = isTutorialFreeCastleOverride(item, current);
           const cost = isFreeCastleTutorial ? 0 : calculateUpgradeCost(item, current);
-          if (coins < cost) {
+          if (!isFreeCastleTutorial && coins < cost) {
             setStatus("Not enough coins.", true);
             return;
           }
