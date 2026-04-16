@@ -4057,6 +4057,9 @@
       #spinBtn {
         pointer-events: auto !important;
       }
+      #shopVillageCastleBtn {
+        pointer-events: auto !important;
+      }
       @keyframes tutorial-pulse {
         0% {
           transform: translateY(0);
@@ -8207,9 +8210,10 @@
           } else if (stepNumber === 5) {
             if (!tutorialCompletionReady) {
               msg = "Here you can upgrade your village, buy packs, or watch videos for free rewards. Go to Buildings and take your free first Castle upgrade.";
-              target = shopVillageCastleBtn || shopTabVillageBtn || shopBtn;
+              target = shopVillageCastleBtn;
               placement = "above";
               tutorialFingerYOffsetPx = 30;
+              tutorialPopupYOffsetPx = -80;
               if (shopModalEl && shopModalEl.classList.contains("hidden")) {
                 openShopModal();
               }
