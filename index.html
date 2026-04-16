@@ -5757,12 +5757,15 @@
         let tutorialUiLockEnabled = false;
         let tutorialFingerYOffsetPx = 10;
         let tutorialPopupYOffsetPx = 0;
+        let tutorialShopOpened = false;
+        let tutorialCastleUpgraded = false;
+        let tutorialCompletionReady = false;
 
         function isCastleTutorialFreeStar(item, currentStars) {
           if (item !== "Castle") return false;
           const stars = Math.max(0, Number(currentStars) || 0);
           if (stars !== 0) return false;
-          return tutorialStep === 7;
+          return tutorialStep === 5 && !tutorialCastleUpgraded;
         }
 
         const SYMBOLS = [
@@ -7947,9 +7950,15 @@
         }
 
         function clearTutorialHighlight() {
-          [openSlotBtn, spinBtn, upgradeBtn, closeSlotBtn].forEach((el) => {
+          document
+            .querySelectorAll(".tutorial-target, .tutorial-highlight, .pulse-ring")
+            .forEach((el) => {
+              el.classList.remove("tutorial-target", "tutorial-highlight", "pulse-ring");
+            });
+          [openSlotBtn, spinBtn, upgradeBtn, closeSlotBtn, shopBtn, shopVillageCastleBtn, shopTabVillageBtn, shopTabPremiumBtn, shopTabEarnBtn].forEach((el) => {
             if (el) el.classList.remove("tutorial-target");
           });
+          if (tutorialFingerEl) tutorialFingerEl.style.display = "none";
         }
         function forceTutorialOverlayVisible() {
           if (!tutorialOverlayEl || tutorialStep <= 0) return;
@@ -8041,6 +8050,18 @@
         function tutorialAllowedControlIds(stepNumber) {
           if (stepNumber === 3) {
             return new Set(["spinBtn", "tutorialContinueBtn", "skipTutorialBtn"]);
+          }
+          if (stepNumber === 4) {
+            return new Set(["shopBtn", "skipTutorialBtn"]);
+          }
+          if (stepNumber === 5 && !tutorialCompletionReady) {
+            return new Set([
+              "shopVillageCastleBtn",
+              "shopTabVillageBtn",
+              "shopTabPremiumBtn",
+              "shopTabEarnBtn",
+              "skipTutorialBtn",
+            ]);
           }
           return new Set(["tutorialContinueBtn", "skipTutorialBtn"]);
         }
@@ -8166,26 +8187,35 @@
             tutorialPopupYOffsetPx = -40;
             tutorialFingerYOffsetPx = 30;
           } else if (stepNumber === 4) {
-            msg = "Out of spins in PlayPltx? You can earn more by watching videos or visiting the shop.";
+            msg = "Out of spins? Click the SHOP to see how to get more!";
             target = shopBtn;
-            placement = "below";
-            if (shopModalEl && shopModalEl.classList.contains("hidden")) {
-              openShopModal();
-            }
-            setShopTab("earn");
-          } else if (stepNumber === 5) {
-            msg = "PlayPltx tutorial complete. You are ready to play!";
-            target = worldTarget;
             placement = "above";
+          } else if (stepNumber === 5) {
+            if (!tutorialCompletionReady) {
+              msg = "Here you can upgrade your village, buy packs, or watch videos for free rewards. Go to Buildings and take your free first Castle upgrade.";
+              target = shopVillageCastleBtn || shopTabVillageBtn || shopBtn;
+              placement = "above";
+              if (shopModalEl && shopModalEl.classList.contains("hidden")) {
+                openShopModal();
+              }
+              setShopTab("village");
+            } else {
+              msg = "PlayPltx tutorial complete. You are ready to play!";
+              target = null;
+              placement = "center";
+            }
           }
 
           tutorialTextEl.textContent = msg;
           showTutorialPopup();
           forceTutorialOverlayVisible();
           applyTutorialButtonVariant();
-          if (tutorialContinueBtn) tutorialContinueBtn.style.display = stepNumber === 3 ? "none" : "";
+          if (tutorialContinueBtn) {
+            const hideContinue = stepNumber === 3 || stepNumber === 4 || (stepNumber === 5 && !tutorialCompletionReady);
+            tutorialContinueBtn.style.display = hideContinue ? "none" : "";
+          }
           if (tutorialContinueBtn) tutorialContinueBtn.textContent = stepNumber === 5 ? "Finish" : "Continue";
-          if (skipTutorialBtn) skipTutorialBtn.style.display = stepNumber >= 5 ? "none" : "";
+          if (skipTutorialBtn) skipTutorialBtn.style.display = tutorialCompletionReady ? "none" : "";
           tutorialUiLockEnabled = true;
           syncTutorialUiLocking();
 
@@ -8217,6 +8247,9 @@
           console.log("[tutorial] enterTutorialStep", stepNumber);
           tutorialStep = stepNumber;
           tutorialStepShownAtMs = performance.now();
+          if (stepNumber === 4) {
+            tutorialShopOpened = false;
+          }
           clearTutorialHighlight();
           renderTutorialStep(stepNumber);
           forceTutorialOverlayVisible();
@@ -8228,6 +8261,9 @@
         function initTutorial() {
           const hasTutorialSeen = tutorialSeen();
           if (!hasTutorialSeen) {
+            tutorialShopOpened = false;
+            tutorialCastleUpgraded = false;
+            tutorialCompletionReady = false;
             enterTutorialStep(1);
             return;
           }
@@ -8242,6 +8278,9 @@
         function endTutorial() {
           tutorialStep = 0;
           tutorialStepShownAtMs = null;
+          tutorialShopOpened = false;
+          tutorialCastleUpgraded = false;
+          tutorialCompletionReady = false;
           tutorialUiLockEnabled = false;
           syncTutorialUiLocking();
           clearTutorialHighlight();
@@ -8621,6 +8660,12 @@
           buildEarnCashDom();
           setShopTab("village");
           shopModalEl.classList.remove("hidden");
+          if (tutorialStep === 4 && !tutorialShopOpened) {
+            tutorialShopOpened = true;
+            logTutorialStep(4, "shop_opened");
+            enterTutorialStep(5);
+            return;
+          }
           updateUI();
           syncEarnCashWatchButtons();
         }
@@ -8673,6 +8718,19 @@
             coins -= cost;
           }
           upgradeVillageItem(item, cost, isFreeCastleTutorial);
+          if (
+            tutorialStep === 5 &&
+            !tutorialCompletionReady &&
+            item === "Castle" &&
+            isFreeCastleTutorial
+          ) {
+            tutorialCastleUpgraded = true;
+            tutorialCompletionReady = true;
+            logTutorialStep(5, "castle_upgraded", { building: "Castle" });
+            closeShopModal();
+            clearTutorialHighlight();
+            renderTutorialStep(5);
+          }
           persistState();
           updateUI();
           setStatus(`${item} improved!`, false);
@@ -8755,6 +8813,10 @@
         function onTutorialContinueClick() {
             if (tutorialStep <= 0) return;
           if (tutorialStep === 3) {
+            renderTutorialStep(tutorialStep);
+            return;
+          }
+          if (tutorialStep === 4 || (tutorialStep === 5 && !tutorialCompletionReady)) {
             renderTutorialStep(tutorialStep);
             return;
           }

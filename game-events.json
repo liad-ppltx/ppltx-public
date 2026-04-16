@@ -234,7 +234,7 @@
     "tutorial_progress": {
       "description": "Single funnel event for core onboarding tutorial.",
       "properties": {
-        "phase": { "type": "string", "required": true, "description": "tutorial_step_1_start, tutorial_step_2_bars, tutorial_step_3_first_spin, tutorial_step_4_monetization, tutorial_complete" },
+        "phase": { "type": "string", "required": true, "description": "tutorial_step_1_start, tutorial_step_2_bars, tutorial_step_3_first_spin, tutorial_step_4_monetization, shop_opened, castle_upgraded, tutorial_complete" },
         "tutorialId": { "type": "string", "required": true, "description": "Stable key, e.g. core_onboarding_v2" },
         "stepId": { "type": "string", "required": true, "description": "Stable slug within tutorial, e.g. welcome_village, first_rigged_spin, shop_earn_intro" },
         "stepNumber": { "type": "number", "required": true, "description": "1-based step index in tutorial" },
