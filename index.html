@@ -5761,6 +5761,20 @@
         let tutorialCastleUpgraded = false;
         let tutorialCompletionReady = false;
 
+        function syncTutorialShopFocusLock() {
+          if (!shopModalEl) return;
+          const lockShopScroll = tutorialStep === 5 && !tutorialCompletionReady;
+          const targets = [shopModalEl, shopPanelVillageEl, shopPanelPremiumEl, shopPanelEarnCashEl];
+          targets.forEach((el) => {
+            if (!el) return;
+            if (lockShopScroll) {
+              el.style.setProperty("overflow", "hidden", "important");
+            } else {
+              el.style.removeProperty("overflow");
+            }
+          });
+        }
+
         function isCastleTutorialFreeStar(item, currentStars) {
           if (item !== "Castle") return false;
           const stars = Math.max(0, Number(currentStars) || 0);
@@ -6841,7 +6855,7 @@
             const canAfford = coins >= cost;
             btn.disabled = (!canAfford && !isFreeCastleTutorial) || isVillageCelebrating;
             btn.classList.toggle("tutorial-free", isFreeCastleTutorial);
-            btn.textContent = "Add Star";
+            btn.textContent = isFreeCastleTutorial ? "Get Free" : "Add Star";
             costEl.textContent = isFreeCastleTutorial ? "Cost: FREE" : `Cost: ${formatNumber(cost)} Coins`;
             if (isFreeCastleTutorial) {
               costEl.classList.remove("poor");
@@ -8058,8 +8072,6 @@
             return new Set([
               "shopVillageCastleBtn",
               "shopTabVillageBtn",
-              "shopTabPremiumBtn",
-              "shopTabEarnBtn",
               "skipTutorialBtn",
             ]);
           }
@@ -8190,11 +8202,14 @@
             msg = "Out of spins? Click the SHOP to see how to get more!";
             target = shopBtn;
             placement = "above";
+            tutorialPopupYOffsetPx = -25;
+            tutorialFingerYOffsetPx = 25;
           } else if (stepNumber === 5) {
             if (!tutorialCompletionReady) {
               msg = "Here you can upgrade your village, buy packs, or watch videos for free rewards. Go to Buildings and take your free first Castle upgrade.";
               target = shopVillageCastleBtn || shopTabVillageBtn || shopBtn;
               placement = "above";
+              tutorialFingerYOffsetPx = 30;
               if (shopModalEl && shopModalEl.classList.contains("hidden")) {
                 openShopModal();
               }
@@ -8218,6 +8233,7 @@
           if (skipTutorialBtn) skipTutorialBtn.style.display = tutorialCompletionReady ? "none" : "";
           tutorialUiLockEnabled = true;
           syncTutorialUiLocking();
+          syncTutorialShopFocusLock();
 
           if (placement === "center") {
             tutorialTooltipEl.dataset.placement = "center";
@@ -8292,6 +8308,7 @@
             tutorialOverlayEl.style.removeProperty("pointer-events");
           }
           hideTutorialPopup();
+          syncTutorialShopFocusLock();
           setTutorialSeen();
         }
 
@@ -8666,6 +8683,7 @@
             enterTutorialStep(5);
             return;
           }
+          syncTutorialShopFocusLock();
           updateUI();
           syncEarnCashWatchButtons();
         }
@@ -8677,6 +8695,7 @@
         function closeShopModal() {
           if (!shopModalEl) return;
           shopModalEl.classList.add("hidden");
+          syncTutorialShopFocusLock();
         }
 
         function onSpinClick() {
