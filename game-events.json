@@ -5,7 +5,7 @@
     "note": "Valid JSON: use this file for codegen, docs, and validation."
   },
   "version": "2.0",
-  "currentAppVersion": "1.1.6",
+  "currentAppVersion": "1.1.7",
   "source": "index.html",
 
   "getSuperProperties": {
@@ -234,12 +234,10 @@
     "tutorial_progress": {
       "description": "Single funnel event for core onboarding tutorial.",
       "properties": {
-        "phase": { "type": "string", "required": true, "description": "tutorial_step_1_start, tutorial_step_2_bars, tutorial_step_3_first_spin, tutorial_step_4_monetization, shop_opened, castle_upgraded, tutorial_complete" },
-        "tutorialId": { "type": "string", "required": true, "description": "Stable key, e.g. core_onboarding_v2" },
-        "stepId": { "type": "string", "required": true, "description": "Stable slug within tutorial, e.g. welcome_village, first_rigged_spin, shop_earn_intro" },
-        "stepNumber": { "type": "number", "required": true, "description": "1-based step index in tutorial" },
-        "timeSpent": { "type": "number", "required": false, "description": "ms on step when meaningful" },
-        "result": { "type": "string", "required": false, "description": "tutorial_step_3_first_spin may send big_win; tutorial_complete sends completed | skipped" }
+        "phase": { "type": "string", "required": true, "description": "tutorial_step_1_start, tutorial_step_2_bars, tutorial_step_3_first_spin, tutorial_step_4_shop_opened, tutorial_step_5_castle_upgraded, tutorial_complete, tutorial_skip" },
+        "tutorialId": { "type": "string", "required": true, "description": "Tutorial analytics version key. Current value: core_onboarding_v3" },
+        "stepNumber": { "type": "number", "required": true, "description": "Ordered step index. 1..5 for tutorial_step_* phases, 6 for tutorial_complete. tutorial_skip keeps the last reached step number." },
+        "timeSpent": { "type": "number", "required": false, "description": "ms on step when meaningful" }
       }
     },
     "village_complete": {

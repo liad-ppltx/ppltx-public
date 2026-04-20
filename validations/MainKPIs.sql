@@ -4,7 +4,7 @@ select
   userId,
   min(dt) as install_date
 from
-`ppltx-project-dev.PlayPltx.fact`
+`ppltx-ba-course.PlayPltx.fact`
 
 group by all
 )

@@ -7988,33 +7988,24 @@
           tutorialOverlayEl.style.setProperty("visibility", "visible", "important");
           tutorialOverlayEl.style.setProperty("pointer-events", "none", "important");
         }
-        const TUTORIAL_ID_MAIN = "core_onboarding_v2";
-        const MAIN_TUTORIAL_STEP_IDS = {
-          1: "welcome_village",
-          2: "currency_bars",
-          3: "first_rigged_spin",
-          4: "shop_earn_intro",
-          5: "onboarding_complete",
-        };
+        const TUTORIAL_ID_MAIN = "core_onboarding_v3";
         function tutorialMainMeta(stepNumber) {
           return {
             tutorialId: TUTORIAL_ID_MAIN,
             stepNumber,
-            stepId: MAIN_TUTORIAL_STEP_IDS[stepNumber] || "unknown_step",
           };
         }
-        function logTutorialCompleted(stepNumber, result) {
+        function logTutorialOutcome(phase, stepNumber) {
           logEvent("tutorial_progress", {
-            phase: "tutorial_complete",
+            phase,
             ...tutorialMainMeta(stepNumber),
             condition: String(gameState.condition || ""),
-            result,
           });
         }
         function tutorialPhaseForStep(stepNumber) {
           if (stepNumber === 1) return "tutorial_step_1_start";
           if (stepNumber === 2) return "tutorial_step_2_bars";
-          if (stepNumber === 4) return "tutorial_step_4_monetization";
+          if (stepNumber === 4) return "tutorial_step_4_shop_opened";
           return "tutorial_step";
         }
         function positionSpotlightOn(targetEl) {
@@ -8284,7 +8275,7 @@
           clearTutorialHighlight();
           renderTutorialStep(stepNumber);
           forceTutorialOverlayVisible();
-          if (stepNumber !== 3 && stepNumber !== 5) {
+          if (stepNumber !== 3 && stepNumber !== 4 && stepNumber !== 5) {
             logTutorialStep(stepNumber, tutorialPhaseForStep(stepNumber));
           }
         }
@@ -8682,7 +8673,7 @@
           setShopTab("village");
           if (tutorialStep === 4 && !tutorialShopOpened) {
             tutorialShopOpened = true;
-            logTutorialStep(4, "shop_opened");
+            logTutorialStep(4, "tutorial_step_4_shop_opened");
             tutorialStep = 5;
             tutorialStepShownAtMs = performance.now();
           }
@@ -8725,7 +8716,7 @@
               if (tutorialOverlayEl) tutorialOverlayEl.classList.add("hidden");
               if (tutorialFingerEl) tutorialFingerEl.style.display = "none";
               await runSpin(true);
-              logTutorialStep(3, "tutorial_step_3_first_spin", { result: "big_win" });
+              logTutorialStep(3, "tutorial_step_3_first_spin");
               completeTutorialStep(3);
               enterTutorialStep(4);
               return;
@@ -8758,7 +8749,7 @@
           ) {
             tutorialCastleUpgraded = true;
             tutorialCompletionReady = true;
-            logTutorialStep(5, "castle_upgraded", { building: "Castle" });
+            logTutorialStep(5, "tutorial_step_5_castle_upgraded");
             closeShopModal();
             clearTutorialHighlight();
             renderTutorialStep(5);
@@ -8853,7 +8844,7 @@
             return;
           }
           if (tutorialStep === 5) {
-            logTutorialCompleted(TOTAL_TUTORIAL_STEPS, "completed");
+            logTutorialOutcome("tutorial_complete", 6);
             endTutorial();
             updateUI();
             return;
@@ -8863,7 +8854,7 @@
         }
         function onSkipTutorialClick() {
             if (tutorialStep > 0) {
-              logTutorialCompleted(tutorialStep, "skipped");
+              logTutorialOutcome("tutorial_skip", tutorialStep);
               completeTutorialStep(tutorialStep);
             }
             endTutorial();

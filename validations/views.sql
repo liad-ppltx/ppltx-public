@@ -92,12 +92,14 @@ SELECT
   SAFE_CAST(JSON_VALUE(params, '$.spins') AS INT64) AS energyUpdateAmount,
 
   -- 8. tutorial_progress
+  -- phase: tutorial_step_1_start, tutorial_step_2_bars, tutorial_step_3_first_spin,
+  -- tutorial_step_4_shop_opened, tutorial_step_5_castle_upgraded, tutorial_complete, tutorial_skip
+  -- stepNumber: 1..5 for tutorial_step_* phases, 6 for tutorial_complete.
+  -- tutorial_skip keeps the last reached step number.
   JSON_VALUE(params, '$.phase') AS tutorialPhase,
   JSON_VALUE(params, '$.tutorialId') AS tutorialTutorialId,
-  JSON_VALUE(params, '$.stepId') AS tutorialStepId,
   SAFE_CAST(JSON_VALUE(params, '$.stepNumber') AS INT64) AS tutorialStepNumber,
   SAFE_CAST(JSON_VALUE(params, '$.timeSpent') AS INT64) AS tutorialTimeSpent,
-  JSON_VALUE(params, '$.result') AS tutorialResult,
   SAFE_CAST(JSON_VALUE(params, '$.totalSpins') AS INT64) AS tutorialTotalSpins,
 
   -- 9. village_complete (sole progression in v1.0.6+; newLevel only on legacy rows)

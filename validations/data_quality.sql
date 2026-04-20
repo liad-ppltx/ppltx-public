@@ -45,7 +45,6 @@ SELECT
   -- 6. tutorial & progress
   COUNT(JSON_VALUE(params, '$.phase')) AS p_tutorialPhase,
   COUNT(JSON_VALUE(params, '$.tutorialId')) AS p_tutorialId,
-  COUNT(JSON_VALUE(params, '$.stepId')) AS p_stepId,
   COUNT(JSON_VALUE(params, '$.stepNumber')) AS p_stepNumber,
   COUNT(JSON_VALUE(params, '$.newLevel')) AS p_newLevel,
   COUNT(JSON_VALUE(params, '$.villageId')) AS p_villageId,
