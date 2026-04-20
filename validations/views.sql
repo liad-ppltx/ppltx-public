@@ -100,7 +100,6 @@ SELECT
   JSON_VALUE(params, '$.tutorialId') AS tutorialTutorialId,
   SAFE_CAST(JSON_VALUE(params, '$.stepNumber') AS INT64) AS tutorialStepNumber,
   SAFE_CAST(JSON_VALUE(params, '$.timeSpent') AS INT64) AS tutorialTimeSpent,
-  SAFE_CAST(JSON_VALUE(params, '$.totalSpins') AS INT64) AS tutorialTotalSpins,
 
   -- 9. village_complete (sole progression in v1.0.6+; newLevel only on legacy rows)
   SAFE_CAST(JSON_VALUE(params, '$.newLevel') AS INT64) AS newLevel,
